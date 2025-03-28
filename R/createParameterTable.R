@@ -1,10 +1,12 @@
 
 ##' @param file Control stream. If possible, it is recommended to use output control stream.
 
+##' @import scales
+
 ### should also take arg to include fixed parameters. Maybe default
 ### should be estimated and non-zero?
 
-createParameterTable <- function(file,args.ParsText,dt.labels=NULL,by.labels){
+createParameterTable <- function(file.lst,args.ParsText,dt.labels=NULL,by.labels){
     
 ### If NMcalc version < 0.0.3 we need to define CVlnorm
     CVlnorm <- function(omega){
@@ -22,26 +24,49 @@ createParameterTable <- function(file,args.ParsText,dt.labels=NULL,by.labels){
     ## Call the counter "num" when reading the labels.
     
 #### requires a covariance step
-    pars <- NMreadExt(file=file)
-    labs <- do.call(NMreadParsText,c(args.ParsText,file=file))
+    pars <- NMreadExt(file=file.lst,as.fun="data.table")
+    labs <- do.call(NMreadParsText,c(args.ParsText,file=file.lst,as.fun="data.table"))
     
     ## subset whatever should be in the parameter table. In this example, we skip FIXed parameters.
+    
     pars <- mergeCheck(labs[,!(c("i","j","par.type"))],pars,by=cc(model,parameter),all.x=T,quiet=T)
     
 ##### group parameters
-    pars[par.type=="THETA",parGRP:="theta"]
-    pars[par.type=="THETA"&trans%in%cc(addErr,propErr),parGRP:="resVar"]
-    pars[par.type=="THETA"&symbol%in%cc(ADDP,ADDM,PROPP,PROPM),parGRP:="resVar"]
 
-    pars[par.type=="OMEGA"&i==j,parGRP:="OMEGAdiag"]
-    pars[par.type=="OMEGA"&i!=j,parGRP:="OMEGAcorr"]
-    pars[,parGRP:=factor(parGRP,levels=cc(theta,OMEGAdiag,OMEGAcorr,resVar))]
-
-    pars[par.type=="SIGMA",parGRP:="resVar"]
+#### guideline todo: How to define sigmas?
     
-    pars[,.N,by=.(parGRP)]
+### Guideline for panel column:
+    ## THETA: struct (default), cov, RV
+    ## OMEGA: IIV/BSV (default), IOV/BOV
+    ## OMEGA off diag: (handled automatically)
 
-   ##  colnames(pars)
+### trans:
+    ## THETA none, log, addErr/SD, propErr/CV
+    ## OMEGA: lognormal (default), normal
+    ## OMEGA off diag: (handled automatically)
+    
+    if(!"panel"%in%colnames(pars)) pars[,panel:=NA_character_]
+    pars[is.na(panel)&par.type=="THETA",panel:="struct"]
+    ## pars[par.type=="THETA"&trans%in%cc(addErr,propErr),parGRP:="resVar"]
+    ## pars[par.type=="THETA"&symbol%in%cc(ADDP,ADDM,PROPP,PROPM),parGRP:="resVar"]
+    
+    pars[is.na(panel)&par.type=="OMEGA"&i==j,panel:="IIV"]
+    pars[par.type=="OMEGA"&panel=="BSV",panel:="IIV"]
+    pars[par.type=="OMEGA"&panel=="BOV",panel:="IOV"]
+    pars[is.na(panel)&par.type=="OMEGA"&i!=j,panel:="OMEGAcorr"]
+
+    pars[is.na(panel)&par.type=="SIGMA"&i==j,panel:="resvar"]
+    pars[is.na(panel)&par.type=="SIGMA"&i!=j,panel:="SIGMAcorr"]
+
+    pars[tolower(panel)%in%cc(rv,resvar),panel:="resvar"]
+
+### TODO: do we want to generate a factor with the observed values, guessing an order?
+    ## pars[,panel:=factor(parGRP,levels=cc(theta,OMEGAdiag,OMEGAcorr,resVar))]
+
+    
+    ## pars[,.N,by=.(parGRP)]
+
+    ##  colnames(pars)
 
     ## if(!"panel"%in%colnames(pars))
     if(!is.null(dt.labels)){
@@ -65,11 +90,8 @@ createParameterTable <- function(file,args.ParsText,dt.labels=NULL,by.labels){
     ## est.orig is the estimate on the scale used in Nonmem
     pars[,est.orig:=est]
     ## back transform parameters estimated on a transformed scale
-    pars[,.N,.(par.type,trans)]
-    
-### do not transform se or rse
-    cols.trans <- intersect(cc(est,CI.l,CI.u),colnames(pars))
-    pars[trans%in%cc(log,logTrans),(cols.trans):=lapply(.SD,exp),.SDcols=cols.trans]
+    ##pars[,.N,.(par.type,trans)]
+
     
     
     ## correlation between omegas
@@ -88,24 +110,33 @@ createParameterTable <- function(file,args.ParsText,dt.labels=NULL,by.labels){
 
     
 ### these use parGRP to identify the groups
-    if(!"parGRP"%in%colnames(pars)){
-        pars[,parGRP:=""]
-    }
-    if(!"panel"%in%colnames(pars)){
-        pars[,panel:=""]
-    }
     if(!"label"%in%colnames(pars)){
         pars[,label:=""]
     }
     if(!"unit"%in%colnames(pars)){
         pars[,unit:=""]
     }
-    pars[parGRP=="theta"&panel!="cov",tab.lab:=paste(label,symbol,sep=", ")]
+    pars[par.type=="THETA"&panel!="cov",tab.lab:=paste(label,symbol,sep=", ")]
 
     pars[grepl("^ *-* *$",unit),unit:=NA]
 
-    pars[parGRP=="OMEGAdiag"&is.na(label),label:=paste("BSV",symbol)]
-    pars[parGRP=="OMEGAdiag"&trans=="normalOm",label:=paste(label,"(additive)")]
+    pars[panel=="BSV"&is.na(label),label:=paste("BSV",symbol)]
+    pars[panel=="BOV"&is.na(label),label:=paste("BOV",symbol)]
+
+###### patching/standardizing trans
+        if(!"trans"%in%colnames(pars)){
+        pars[,trans:=NA_character_]
+    }
+
+    pars[par.type=="THETA"&is.na(trans),trans:="none"]
+    pars[par.type=="THETA"&trans=="logTrans",trans:="log"]
+    pars[par.type=="OMEGA"&i==j&is.na(trans),trans:="lognormal"]
+    pars[par.type=="OMEGA"&trans=="lognormalOm",trans:="lognormal"]
+
+    pars[par.type=="THETA"&tolower(trans)=="SD",trans:="addErr"]
+    pars[par.type=="THETA"&tolower(trans)=="CV",trans:="propErr"]
+    
+    pars[par.type=="OMEGA"&trans=="normal",label:=paste(label,"(additive)")]
     ## label done
 
     
@@ -120,21 +151,29 @@ createParameterTable <- function(file,args.ParsText,dt.labels=NULL,by.labels){
         pars[,tab.rse:="-"]
     }
 
-    
-    pars[parGRP=="OMEGAdiag"&is.na(trans),trans:="lognormalOm"]
-    pars[parGRP=="OMEGAcorr",tab.corr:=percent(corr,accuracy=1)]
-    pars[parGRP=="theta",tab.est:=sprintf("%s (%s)",signif(est,3),tab.rse)]
-    pars[parGRP=="theta"&FIX==1,tab.est:=sprintf("%s (fixed)",signif(est,3))]
-    pars[parGRP=="OMEGAdiag" &trans=="lognormalOm",tab.CV:=percent(CVlnorm(est),acc=1)]
-    pars[parGRP=="OMEGAdiag"&trans=="lognormalOm",tab.est:=sprintf("%s [%s] (%s)",signif(est,3),tab.CV,tab.rse)]
+    pars[panel=="OMEGAcorr",tab.corr:=percent(corr,accuracy=1)]
+    pars[panel=="SIGMAcorr",tab.corr:=percent(corr,accuracy=1)]
+
+### transformed values for reporting
+    ### do not transform se or rse
+    cols.trans <- intersect(cc(est,CI.l,CI.u),colnames(pars))
+    pars[trans%in%cc(log,logTrans),(cols.trans):=lapply(.SD,exp),.SDcols=cols.trans]
+
+    pars[par.type=="THETA",tab.est:=sprintf("%s (%s)",signif(est,3),tab.rse)]
+    pars[par.type=="THETA"&FIX==1,tab.est:=sprintf("%s (fixed)",signif(est,3))]
+    pars[par.type=="OMEGA"&trans=="lognormal",tab.CV:=percent(CVlnorm(est),acc=1)]
+    pars[par.type=="OMEGA"&trans=="lognormal",tab.est:=sprintf("%s [%s] (%s)",signif(est,3),tab.CV,tab.rse)]
+
     ## for this, the associated theta est has to be used to calc CV
-    ## pars[parGRP=="OMEGAdiag"&trans=="normalOm",tab.CV:=percent(sd/est,acc=1)]
-    ## pars[parGRP=="OMEGAdiag"&trans=="normalOm",tab.est:=sprintf("%s [%s] (%s)",signif(est,3),tab.CV,tab.rse)]
-    pars[parGRP=="OMEGAdiag"&trans=="normalOm",tab.est:=sprintf("%s (%s)",signif(est,3),tab.rse)]
-##    pars[parGRP=="OMEGAdiag"&is.na(label),tab.lab:=paste("BSV",symbol)]
+    ## pars[panel=="OMEGAdiag"&trans=="normal",tab.CV:=percent(sd/est,acc=1)]
+    ## pars[panel=="OMEGAdiag"&trans=="normal",tab.est:=sprintf("%s [%s] (%s)",signif(est,3),tab.CV,tab.rse)]
+    pars[par.type=="OMEGA"&trans=="normal",tab.est:=sprintf("%s (%s)",signif(est,3),tab.rse)]
+    ##    pars[panel=="OMEGAdiag"&is.na(label),tab.lab:=paste("BSV",symbol)]
 
     
-    pars[parGRP=="OMEGAcorr",tab.est:=sprintf("%s [%s] (%s)",signif(est,3),tab.corr,tab.rse)]
+    pars[panel=="OMEGAcorr",tab.est:=sprintf("%s [%s] (%s)",signif(est,3),tab.corr,tab.rse)]
+
+
     if(all(cc(CI.l,CI.u)%in%colnames(pars))){
         pars[,CI:=sprintf("[%s,%s]",signif(CI.l,2),signif(CI.u,2))]
         pars[FIX==1,CI:="-"]
@@ -155,13 +194,20 @@ createParameterTable <- function(file,args.ParsText,dt.labels=NULL,by.labels){
     pars[par.type=="OMEGA",parameter.ltx:=paste0("$\\Omega_{",i,",",j,"}$")]
     pars[par.type=="SIGMA",parameter.ltx:=paste0("$\\sigma_{",i,",",j,"}$")]
     
-    formatParTable(pars)
+    pars[]
 }
+
+
 
 ##' @details A support function for createParameterTable().
 ##' @keywords internal
-formatParTable <- function(pars){
+formatParTable <- function(pars,include.fix="ifNotZero",include,drop){
+
+    if(missing(include)) include <- NULL
+    if(missing(drop)) drop <- NULL
     
+
+### Include * at transformed variables
     pars[trans%in%c("log","logTrans"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\*\\$",parameter.ltx)]
     ## shrinkage is not included in the parameter table for now.
 
@@ -171,10 +217,24 @@ formatParTable <- function(pars){
     pars.full <- copy(pars)
     
     ## subset whatever should be in the parameter table. In this example, we skip FIXed parameters.
-    pars <- pars[symbol!="not used"]
-    pars <- pars[FIX==0|symbol%in%cc(F1TAB,AMAX,AC50,KENZ,V2PWT,V3PWT,V2MWT,V3MWT)]
+    ## pars <- pars[symbol!="not used"]
+    if( is.logical(include.fix) && isFALSE(include.fix) ){
+        pars <- pars[FIX==0|symbol%in%include]
+    }
+    
+    if( !is.logical(include.fix) && tolower(include.fix)=="ifnotzero" ){
+        pars <- pars[FIX==0|est!=0|symbol%in%include]
+    }
 
+    if( !is.null(drop) ){
+        pars <- pars[!symbol%in%drop]
+    }
+
+    
+    ## pars <- pars[]
+    ## pars <- pars[FIX==0|symbol%in%cc(F1TAB,AMAX,AC50,KENZ,V2PWT,V3PWT,V2MWT,V3MWT)]    
     pars.write <- pars[,.(Parameter=par.name,
+                          ## Paramtype=panel,
                           Symbol=symbol,
                           Label=tab.lab,
                           Estimate=tab.est,

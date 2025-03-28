@@ -12,9 +12,9 @@
 
 
 #### Section start: Initialization ####
-dir.main = "/data/prod_vx973_phase1_analysis/trunk/analysis/SAD_PopPK"
+dir.main = "/data/prod_vx548_lsr_phase2_analysis/trunk/analysis/PK_review"
 setwd(dir.main)
-source(".Rprofile")
+## source(".Rprofile")
 
 
 
@@ -23,11 +23,11 @@ library(data.table)
 library(devtools)
 ## devtools::load_all("/data/sandbox/trunk/analysis/NMsim/wdirs/NMdata")
 ## NMdata 0.1.9 needed
-devtools::load_all("~/wdirs/NMdata")
-## library(NMdata)
+## devtools::load_all("~/wdirs/NMdata")
+library(NMdata)
 ## NMsim 0.2.0 needed
-devtools::load_all("~/wdirs/NMsim")
-## library(NMsim)
+## devtools::load_all("~/wdirs/NMsim")
+library(NMsim)
 library(tidyvpc)
 library(patchwork)
 library(tracee)
@@ -71,15 +71,18 @@ args <- commandArgs(trailingOnly = TRUE)
 if(length(args)>0){
     file.mod <- args[1]
 } else {
-    file.mod <- "models/run017.mod"
+    ## file.mod <- "models/run017.mod"
+    file.mod <- "models/12746.mod"
 }
 
 model <- modelPaths(file.mod,as.dt=T)
 
 
 ## just to know what variables are available
-NMscanInput(model$mod) |>
-    colnames()
+if(F){
+    NMscanInput(model$mod) |>
+        colnames()
+}
 
 ## strat.raw <- list(split=c(params$col.dvid,"DEVPART"), facet="DOSESS")
 ## strat.raw <- list(split=c(params$col.dvid,"DEVPART"), facet="DOSE1")
@@ -101,15 +104,17 @@ params <- list(
     sge=TRUE,
     nc = 18,
     reuse.results=TRUE,
-    unitDV = "ng/mL",
-    ## not used
-    ## compound_name = c("SUZ","M6-SUZ"),
-    col.dvid = "DVID",
+#### Postprocessing
     ##covLookup = strat.vars, # used for creating plot filenames by their short name (i.e. "DOSE1_100mg" instead of "First Dose Amount (mg)_100mg" )
     ## redundant
     ## stratify_by = names(strat.vars),
-    col.bin = "NFRLT" # the column used for binning the vpc stats, usually nominal time after first dose
-
+    col.bin = "NFRLT", # the column used for binning the vpc stats, usually nominal time after first dose
+#### Plotting
+    ## unitDV = "ng/mL",
+    lab.y="Concentration (ng/mL)",
+    ## not used
+    ## compound_name = c("SUZ","M6-SUZ"),
+    col.dvid = "DVID"
 )
 
 ## dir.dest is where the output files will be saved (i.e. html report and
@@ -119,14 +124,19 @@ dir.dest <- file.path(dirname(model$mod), paste0(model$run,"_VPC"))
 
 
 plot.layouts <- list(
-    raw_byDevpart=list(
-        split="DVID",
-        facet=c("DEVPART"),
-        predcorr=FALSE)
-   ,
+    ##  raw_byDevpart=list(
+    ##      split="DVID",
+    ##      facet=c("DEVPART"),
+    ##      predcorr=FALSE)
+    ## ,
     raw_byDose=list(
         split=c("DVID","DEVPART"),
-        facet=c("DOSEMG"),
+        facet=c("DOSESS"),
+        predcorr=FALSE)
+   ,
+    raw_Dose=list(
+        split=c("DVID","DEVPART","DOSESS"),
+        facet=NULL,
         predcorr=FALSE)
    ,
     pcorr_all=list(
@@ -158,7 +168,7 @@ plot.versions <- list(
 filters <- NULL
 if(params$include_blq){
     
-    filters <- NMreadFilters(file=params$file.mod)
+    filters <- NMsim:::NMreadFilters(file=params$file.mod)
     ## filters[cond=="EXCLF.NE.0",cond:="EXCLF.GT.10"]
     filters[cond=="FLAG.NE.0",cond:="FLAG.GT.10"]
 }
@@ -168,21 +178,28 @@ if(params$include_blq){
 
 
 #### Section start: Run the simulations #### 
-
+strat.vars <- unique(unlist(lapply(plot.layouts,function(x)c(x$split,x$facet))))
 
 ############ This is a usefult check. It should be re-enabled somewhere.
 if(F){
     ## check that all variables listed in strat.vars are columns in dataset:
 
-### If we want to do this, we need to read input data set and check column names.
+    cnames.data <- NMscanInput(model$mod) |>
+        colnames()
 
-    covs.miss = setdiff(strat.vars,colnames(modeling_dataset)) 
+### If we want to do this, we need to read input data set and check column names.
+    
+    carry.out <- c("TIME","EVID","DV","LLOQ","BLQ",
+                   strat.vars,params$col.dvid,
+                   params$col.bin)
+    
+    covs.miss = setdiff(strat.vars,cnames.data) 
     if(length(covs.miss)){
         stop(sprintf("Columns not found:\n %s", paste(covs.miss,collapse=" ,")))
     }
 }
 
-strat.vars <- unique(unlist(lapply(plot.layouts,function(x)c(x$split,x$facet))))
+
 
 path.res <- NMsim(
     file.mod = model$mod,
@@ -213,8 +230,8 @@ simres <- NMreadSim(path.res,wait = TRUE)
 simres <- simres[EVID==0]
 
 ## simres[,DVID:=PCTESTCD]
-simres[,DVID:="VX-973"]
-simres[,NFRLT:=TIME]
+## simres[,DVID:="VX-973"]
+## simres[,NFRLT:=TIME]
 
 ### deriving obs from first sim. I think this should be sufficient for in-sample VPCs
 data.obs <- simres[NMREP==first(NMREP)&model.sim==first(model.sim)] 
@@ -225,7 +242,7 @@ data.obs <- simres[NMREP==first(NMREP)&model.sim==first(model.sim)]
 
 #### Section start: summarise the data and plot  ####
 
-message("summarise the data and plot")
+message("Summarise the data and plot")
 
 ########## automated but pretty ugly
 
@@ -308,12 +325,13 @@ plotStats <- function(stats,dt.plots,ymax=NULL){
                         strat=stats.strat.split[[name.split]]
                         )
             
-            p <- plot_vpc(.vpcdata = sub, .predcorr=predcorr,.y_axis_lab = "Concentration (ng/mL)")+
+            p <- plot_vpc(.vpcdata = sub, .predcorr=predcorr,.y_axis_lab = params$lab.y)+
                 labs(subtitle=name.split)
+
             
             if(length(dtplot$facet)&&!is.na(unique(dtplot$facet))){
                 p <- p +
-                    facet_wrap(dtplot$facet, scales="free",ncol=2)
+                    facet_wrap(unique(dtplot$facet), scales="free",ncol=2)
             }
             if(!is.null(ymax)) p <- p+lims(y=c(NA,ymax))
             return(p)
@@ -377,9 +395,24 @@ for(Nstrat in 1:length(list.plot.strat)){
 
     
     p1 <- plotStats(stats,plots.this,ymax=NULL)
-    pls[Nstrat] <- p1
+
+    ## Bug: names should go in first
+    ##browser()
+
+    names(p1) <- 
+        plots.this[,paste0(name.plot,
+                           "_",gsub(" ","_",split),
+                           ifelse(is.na(facet),"",paste0("_facet_",paste(facet,collapse="_")))),
+                   by=1:nrow(plots.this)][,V1]
     
-    names(pls)[Nstrat] <- paste(plots.this[,paste0(name.plot,split,"_facet_",paste(plots.this$facet,collapse="_"))])
+    pls[[Nstrat]] <- p1
+    
+    ## names(pls)[Nstrat] <- 
+    ##     plots.this[,paste0(name.plot,
+    ##                       "_",gsub(" ","_",split),
+    ##                       ifelse(is.na(facet),"",paste0("_facet_",paste(facet,collapse="_")))),
+    ##                       by=1:nrow(plots.this)][,V1]
+
     ##    names(pls)[Nstrat] <- names(p1)
     ##names.pls <- names(pls)
     ##names.pls[Nstrat] <- paste(dt.plots[,paste(split,predcorr)])
@@ -412,6 +445,7 @@ pls2 <- lapply(1:length(pls),function(n){
     x
 })
 pls3 <- do.call(c,pls2)
+## names(pls3)
 
 ### How do we handle log version and a 24h version? I kept some code further down.
 
@@ -448,18 +482,47 @@ all.plots.0 <- lapply(1:length(pls3),function(np){
 
 names(all.plots.0) <- names(pls3)
 
-all.plots.1 <- lapply(1:length(all.plots.0),function(nx){
-    el.x <- all.plots.0[[nx]]
-##browser()    
-    names(el.x) <- paste(names(all.plots.0)[nx],names(el.x),sep="_")
-    el.x
-})
-                                    
-all.plots <- do.call(c,all.plots.1)
+eliminateLevel <- function(list){
+    all.els <- lapply(1:length(list),function(nx){
+        el.list <- list[[nx]]
+        if(is.null(el.list)) return(el.list)
+        ##browser()    
+        names(el.list) <- paste(names(list)[nx],names(el.list),sep="_")
+        el.list
+    })
+    list2 <- do.call(c,all.els)
+    list2
+}
+
+all.plots.1 <- eliminateLevel(all.plots.0)
+all.plots <- eliminateLevel(all.plots.1)
+
+if(F){
+    all.plots.1 <- lapply(1:length(all.plots.0),function(nx){
+        el.x <- all.plots.0[[nx]]
+        ##browser()    
+        names(el.x) <- paste(names(all.plots.0)[nx],names(el.x),sep="_")
+        el.x
+    })
+    all.plots <- do.call(c,all.plots.1)
+
+
+    all.plots.2 <- lapply(1:length(all.plots),function(n){
+        x <- all.plots[[n]]
+        if(is.null(x)) return(x)
+        name.main <- names(all.plots)[n]
+        names(x) <- paste(name.main,names(x))
+        x
+    })
+    all.plots <- do.call(c,all.plots.2)
+}
 
 names(all.plots) <- gsub(".","_",NMsim:::cleanStrings(names(all.plots)),fixed=TRUE)
 
 
-ggwrite(all.plots,file=file.path(dir.dest,"vpc.png"),script=script,useNames=T,time=model$lab)
-ggwrite(all.plots,file=file.path(dir.dest,"vpcs_allplot.pdf"),script=script,time=model$lab)
+names(all.plots)
+##lapply(all.plots,names)
+
+ggwrite(all.plots,file=file.path(dir.dest,"vpc.png"),script=script,useNames=T,time=model$lab,canvas="a4")
+ggwrite(all.plots,file=file.path(dir.dest,"vpcs_allplots.pdf"),script=script,time=model$lab,onefile=TRUE)
 

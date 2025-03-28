@@ -1,6 +1,7 @@
 ##' Get and source an R script.
 ##' 
-##' Get file from remote library and inport it into project if it does not exist. Then source it. 
+##' Get file from remote library and inport it into project if it does
+##' not exist. Then source it.
 ##'
 ##' @param file File name of wanted file
 ##' @param dir.central Folder path of wanted file
@@ -69,6 +70,10 @@ getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.dir
     if (silent == F){message("Copying ",file,"\n")}
     file.copy(from=org,
               to=dest,overwrite=TRUE)
+      lines.script <- readLines(org,warn=FALSE)
+      lines.script <- c(sprintf("## Copied from %s","on %s using NMwork::getSource().",org,Sys.Date()),
+                        "",lines.script)
+      NMsim:::writeTextFile(lines=lines.script,file=dest)
   }
   ## Sourcing the file
   source(dest,echo=F)
