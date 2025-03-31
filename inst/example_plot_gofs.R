@@ -23,3 +23,12 @@ pars <- createParameterTable(file.lst=model$mod,args.ParsText=list(
 source("~/wdirs/NMwork/R/plotEstCor.R")
 
 plotEstCorr(model$lst,pars=pars)
+
+NMreadSection(model$mod)
+library(devtools)
+load_all("~/wdirs/NMdata")
+filters <- NMreadFilters(file=model$mod,as.fun="data.table")
+    ## filters[cond=="EXCLF.NE.0",cond:="EXCLF.GT.10"]
+filters[cond=="FLAG.NE.0",cond:="FLAG.GT.10"]
+
+filters

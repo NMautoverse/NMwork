@@ -55,11 +55,11 @@ getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.dir
   if (!dir.exists(dir.central) || !file.exists(org)){
     if(file.exists(file.path(dir.local,file))){
       #File exists locally, but not external. Load local
-      source(file.path(dest),echo=F)
+      source(file.path(dest),echo=FALSE)
       warning("File not found at dir.central. Local version has been imported.")
       return(invisible())
     } else {
-      if (silent == F){message("No local version have been found.\n")}
+      if (silent == FALSE){message("No local version have been found.\n")}
       stopifnot(file.exists(dir.central))
       stopifnot(file.exists(org))
     }
@@ -67,7 +67,7 @@ getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.dir
   ## Checking whether there is a local version and if it missing, it is copied
   if(!file.exists(dest) || overwrite){
     ## Copying the latest version of the file
-    if (silent == F){message("Copying ",file,"\n")}
+    if (silent == FALSE){message("Copying ",file,"\n")}
     file.copy(from=org,
               to=dest,overwrite=TRUE)
       lines.script <- readLines(org,warn=FALSE)
@@ -76,6 +76,6 @@ getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.dir
       NMsim:::writeTextFile(lines=lines.script,file=dest)
   }
   ## Sourcing the file
-  source(dest,echo=F)
+  source(dest,echo=FALSE)
 }
 
