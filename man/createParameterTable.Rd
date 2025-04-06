@@ -5,7 +5,12 @@
 \title{Create parameter table data.frame using `NMreadExt()` and
 `NMreadParsText()`}
 \usage{
-createParameterTable(file.lst, args.ParsText, dt.labels = NULL, by.labels)
+createParameterTable(
+  file.lst,
+  args.ParsText = NULL,
+  dt.labels = NULL,
+  by.labels
+)
 }
 \arguments{
 \item{file.lst}{Control stream. If possible, it is recommended to

@@ -1,6 +1,25 @@
 
-##' @details A support function for createParameterTable().
+##' @details A simple printing function for createParameterTable(). It creates three objects.
+##' \itemize{
+##' \item partab_full: a df with all columns for selected parameters.
+##' \item partab_detail: a flextable with selected columns for selected parameters.
+##' \item partab_present: a flextable with fewer selected columns for selected parameters.
+##' }
+##'
+##' Notes: I suggest dropping the asterisk on parameter.ltx and
+##' instead include a nicely formated transformation column in
+##' createParameterTable(). It could be included in a parameter table
+##' only if non-standard transformations are used.
+##'
+##' formatParameterTable is a bad name. This function selects rows and
+##' columns in three different levels of detail and returns those
+##' three objects. Formatting should happen in
+##' `createParameterTable()`.
+##'
+##' @import flextable
 ##' @keywords internal
+##'
+
 formatParameterTable <- function(pars,include.fix="ifNotZero",include,drop){
 
     if(missing(include)) include <- NULL
@@ -33,7 +52,7 @@ formatParameterTable <- function(pars,include.fix="ifNotZero",include,drop){
     
     ## pars <- pars[]
     ## pars <- pars[FIX==0|symbol%in%cc(F1TAB,AMAX,AC50,KENZ,V2PWT,V3PWT,V2MWT,V3MWT)]    
-    pars.write <- pars[,.(Parameter=par.name,
+    pars.detail <- pars[,.(Parameter=par.name,
                           ## Paramtype=panel,
                           Symbol=symbol,
                           Label=tab.lab,
@@ -41,16 +60,16 @@ formatParameterTable <- function(pars,include.fix="ifNotZero",include,drop){
                           "95% CI"=CI,
                           Transformation=trans
                           )]
-    pars.write[is.na(Label),Label:=""]
+    pars.detail[is.na(Label),Label:=""]
     
-    ft.write <- flextable(pars.write) |> autofit()
+    ft.detail <- flextable(pars.detail) |> autofit()
 
 ### smaller table for presentation
-    pars.present <- pars.write[,.(Symbol,Label,"Estimate [CV] (RSE)"=Estimate,`95% CI`)]
+    pars.present <- pars.detail[,.(Symbol,Label,"Estimate [CV] (RSE)"=Estimate,`95% CI`)]
     ft.present <- flextable(pars.present) |> autofit()
     
     list(partab_full=pars.full,
-         partab_detail=ft.write,
+         partab_detail=ft.detail,
          partab_present=ft.present)
 
 }

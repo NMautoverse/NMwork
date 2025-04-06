@@ -19,7 +19,7 @@
 ### should also take arg to include fixed parameters. Maybe default
 ### should be estimated and non-zero?
 
-createParameterTable <- function(file.lst,args.ParsText,dt.labels=NULL,by.labels){
+createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.labels){
     
 ### If NMcalc version < 0.0.3 we need to define CVlnorm
     CVlnorm <- function(omega){
@@ -29,7 +29,8 @@ createParameterTable <- function(file.lst,args.ParsText,dt.labels=NULL,by.labels
     
 ### this example requires NMdata 0.1.5 (a little more code is needed for 0.1.4)
 
-### parameters are assumed to be concistently labeled in $THETA, $OMEGA and $SIGMA sections
+### parameters are assumed to be concistently labeled in $THETA,
+### $OMEGA and $SIGMA sections
 
 ### For off-diagonal elements to be identified in NMreadParsText, you must:
     ## Include a counter in $OMEGA.
@@ -38,7 +39,10 @@ createParameterTable <- function(file.lst,args.ParsText,dt.labels=NULL,by.labels
     
 #### requires a covariance step
     pars <- NMreadExt(file=file.lst,as.fun="data.table")
-    labs <- do.call(NMreadParsText,c(args.ParsText,file=file.lst,as.fun="data.table"))
+    
+    labs <- do.call(NMreadParsText,
+                    as.list(c(args.ParsText,file=file.lst,as.fun="data.table"))
+                    )
     
     ## subset whatever should be in the parameter table. In this example, we skip FIXed parameters.
     
@@ -199,7 +203,10 @@ createParameterTable <- function(file.lst,args.ParsText,dt.labels=NULL,by.labels
     
     pars[par.type=="SIGMA",tab.est:=sprintf("%s (%s)",signif(est,3),tab.rse)]
 
-    
+
+    ## parameter - label
+    pars[,par.label:=sprintf("%s - %s", par.name,label)]
+
     ## Latex versions of columns for report tables
     pars[,tab.est.ltx:=latexify(tab.est,doublebackslash = FALSE)]
     pars[,tab.lab.ltx:=latexify(tab.lab,doublebackslash = FALSE)]

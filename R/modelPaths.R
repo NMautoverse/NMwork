@@ -5,6 +5,7 @@
 ##'     should the format be simplified to a list of model elements,
 ##'     rather than a list of (model) lists of elements?
 ##' @import data.table
+##' @export
 
 modelPaths <- function(file,as.dt=FALSE,simplify=TRUE){
      
