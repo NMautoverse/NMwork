@@ -1,11 +1,17 @@
-##' @param mod path to control stream
+##' Create a convenient set of file paths and other info related to a model.
+##' @param file path to control stream, or almost any other model file
+##' @param as.dt Return model information in a data.table?
+##' @param simplify If only one model supplied, and `as.dt=FALSE`,
+##'     should the format be simplified to a list of model elements,
+##'     rather than a list of (model) lists of elements?
+##' @import data.table
 
-modelPaths <- function(mod,as.dt=FALSE,simplify=TRUE){
+modelPaths <- function(file,as.dt=FALSE,simplify=TRUE){
+     
     
-
-    all <- list(mod=fnExtension(mod,"mod")
-               ,lst=fnExtension(mod,"lst")
-               ,run=basename(mod) |> fnExtension("")
+    all <- list(mod=fnExtension(file,"mod")
+               ,lst=fnExtension(file,"lst")
+               ,run=basename(file) |> fnExtension("")
                 )
     
     all <- within(all,{
@@ -22,8 +28,8 @@ modelPaths <- function(mod,as.dt=FALSE,simplify=TRUE){
         line.desc
     }
     all$name <- lapply(all$mod,funName) |> unlist()
-
-    if(!is.null(names(mod))) all$name <- names(mod)
+    
+    if(!is.null(names(file))) all$name <- names(file)
     
     refName <- function(mod){
         

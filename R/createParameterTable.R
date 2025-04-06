@@ -1,7 +1,20 @@
-
-##' @param file Control stream. If possible, it is recommended to use output control stream.
-
+##' Create parameter table data.frame using `NMreadExt()` and
+##' `NMreadParsText()`
+##' 
+##' @param file.lst Control stream. If possible, it is recommended to
+##'     use output control stream. You can also use input control
+##'     stream.
+##' @param args.ParsText List of arguments to be passes to
+##'     `NMreadParsText()`.
+##' @param dt.labels Optional table of labels to overwrite results
+##'     from `NMreadParsText()`. Useful to correcissues on a model you
+##'     don´t want to rerun.
+##' @param by.labels If `dt.labels` provided, names of columns to
+##'     merge by.
+##' @import NMdata
 ##' @import scales
+##' @export
+##' @seealso formatParTable
 
 ### should also take arg to include fixed parameters. Maybe default
 ### should be estimated and non-zero?
@@ -198,59 +211,3 @@ createParameterTable <- function(file.lst,args.ParsText,dt.labels=NULL,by.labels
 }
 
 
-
-##' @details A support function for createParameterTable().
-##' @keywords internal
-formatParTable <- function(pars,include.fix="ifNotZero",include,drop){
-
-    if(missing(include)) include <- NULL
-    if(missing(drop)) drop <- NULL
-    
-
-### Include * at transformed variables
-    pars[trans%in%c("log","logTrans"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\*\\$",parameter.ltx)]
-    ## shrinkage is not included in the parameter table for now.
-
-#### It would be good to be able to save this one
-    ## NMstamp(pars,script=label.script,model=model$label)
-    ## saveRDS(pars,fnOut)
-    pars.full <- copy(pars)
-    
-    ## subset whatever should be in the parameter table. In this example, we skip FIXed parameters.
-    ## pars <- pars[symbol!="not used"]
-    if( is.logical(include.fix) && isFALSE(include.fix) ){
-        pars <- pars[FIX==0|symbol%in%include]
-    }
-    
-    if( !is.logical(include.fix) && tolower(include.fix)=="ifnotzero" ){
-        pars <- pars[FIX==0|est!=0|symbol%in%include]
-    }
-
-    if( !is.null(drop) ){
-        pars <- pars[!symbol%in%drop]
-    }
-
-    
-    ## pars <- pars[]
-    ## pars <- pars[FIX==0|symbol%in%cc(F1TAB,AMAX,AC50,KENZ,V2PWT,V3PWT,V2MWT,V3MWT)]    
-    pars.write <- pars[,.(Parameter=par.name,
-                          ## Paramtype=panel,
-                          Symbol=symbol,
-                          Label=tab.lab,
-                          Estimate=tab.est,
-                          "95% CI"=CI,
-                          Transformation=trans
-                          )]
-    pars.write[is.na(Label),Label:=""]
-    
-    ft.write <- flextable(pars.write) |> autofit()
-
-### smaller table for presentation
-    pars.present <- pars.write[,.(Symbol,Label,"Estimate [CV] (RSE)"=Estimate,`95% CI`)]
-    ft.present <- flextable(pars.present) |> autofit()
-    
-    list(partab_full=pars.full,
-         partab_detail=ft.write,
-         partab_present=ft.present)
-
-}

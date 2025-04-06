@@ -1,0 +1,29 @@
+Package: NMwork
+Type: Package
+Title: Seamless 'Nonmem' Simulation Platform
+Version: 0.0.0.901
+Authors@R: c(person("Philip", "Delff", email = "philip@delff.dk",role = c("aut","cre")),
+  person("Brian", "Reilly", email = "reilly.brian.m@gmail.com",role = c("ctb")))
+Maintainer: Philip Delff <philip@delff.dk>
+Description: Tools and scripts for R/Nonmem workflows
+License: MIT + file LICENSE
+RoxygenNote: 7.3.2
+Roxygen: list(roclets=c("collate", "namespace", "rd", "vignette"))
+Depends: R (>= 3.5.0)
+Imports:
+  data.table,
+  NMdata (>= 0.1.6)
+Suggests: 
+  testthat,
+  knitr,
+  rmarkdown,
+  ggplot2,
+  patchwork,
+  tracee,
+  tidyvpc,
+  NMcalc
+Encoding: UTF-8
+BugReports: https://github.com/NMautoverse/NMwork/issues
+Language: en-US
+URL: https://NMautoverse.github.io/NMwork/
+
