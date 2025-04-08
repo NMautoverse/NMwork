@@ -17,6 +17,7 @@ plotTrace <- function(file.mod,pars=NULL,label.by="parameter",col.label=NULL){
     
     
     ## ISAMPLE for NONMEM/SAEM setting options. 
+    #TODO: this will fail if ISAMPLE preprocessing + burn-in iterations goes below 200 
     iters <- iters[ITERATION<(-200)|ITERATION>0]
     iters[,ITERPLOT:=ITERATION]
     iters[ITERATION<0,ITERPLOT:=ITERATION-max(ITERATION)-1]
