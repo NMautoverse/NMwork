@@ -46,7 +46,7 @@ newModel <- function(file.mod,newfile,update=TRUE,values,
 ##### write output
     if(!is.null(newfile)) {
         if(!file.exists(newfile) || overwrite){
-            writeTextFile(newmod,file=newfile)
+            NMdata:::writeTextFile(newmod,file=newfile)
         } else {
             message("Model not overwritten")
         }

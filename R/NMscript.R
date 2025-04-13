@@ -14,15 +14,15 @@
 ##'     job errror output will be printed.
 
 NMscript <- function(
-                    script,
-                    file.mod,
-                    ...,
-                    sge=FALSE,
-                    wait=FALSE,
-                    nc = 4,
-                    stdout_file,
-                    stderr_file
-                    ) {
+                     script,
+                     file.mod,
+                     ...,
+                     sge=FALSE,
+                     wait=FALSE,
+                     nc = 4,
+                     stdout_file,
+                     stderr_file
+                     ) {
 
 
     if(missing(stdout_file)) stdout_file <- NULL
@@ -43,7 +43,7 @@ NMscript <- function(
         cmd <- paste("Rscript",script,mod, unlist(list(...)))
         if(sge){
             outfile.def.base <- file.path(dirname(mod),"qsub_debug",
-                                          paste(fnExtension(basename(script),ext=""),fnExtension(basename(file.mod),ext=""),sep="_"))
+                                          paste(fnExtension(basename(script),ext=""),fnExtension(basename(mod),ext=""),sep="_"))
             if(is.null(stdout_file)){
                 stdout_file <- fnExtension(outfile.def.base,"out")
                 if(!dir.exists(dirname(stdout_file))) dir.create(dirname(stdout_file))
@@ -57,6 +57,10 @@ NMscript <- function(
             ## concatenating first two chars of script name and the model name
             ## to get something recognizable in qstat job table.
             jobname <- paste(substr(fnExtension(basename(script),ext=""),1,2),fnExtension(basename(mod),ext=""),sep="")
+            ## qsub does not allow a jobname to start in a numeric
+            if(grepl("^[0-9]",jobname)) {
+                jobname <- paste0("NM",jobname)
+            }
 
             
             qsub_cmd = glue::glue('echo "{cmd}" | qsub -cwd -V -N {jobname} -o {stdout_file} -e {stderr_file} -pe orte {nc}')

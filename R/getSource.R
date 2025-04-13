@@ -67,11 +67,13 @@ getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.dir
   ## Checking whether there is a local version and if it missing, it is copied
   if(!file.exists(dest) || overwrite){
     ## Copying the latest version of the file
-    if (silent == FALSE){message("Copying ",file,"\n")}
+      if (silent == FALSE){message("Copying ",file,"\n")}
+      
     file.copy(from=org,
               to=dest,overwrite=TRUE)
       lines.script <- readLines(org,warn=FALSE)
-      lines.script <- c(sprintf("## Copied from %s","on %s using NMwork::getSource().",org,Sys.Date()),
+      lines.script <- c(sprintf("## Copied from %s",org),
+                        sprintf("## on %s using NMwork::getSource().",Sys.Date()),
                         "",lines.script)
       NMsim:::writeTextFile(lines=lines.script,file=dest)
   }
