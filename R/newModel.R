@@ -10,7 +10,8 @@
 newModel <- function(file.mod,newfile,update=TRUE,values,
                      ## preamble arguments
                      description=NULL,based.on,author=NULL,write.file=TRUE
-,overwrite=FALSE){
+                    ,overwrite=FALSE,
+                     modify=NULL){
 
     if(missing(values)) values <- NULL
 
@@ -24,7 +25,7 @@ newModel <- function(file.mod,newfile,update=TRUE,values,
                          fnext=".tab",add.section.text=NULL,
                          par.file="FILE",
                          text.section=NULL)
-        
+    
 ### update .msf
     newmod <- NMupdateFn(lines=newmod,section="EST",
                          model=basename(newfile),
@@ -32,17 +33,20 @@ newModel <- function(file.mod,newfile,update=TRUE,values,
                          par.file="MSFO",
                          text.section=NULL)
 
-
+    
 ### update pirana description sections
     ## NMwritePreamble()
     if(missing(based.on)) based.on <- NULL
     ## better if based.on is a relative path from the new file
     if(is.null(based.on)) based.on <- file.mod
     newmod <- NMwritePreamble(lines=newmod,description=description,based.on=based.on,author=author,write.file=FALSE)
+    
+    newmod <- NMsim:::modifyModel(modify=modify,list.ctl=list(newmod))[[1]]
 
+    ## data file
+    ## NMreplaceDataFile()
 
-### modify.model
-
+    
 ##### write output
     if(!is.null(newfile)) {
         if(!file.exists(newfile) || overwrite){
@@ -110,7 +114,7 @@ NMupdateFn <- function(lines,section,model,fnext,add.section.text,par.file,text.
     }
     
     ## replace old section with the updated one
-    NMdata:::NMwriteSectionOne(lines=lines,section=section,newlines=lines.section.new)
+    NMdata:::NMwriteSectionOne(lines=lines,section=section,newlines=lines.section.new,quiet=TRUE)
 
     
 }
