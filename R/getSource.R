@@ -50,32 +50,34 @@ getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.dir
     }
     
     dest = file.path(dir.local,file)
-  
-  ## do necessary files and dirs exist?
-  if (!dir.exists(dir.central) || !file.exists(org)){
-    if(file.exists(file.path(dir.local,file))){
-      #File exists locally, but not external. Load local
-      source(file.path(dest),echo=FALSE)
-      warning("File not found at dir.central. Local version has been imported.")
-      return(invisible())
-    } else {
-      if (silent == FALSE){message("No local version have been found.\n")}
-      stopifnot(file.exists(dir.central))
-      stopifnot(file.exists(org))
+    
+    ## do necessary files and dirs exist?
+    if (!dir.exists(dir.central) || !file.exists(org)){
+        if(file.exists(file.path(dir.local,file))){
+                                        #File exists locally, but not external. Load local
+            source(file.path(dest),echo=FALSE)
+            message("File not found at dir.central. Local version sourced.")
+            return(invisible())
+        } else {
+            if (silent == FALSE){message("No local version have been found.\n")}
+            stopifnot(file.exists(dir.central))
+            stopifnot(file.exists(org))
+        }
     }
-  }
-  ## Checking whether there is a local version and if it missing, it is copied
-  if(!file.exists(dest) || overwrite){
-    ## Copying the latest version of the file
-    if (silent == FALSE){message("Copying ",file,"\n")}
-    file.copy(from=org,
-              to=dest,overwrite=TRUE)
-      lines.script <- readLines(org,warn=FALSE)
-      lines.script <- c(sprintf("## Copied from %s","on %s using NMwork::getSource().",org,Sys.Date()),
-                        "",lines.script)
-      NMsim:::writeTextFile(lines=lines.script,file=dest)
-  }
-  ## Sourcing the file
-  source(dest,echo=FALSE)
+    ## Checking whether there is a local version and if it missing, it is copied
+    if(!file.exists(dest) || overwrite){
+        ## Copying the latest version of the file
+        if (silent == FALSE){message("Copying ",file,"\n")}
+        
+        file.copy(from=org,
+                  to=dest,overwrite=TRUE)
+        lines.script <- readLines(org,warn=FALSE)
+        lines.script <- c(sprintf("## Copied from %s",org),
+                          sprintf("## on %s using NMwork::getSource().",Sys.Date()),
+                          "",lines.script)
+        NMsim:::writeTextFile(lines=lines.script,file=dest)
+    }
+    ## Sourcing the file
+    source(dest,echo=FALSE)
 }
 

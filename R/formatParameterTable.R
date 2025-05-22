@@ -1,4 +1,4 @@
-
+##' @param drop symbol names to drop
 ##' @details A simple printing function for createParameterTable(). It creates three objects.
 ##' \itemize{
 ##' \item partab_full: a df with all columns for selected parameters.

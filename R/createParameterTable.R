@@ -141,7 +141,7 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.l
     pars[panel=="BOV"&is.na(label),label:=paste("BOV",symbol)]
 
 ###### patching/standardizing trans
-        if(!"trans"%in%colnames(pars)){
+    if(!"trans"%in%colnames(pars)){
         pars[,trans:=NA_character_]
     }
 
