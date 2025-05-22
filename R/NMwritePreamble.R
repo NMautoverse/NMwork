@@ -2,9 +2,11 @@
 ##'
 ##' @param file.mod The control stream to edit
 ##' @param description The desription to put in the preamble comments
-##' @param based.on A control stream that the model was based on (will be a comment in preamble).
+##' @param based.on A control stream that the model was based on (will
+##'     be a comment in preamble).
 ##' @param author Name of author to credit in preamble
-##' @param write.file Write to file? If not, resulting control stream will be returned user as lines, and nothing else done.
+##' @param write.file Write to file? If not, resulting control stream
+##'     will be returned to user as lines, and nothing else done.
 ##' @return lines (charachter) for new control stream
 ##' @keywords internal
 

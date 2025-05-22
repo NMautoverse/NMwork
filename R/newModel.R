@@ -1,7 +1,38 @@
 
 ##' Create new control stream based on an existing model
-##' @param overwrite If newfile exists, overwrite it?
 ##' 
+##' @param file.mod The path to the control stream to use as the
+##'     starting point.
+##' @param newfile The new control stream file path.
+##' @param update Update initial values with final paremeter estimates
+##'     of `file.mod`.
+##' @param values Specify specific initial values (passed to
+##'     NMwriteInits).
+##' @param description A Pirana style description field before the
+##'     control stream code.
+##' @param based.on A Pirana style field before the control stream
+##'     code.
+##' @param author A Pirana style field before the control stream code.
+##' @param write.file Write to newfile? Default is TRUE. See
+##'     `overwrite` too.
+##' @param overwrite If newfile exists, overwrite it?
+##' @param modify List of modification to do to control stream. Passed
+##'     to NMsim:::modifyModel().
+##' @details Pirana fields are only applied if existing in `file.mod`.
+##' @examples
+##' ## Reference Base model is run11. You are trying two differnt new
+##' ## models run21 and run22. update=TRUE to use final parameter
+##' ## estimates as new inits.
+##' newmod <- newModel(file.mod="run11.mod",newfile="run21.mod",update=TRUE)
+##' ## manual edits of run21.mod. Execute run21.mod
+##' ## NMexec(newmod)
+##' 
+##' # add run22 based on the code in run21 because we need most of the
+##' # same edits, so file.mod=run21. But you are testing run22 against
+##' # run11, so based.on="run11". Don't update the initial values
+##' # based on run21. We want them to be identical to run21, so use
+##' # update=FALSE.
+##' newmod <- newmodel(file.mod="run21.mod",newfile="run22.mod",based.on="run11.mod",update=FALSE)
 
 ### NMwriteInits is from NMsim 0.1.9 or NMdata 0.2.0
 ## newModel() should make it into NMdata at some point. But it uses
@@ -10,7 +41,8 @@
 newModel <- function(file.mod,newfile,update=TRUE,values,
                      ## preamble arguments
                      description=NULL,based.on,author=NULL,write.file=TRUE
-,overwrite=FALSE){
+                    ,overwrite=FALSE,
+                     modify=NULL){
 
     if(missing(values)) values <- NULL
 
@@ -24,7 +56,7 @@ newModel <- function(file.mod,newfile,update=TRUE,values,
                          fnext=".tab",add.section.text=NULL,
                          par.file="FILE",
                          text.section=NULL)
-        
+    
 ### update .msf
     newmod <- NMupdateFn(lines=newmod,section="EST",
                          model=basename(newfile),
@@ -32,21 +64,24 @@ newModel <- function(file.mod,newfile,update=TRUE,values,
                          par.file="MSFO",
                          text.section=NULL)
 
-
+    
 ### update pirana description sections
     ## NMwritePreamble()
     if(missing(based.on)) based.on <- NULL
     ## better if based.on is a relative path from the new file
     if(is.null(based.on)) based.on <- file.mod
     newmod <- NMwritePreamble(lines=newmod,description=description,based.on=based.on,author=author,write.file=FALSE)
+    
+    newmod <- NMsim:::modifyModel(modify=modify,list.ctl=list(newmod))[[1]]
 
+    ## data file
+    ## NMreplaceDataFile()
 
-### modify.model
-
+    
 ##### write output
-    if(!is.null(newfile)) {
+    if(write.file) {
         if(!file.exists(newfile) || overwrite){
-            writeTextFile(newmod,file=newfile)
+            NMdata:::writeTextFile(newmod,file=newfile)
         } else {
             message("Model not overwritten")
         }
@@ -110,7 +145,7 @@ NMupdateFn <- function(lines,section,model,fnext,add.section.text,par.file,text.
     }
     
     ## replace old section with the updated one
-    NMdata:::NMwriteSectionOne(lines=lines,section=section,newlines=lines.section.new)
+    NMdata:::NMwriteSectionOne(lines=lines,section=section,newlines=lines.section.new,quiet=TRUE)
 
     
 }
