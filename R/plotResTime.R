@@ -1,18 +1,36 @@
 # Plot CWRES/IWRES vs time (after dose, after first dose) 
 # 2025-04-07: do we want to include summarizeBy var?
+# 2025-04-08: adding 'tidytable' package to imports -- this package is a
+# tidyverse interface to data.table, it seeks to provide the performance
+# advantages of data.table but with the readability of tidyverse
 
 ##' @import data.table
 ##' @import ggplot2
 ##' @import NMdata
+##' @import tidytable
 ##' @export
 ##' 
-##' 
+##' @param .data dataset object to use for plotting. Must have all columns
+##'   required for plotting
+##' @param .file.mod the path to a completed NONMEM model which will be passed
+##'   to `NMdata::NMscanData()` to read in the dataset
+##' @param .ResCol the residuals column name (i.e. "RES", "CWRES", "NPDE",
+##'   etc.). Will be plotted as the y-axis.
+##' @param .TimeCol the time column name (i.e. "TIME", "AFRLT", "APRLT", "TAFD",
+##'   etc.). Will be plotted as the x-axis.
+##' @param .NomtimeCol nominal time column name. When this is non-NULL, this
+##'   column will be used for grouping observations and plotting a median + 90%
+##'   confidence interval for each nominal time point. Helpful when many
+##'   observations occur at the same time point and are hard to interpret.
+##' @param .AddSmooth TRUE/FALSE. If TRUE, will add a smooth line using method="loess"
+
 plotResTime = function(
   .data=NULL,
   .file.mod = NULL,
   .ResCol = "CWRES",
   .TimeCol = "AFRLT",
-  .SummarizeBy = NULL # "NFRLT" 
+  .NomtimeCol = NULL, # "NFRLT"
+  .AddSmooth = FALSE
 ) {
   # checks that we have a dataset
   if(!is.null(.data)){
@@ -30,31 +48,28 @@ plotResTime = function(
   # check for variables we need:
   if(is.null(data[[.ResCol]])){
     stop(paste0("`.ResCol`=",.ResCol, " is required and not present in the dataset."))
-    if(!is.numeric(data[[.ResCol]])){
-      stop(paste0("`.ResCol`=",.ResCol, " is required to be numeric."))
-    }
+  } else if(!is.null(data[[.ResCol]]) && !is.numeric(data[[.ResCol]])){
+    stop(paste0("`.ResCol`=",.ResCol, " is required to be numeric."))
   }
   if(is.null(data[[.TimeCol]])){
     stop(paste0("`.TimeCol`=",.TimeCol, " is required and not present in the dataset."))
-    if(!is.numeric(data[[.TimeCol]])){
-      stop(paste0("`.TimeCol`=",.TimeCol, " is required to be numeric."))
-    }
+  } else if(!is.null(data[[.TimeCol]]) && !is.numeric(data[[.TimeCol]])){
+    stop(paste0("`.TimeCol`=",.TimeCol, " is required to be numeric."))
   }
-  # check for correct data type:
-  
-  
-  # if we want to summarize by a variable:
-  if(!is.null(.SummarizeBy) && !is.null(data[[.SummarizeBy]])) {
-    # data[, `:=` (q5 = quantile(!!sym(.ResCol), probs=0.05),
-    #              q50 = quantile(!!sym(.ResCol), probs=0.50),
-    #              q95 = quantile(!!sym(.ResCol), probs=0.95)), 
-    #      by = .SummarizeBy]
-    sumdata = dplyr::summarise(data,
+  if(!is.null(.NomtimeCol) && is.null(data[[.NomtimeCol]])) {   
+    stop(paste0("`.NomtimeCol`=",.NomtimeCol, " is required and not present in the dataset."))
+  } else if(!is.null(.NomtimeCol) && !is.null(data[[.NomtimeCol]]) && !is.numeric(data[[.NomtimeCol]]) ){
+    stop(paste0("`.NomtimeCol`=",.NomtimeCol, " is required to be numeric."))
+  }
+
+  # if we want to summarize by a variable to plot a pointrange/boxplot
+  # this is usually nominal time.
+  if(!is.null(.NomtimeCol)) {
+    sumdata = tidytable::summarise(data,
       q10 = quantile(!!sym(.ResCol), probs=0.10),
       q50 = quantile(!!sym(.ResCol), probs=0.50),
-      q90 = quantile(!!sym(.ResCol), probs=0.90), 
-         .by = c(!!sym(.SummarizeBy)))
-    # return(sumdata)
+      q90 = quantile(!!sym(.ResCol), probs=0.90),
+         .by = c(!!sym(.NomtimeCol)))
   }
   
   p = 
@@ -62,13 +77,17 @@ plotResTime = function(
     geom_point(shape = 1, size = 3) + 
     geom_hline(yintercept = 0, color = "blue", linewidth = 1, linetype = 2) +
     coord_cartesian(ylim = c(-1.01*max(abs(data[[.ResCol]])), +1.01*max(abs(data[[.ResCol]])))) +
-  { if(!is.null(.SummarizeBy)&&!is.null(sumdata[["q50"]])){
-    geom_pointrange(data = sumdata, aes(x = !!sym(.SummarizeBy), ymin = q10, ymax = q90, y = q50), 
-    color = "red", size = 0.2)
-  } } +
+    { 
+      if(!is.null(.NomtimeCol) && !is.null(sumdata)) {
+        geom_pointrange(data = sumdata,
+                        aes(x = !!sym(.NomtimeCol), ymin = q10, ymax = q90, y = q50),
+                        color = "red", size = 0.2)
+      } 
+    } +
+    { 
+      if (.AddSmooth) geom_smooth(method = "loess", se = FALSE, linewidth = 1, col = "red") 
+    } +
     theme_bw()
-  
   return(p)
-  
 }
 
