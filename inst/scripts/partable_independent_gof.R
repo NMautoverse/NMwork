@@ -2,7 +2,6 @@ devtools::load_all("~/wdirs/NMwork")
 
 file.mod <- "~/wdirs/NMdata/inst/examples/nonmem/xgxr003.mod"
 file.mod <- "~/wdirs/NMdata/inst/examples/nonmem/xgxr018.mod"
-file.mod <- "/data/prod_vx548_phase3_analysis/trunk/analysis/NDA/models/PK/2822/2822.mod"
 
 model <- modelPaths(file.mod)
 

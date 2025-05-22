@@ -1,4 +1,4 @@
-load_all~("~/wdirs/NMwork")
+devtools::load_all("~/wdirs/NMwork")
 
 file.mod <- "~/wdirs/NMdata/inst/examples/nonmem/xgxr133.mod"
 
