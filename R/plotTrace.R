@@ -21,7 +21,23 @@ plotTrace <- function(file.mod,pars=NULL,label.by="parameter",col.label=NULL,...
     
     ## ISAMPLE for NONMEM/SAEM setting options. 
     #TODO: this will fail if ISAMPLE preprocessing + burn-in iterations goes below 200 
-    iters <- iters[ITERATION<(-200)|ITERATION>0]
+    #TODO: a better way would be to check if the negative iterations re-start: iters[,ISAMPLE:=ifelse(any(lead(ITERATION)<ITERATION), 1, 0)
+    iters[, REC := .I]
+    # check for isample activity
+    if (nrow(iters[lead(ITERATION) < ITERATION & ITERATION < 0]) > 0) {
+        isample.end = iters[(lead(ITERATION) < ITERATION & ITERATION < 0)]
+        isample.start = dplyr::slice_head(iters, n = 1, by = parameter)
+        isample.remove = dplyr::inner_join(isample.start[, .(parameter, istart = REC)], 
+                                           isample.end[, .(parameter, iend =  REC)])
+        isample.remove.reduce = purrr::map(.x = isample.remove$parameter, function(.x)
+            tibble(
+                parameter = .x,
+                REC = isample.remove[parameter == .x]$istart:isample.remove[parameter == .x]$iend
+            )) %>% purrr::list_rbind() %>% as.data.table()
+        # remove ISAMPLE iteration rows from iters.
+        iters = dplyr::anti_join(iters, isample.remove.reduce)
+    }
+    # iters <- iters[ITERATION<(-200)|ITERATION>0]
     iters[,ITERPLOT:=ITERATION]
     iters[ITERATION<0,ITERPLOT:=ITERATION-max(ITERATION)-1]
     iters[ITERATION<0,type.iter:="Burn-in"]

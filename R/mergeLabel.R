@@ -40,7 +40,7 @@ mergeLabel <- function(pars,tab.label=NULL,by="parameter",col.label="parameter",
         ## match(c("THETA", "OMEGA", "SIGMA", "OBJ"),c("THETA", "OMEGA","THETA"))
 
         pars[, match.order := match(par.type, c("THETA", "OMEGA", "SIGMA", "OBJ"))]
-        pars[, label := reorder(label, frank(pars, match.order, i, j))]
+        pars[, label := reorder(get(col.label), frank(pars, match.order, i, j))]
         pars[,match.order:=NULL]
 
     }
