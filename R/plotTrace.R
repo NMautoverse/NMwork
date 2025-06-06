@@ -2,18 +2,21 @@
 
 ## cutoffs for separation of type.iter should be added
 
+##' Plot parameter estimation iterations
+##'
+##' @param ... Passed to `NMdata::NMreadExt()`. 
 ##' @import data.table
 ##' @import ggplot2
 ##' @export
 
-plotTrace <- function(file.mod,pars=NULL,label.by="parameter",col.label=NULL){
+plotTrace <- function(file.mod,pars=NULL,label.by="parameter",col.label=NULL,...){
 
     ## model <- modelPaths(file.mod)
     
     ## file.pars.rds <- sprintf("diagnostics/models/%s/partab_full_%s.rds",model$run,model$runno)
     ## pars <- readRDS(file.pars.rds)
 
-    iters <- NMreadExt(file=file.mod,return="iterations",tableno=1,as.fun="data.table")
+    iters <- NMreadExt(file=file.mod,return="iterations",tableno=1,as.fun="data.table",...)
     
     
     ## ISAMPLE for NONMEM/SAEM setting options. 
@@ -51,5 +54,6 @@ plotTrace <- function(file.mod,pars=NULL,label.by="parameter",col.label=NULL){
         facet_wrap(~label, scales="free")+
         labs(x="Iteration",y="",colour="")
 
-    return(list(parTrace=p1))
+    ##    return(list(data=iters,plot=p1))
+    return(iters)
 }

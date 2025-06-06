@@ -21,7 +21,6 @@ plotDVpredIpred(.file.mod = file.mod,.dvcol = "DV",.predcol = "IPRED")
 
 plotDVpredIpred(.file.mod = file.mod, .dvcol = "DV", .predcol = "IPRED", .log = TRUE)
 
-
 ## Residuals vs. TIME  -------
 plotResTime(.file.mod = file.mod, .ResCol = "CWRES", .TimeCol = "TIME")
 # just a scatter plot
