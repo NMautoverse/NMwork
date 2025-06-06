@@ -48,7 +48,7 @@ NMplotBSV <- function(data,regex.eta,names.eta=NULL,parameters=NULL,col.id="ID",
 
 ### Section end: dummy variables, only not to get NOTE's in pacakge checks
     
-
+    
     if(missing(covs.num)) covs.num <- NULL
     if(missing(covs.char)) covs.char <- NULL
     if(missing(file.mod)) file.mod <- NULL
@@ -165,8 +165,11 @@ NMplotBSV <- function(data,regex.eta,names.eta=NULL,parameters=NULL,col.id="ID",
         covs.num.drop <- setdiff(covs.num,colnames(pkpars))
         warning(paste0("The following numerical parameters were not found:\n",paste(covs.num.drop,collapse=", ")))
         covs.num <- setdiff(covs.num,covs.num.drop)
+        
         ## use only covariates that vary
-        covs.num <- colnames(findVars(pkpars[,covs.num,with=F]))
+        if(length(covs.num)){
+            covs.num <- colnames(findVars(pkpars[,covs.num,with=F]))
+        }
     }
     if(!all(covs.char%in%names(pkpars))){
         covs.char.drop <- setdiff(covs.char,colnames(pkpars))
@@ -252,7 +255,7 @@ NMplotBSV <- function(data,regex.eta,names.eta=NULL,parameters=NULL,col.id="ID",
     all.output[["qq.bsv"]]  <- plot.qq
     
     ## IIV random effects vs covariates
-    if(!is.null(covs.num)){        
+    if(length(covs.num)){
         
         etas.l2.n <- etas.l[,c(col.id,"param","value",covs.num),with=FALSE]
 
