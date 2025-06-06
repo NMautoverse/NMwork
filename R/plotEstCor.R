@@ -94,11 +94,20 @@ plotEstCor <- function(file.lst,pars=NULL,label.by="parameter",col.label=NULL){
         dt.cor[,par.type.i:=factor(par.type.i,levels=cc(THETA,OMEGA,SIGMA))]
         dt.cor[,par.type.j:=factor(par.type.j,levels=cc(THETA,OMEGA,SIGMA))]
         ## recode row and column according to ordering
-        dt.cor[,(paste(col.label,"i",sep=".")):=.GRP,by=.(match(as.character(par.type.i),c("THETA","OMEGA","SIGMA")),i.i,j.i)]
-        dt.cor[,(paste(col.label,"j",sep=".")):=.GRP,by=.(match(as.character(par.type.j),c("THETA","OMEGA","SIGMA")),i.j,j.j)]
+        dt.cor[,match.i:=match(as.character(par.type.i),c("THETA","OMEGA","SIGMA"))]
+        dt.cor[,match.j:=match(as.character(par.type.j),c("THETA","OMEGA","SIGMA"))]
+        
+        dt.cor[,(paste(col.label,"i",sep=".")):=.GRP,keyby=.(match.i,i.i,i.j)]
+        dt.cor[,(paste(col.label,"j",sep=".")):=.GRP,keyby=.(match.j,i.j,j.j)]
         ## dt.cor[,label.i:=reorder(label.i,counter.i)]
         ## dt.cor[,counter.j:=.GRP,keyby=.(par.type.j,i.j,j.j)]
-        dt.cor[,counter.j:=.GRP,by=.(match(as.character(par.type.j),c("THETA","OMEGA","SIGMA")),i.j,j.j)]
+        
+        
+        ## dt.cor[,counter.i:=.GRP,keyby=.(match(as.character(par.type.i),c("THETA","OMEGA","SIGMA")),i.i,i.j)]
+        dt.cor[,counter.i:=.GRP,keyby=.(match.i,j.i,i.i)]
+        dt.cor[,label.i:=reorder(label.i,counter.i)]
+        
+        dt.cor[,counter.j:=.GRP,keyby=.(match.j,i.j,j.j)]
         dt.cor[,label.j:=reorder(label.j,counter.j)]
     }
 
@@ -144,6 +153,6 @@ plotEstCor <- function(file.lst,pars=NULL,label.by="parameter",col.label=NULL){
 
     ft1 <- flextable(tab1) |> autofit()
     
-    list(plot_est_corr=p.corr,tab_est_corr_large=ft1)
+    list(plot=p.corr,corr_large=ft1)
     
 }

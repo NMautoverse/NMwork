@@ -70,6 +70,6 @@ plotTrace <- function(file.mod,pars=NULL,label.by="parameter",col.label=NULL,...
         facet_wrap(~label, scales="free")+
         labs(x="Iteration",y="",colour="")
 
-    ##    return(list(data=iters,plot=p1))
-    return(iters)
+        return(list(data=iters,plot=p1))
+    ##return(iters)
 }

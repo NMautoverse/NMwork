@@ -18,11 +18,13 @@ NMwritePreamble(
 
 \item{description}{The desription to put in the preamble comments}
 
-\item{based.on}{A control stream that the model was based on (will be a comment in preamble).}
+\item{based.on}{A control stream that the model was based on (will
+be a comment in preamble).}
 
 \item{author}{Name of author to credit in preamble}
 
-\item{write.file}{Write to file? If not, resulting control stream will be returned user as lines, and nothing else done.}
+\item{write.file}{Write to file? If not, resulting control stream
+will be returned to user as lines, and nothing else done.}
 }
 \value{
 lines (charachter) for new control stream
