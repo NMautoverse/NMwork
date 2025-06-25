@@ -4,7 +4,8 @@
 
 ##' @import data.table
 ##' @import ggplot2
-##' @import NMdata
+##' @importFrom NMdata NMscanData
+##' @importFrom dplyr summarise
 ##' @export
 ##' 
 ##' @param .data dataset object to use for plotting. Must have all columns
@@ -62,7 +63,7 @@ plotResTime = function(
   # if we want to summarize by a variable to plot a pointrange/boxplot
   # this is usually nominal time.
   if(!is.null(.NomtimeCol)) {
-    sumdata = tidytable::summarise(data,
+    sumdata = summarise(data,
       q10 = quantile(!!sym(.ResCol), probs=0.10),
       q50 = quantile(!!sym(.ResCol), probs=0.50),
       q90 = quantile(!!sym(.ResCol), probs=0.90),

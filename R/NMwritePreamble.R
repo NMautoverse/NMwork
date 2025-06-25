@@ -7,7 +7,9 @@
 ##' @param author Name of author to credit in preamble
 ##' @param write.file Write to file? If not, resulting control stream
 ##'     will be returned to user as lines, and nothing else done.
-##' @return lines (charachter) for new control stream
+##' @import data.table
+##' @importFrom NMdata NMreadSection
+##' @return lines (character) for new control stream
 ##' @keywords internal
 
 NMwritePreamble <- function(file.mod,lines,description=NULL,based.on=NULL,author=NULL,write.file=TRUE){
@@ -88,7 +90,7 @@ NMwritePreamble <- function(file.mod,lines,description=NULL,based.on=NULL,author
 
     ## write to file
     if(write.file){
-        writeTextFile(lines=lines,file=file.mod)
+        NMsim:::writeTextFile(lines=lines,file=file.mod)
         return( invisible(lines))
     }
 

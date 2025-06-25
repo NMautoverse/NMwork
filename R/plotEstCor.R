@@ -1,9 +1,9 @@
-
-##' @param file.lst
-##' @param pars
-##' @import ggpubr
-##' @import NMdata
-##' @import flextable
+##' Plot correlation matrix heatmap from completed NONMEM run
+##' @param file.lst `.lst` file from completed NONMEM run
+##' @param pars a table of parameter names and labels to use for renaming parameters to descriptive labels
+##' @importFrom ggpubr rotate_x_text
+##' @importFrom NMdata fnExtension NMreadCov mat2dt NMreadExt mergeCheck cc
+##' @importFrom flextable flextable autofit
 ##' @export
 
 plotEstCor <- function(file.lst,pars=NULL,label.by="parameter",col.label=NULL){

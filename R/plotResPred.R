@@ -5,7 +5,7 @@
 
 ##' @import data.table
 ##' @import ggplot2
-##' @import NMdata
+##' @importFrom NMdata NMscanData
 ##' @export
 ##' 
 ##' @param .data dataset object to use for plotting. Must have all columns

@@ -29,10 +29,10 @@
 ##'     subject id and covariates will be returned in both wide and
 ##'     long format. If FALSE, you just get the plots.
 ##' @import ggplot2
-##' @import data.table
-##' @import stats
-##' @import NMdata
+##' @import data.table 
+##' @importFrom NMdata cc findCovs fnExtension NMreadPhi mergeCheck findVars
 ##' @importFrom GGally ggpairs
+##' @importFrom stats dnorm
 ##' @family Plotting
 ##' @export
 
@@ -140,7 +140,7 @@ NMplotBSV <- function(data,regex.eta,names.eta=NULL,parameters=NULL,col.id="ID",
             if(!file.exists(file.mod)){
                 stop("Either provide `file.mod` with `auto.map=TRUE` or `names.eta` as a data.frame associating ETAs and parameters.")
             }
-            names.eta <- NMrelateOne(file.mod,par.type="omega",as.fun="data.table")
+            names.eta <- NMdata:::NMrelateOne(file.mod,par.type="omega",as.fun="data.table")
             ##names.eta <- identifyEtas(file.mod)
             cat("the following eta relationships found:\n")
             print(names.eta)

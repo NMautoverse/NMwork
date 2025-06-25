@@ -7,6 +7,10 @@
 ##' @param ... Passed to `NMdata::NMreadExt()`. 
 ##' @import data.table
 ##' @import ggplot2
+##' @importFrom NMdata NMreadExt
+##' @importFrom dplyr slice_head inner_join anti_join
+##' @importFrom tibble tibble
+##' @importFrom purrr map list_rbind
 ##' @export
 
 plotTrace <- function(file.mod,pars=NULL,label.by="parameter",col.label=NULL,...){
@@ -26,16 +30,16 @@ plotTrace <- function(file.mod,pars=NULL,label.by="parameter",col.label=NULL,...
     # check for isample activity
     if (nrow(iters[lead(ITERATION) < ITERATION & ITERATION < 0]) > 0) {
         isample.end = iters[(lead(ITERATION) < ITERATION & ITERATION < 0)]
-        isample.start = dplyr::slice_head(iters, n = 1, by = parameter)
-        isample.remove = dplyr::inner_join(isample.start[, .(parameter, istart = REC)], 
+        isample.start = slice_head(iters, n = 1, by = parameter)
+        isample.remove = inner_join(isample.start[, .(parameter, istart = REC)], 
                                            isample.end[, .(parameter, iend =  REC)])
-        isample.remove.reduce = purrr::map(.x = isample.remove$parameter, function(.x)
+        isample.remove.reduce = map(.x = isample.remove$parameter, function(.x)
             tibble(
                 parameter = .x,
                 REC = isample.remove[parameter == .x]$istart:isample.remove[parameter == .x]$iend
-            )) %>% purrr::list_rbind() %>% as.data.table()
+            )) %>% list_rbind() %>% as.data.table()
         # remove ISAMPLE iteration rows from iters.
-        iters = dplyr::anti_join(iters, isample.remove.reduce)
+        iters = anti_join(iters, isample.remove.reduce)
     }
     # iters <- iters[ITERATION<(-200)|ITERATION>0]
     iters[,ITERPLOT:=ITERATION]

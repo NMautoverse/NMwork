@@ -2,9 +2,11 @@
 # 2025-04-07: option to pass in dataset or model file. If large dataset, may
 # only want to read it once to save time.
 
+##' Plot DV vs PRED or IPRED
 ##' @import data.table
 ##' @import ggplot2
-##' @import NMdata
+##' @importFrom NMdata NMscanData
+##' @importFrom scales trans_format math_format
 ##' @export
 
 plotDVpredIpred <- function(

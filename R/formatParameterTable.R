@@ -16,7 +16,8 @@
 ##' three objects. Formatting should happen in
 ##' `createParameterTable()`.
 ##'
-##' @import flextable
+##' @import data.table
+##' @importFrom flextable flextable autofit
 ##' @keywords internal
 ##'
 

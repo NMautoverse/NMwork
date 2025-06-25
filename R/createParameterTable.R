@@ -11,8 +11,11 @@
 ##'     don´t want to rerun.
 ##' @param by.labels If `dt.labels` provided, names of columns to
 ##'     merge by.
-##' @import NMdata
-##' @import scales
+##' @import data.table
+##' @importFrom NMdata NMreadExt NMreadParsText mergeCheck cc dt2mat
+##' @importFrom stats cov2cor
+##' @importFrom scales percent
+##' @importFrom NMcalc CVlnorm
 ##' @export
 ##' @seealso formatParTable
 
