@@ -1,13 +1,10 @@
 # Plot CWRES/IWRES vs time (after dose, after first dose) 
 # 2025-04-07: do we want to include summarizeBy var?
-# 2025-04-08: adding 'tidytable' package to imports -- this package is a
-# tidyverse interface to data.table, it seeks to provide the performance
-# advantages of data.table but with the readability of tidyverse
+
 
 ##' @import data.table
 ##' @import ggplot2
 ##' @import NMdata
-##' @import tidytable
 ##' @export
 ##' 
 ##' @param .data dataset object to use for plotting. Must have all columns
