@@ -69,9 +69,13 @@ NMplotBSV <- function(data,regex.eta,names.eta=NULL,parameters=NULL,col.id="ID",
 ### will be used in ggpairs
     points.and.smooth <- function(data, mapping, method="lm", ...){
         if(nrow(data)==0) return(ggplot(data.table(a=0,b=0)))
-        p <- ggplot(data = data, mapping = mapping) + 
+        p <- try(ggplot(data = data, mapping = mapping) + 
             geom_point() + 
             geom_smooth(method=method, formula=y~x, ...)
+            )
+        if(inherits(p,"try-error")){
+            return(ggplot(data.table(a=0,b=0)))
+        }
         p
     }
 
