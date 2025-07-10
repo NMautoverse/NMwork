@@ -13,6 +13,7 @@
 ##'     merge by.
 ##' @import NMdata
 ##' @import scales
+##' @importFrom NMcalc invlogit
 ##' @export
 ##' @seealso formatParTable
 
@@ -175,6 +176,7 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.l
     ### do not transform se or rse
     cols.trans <- intersect(cc(est,CI.l,CI.u),colnames(pars))
     pars[trans%in%cc(log,logTrans),(cols.trans):=lapply(.SD,exp),.SDcols=cols.trans]
+    pars[trans%in%cc(logit),(cols.trans):=lapply(.SD,invlogit),.SDcols=cols.trans]
 
     pars[par.type=="THETA",tab.est:=sprintf("%s (%s)",signif(est,3),tab.rse)]
     pars[par.type=="THETA"&FIX==1,tab.est:=sprintf("%s (fixed)",signif(est,3))]
