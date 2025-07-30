@@ -15,7 +15,7 @@
 ##' @importFrom NMdata NMreadExt NMreadParsText mergeCheck cc dt2mat
 ##' @importFrom stats cov2cor
 ##' @importFrom scales percent
-##' @importFrom NMcalc CVlnorm
+##' @importFrom NMcalc CVlnorm invlogit
 ##' @export
 ##' @seealso formatParTable
 
@@ -178,6 +178,7 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.l
     ### do not transform se or rse
     cols.trans <- intersect(cc(est,CI.l,CI.u),colnames(pars))
     pars[trans%in%cc(log,logTrans),(cols.trans):=lapply(.SD,exp),.SDcols=cols.trans]
+    pars[trans%in%cc(logit),(cols.trans):=lapply(.SD,invlogit),.SDcols=cols.trans]
 
     pars[par.type=="THETA",tab.est:=sprintf("%s (%s)",signif(est,3),tab.rse)]
     pars[par.type=="THETA"&FIX==1,tab.est:=sprintf("%s (fixed)",signif(est,3))]

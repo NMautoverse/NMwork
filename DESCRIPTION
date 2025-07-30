@@ -12,16 +12,47 @@ Roxygen: list(roclets=c("collate", "namespace", "rd", "vignette"))
 Depends: R (>= 3.5.0)
 Imports:
   data.table,
-  NMdata (>= 0.1.6)
-Suggests: 
-  testthat,
-  knitr,
-  rmarkdown,
+  NMdata (>= 0.1.6),
+  magrittr,
+  stringi,
+  GGally, 
+  NMcalc, 
+  dplyr, 
+  flextable, 
+  forcats, 
   ggplot2,
+  ggpubr, 
+  pals, 
+  purrr', 
+  readr, 
+  scales, 
+  stringr, 
+  tibble,
+  tidyr
+Suggests: 
+  dplyr,
+  flextable,
+  forcats,
+  GGally,
+  ggplot2,
+  ggpubr,
+  knitr,
+  NMcalc,
+  pals,
   patchwork,
-  tracee,
+  purrr,
+  readr,
+  rmarkdown,
+  scales,
+  stringr,
+  stats,
+  testthat,
+  tibble,
+  tidyr,
   tidyvpc,
-  NMcalc
+  tracee
+Remotes: 
+  NMautoverse/NMdata
 Encoding: UTF-8
 BugReports: https://github.com/NMautoverse/NMwork/issues
 Language: en-US
