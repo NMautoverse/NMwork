@@ -1,5 +1,8 @@
 ##' Create parameter table data.frame using `NMreadExt()` and
 ##' `NMreadParsText()`
+##'
+##' Automated parameter table creation of Nonmem models. Currently,
+##' requires a covariance step.
 ##' 
 ##' @param file.lst Control stream. If possible, it is recommended to
 ##'     use output control stream. You can also use input control
@@ -11,6 +14,60 @@
 ##'     don´t want to rerun.
 ##' @param by.labels If `dt.labels` provided, names of columns to
 ##'     merge by.
+##' @details
+##'
+##' ### Guideline for panel column:
+##'    ## THETA: struct (default), cov, RV
+##'    ## OMEGA: IIV/BSV (default), IOV/BOV
+##'    ## OMEGA off diag: (handled automatically)
+##'    ## SIGMA: (handled automatically)
+##'
+##' ### trans column:
+##'    ## THETA: none (default), log, logit, addErr/SD, propErr/CV
+##'    ## OMEGA: lognormal (default), normal
+##'    ## OMEGA: off diag: (handled automatically)
+##'    ## SIGMA: Not implemented.
+##' 
+##' trans is used for the following:
+##'
+##' - Transformation of model parameters (say THETA(1)) values and CI
+##' to the scale of the interpretable parameter, (say CL).
+##'
+##' Theta's addErr and propErr gives formatting as residual standard
+##' deviations for additive and proportional error terms,
+##' respectively. On OMEGA's, the lognormal distribut is for
+##' CL=EXP(THETA +ETA) , normal is for additive effects:
+##' PAR=EXP(THETA) + ETA.
+##' 
+##'
+##' - Formatting of CV
+##' trans="normal" or "none": CV=se/est
+##' trans="lognormal" : CV=sqrt(exp(OMEGA[i,i])-1)
+##' 
+##' 
+##' Inverse of log (inverse is exp) and logit (NMcalc::invlogit) will
+##' be applied to parameter values and confidence intervals. SE and
+##' RSE are calculated before te backtransformation and must be
+##' interpreted on the scale of the estimated THETA, not the scale of
+##' the transformed parameter (e.g. Clerance when CL=EXP(THETA+...).
+##'
+##' SIGMA's are sorted and grouped as residual error terms, but
+##' specific formatting of additive, proportional or exponential is
+##' missing. Estimates reported are of the variances and
+##' correlations.
+##'
+##'
+##' Off-diagonals in OMEGA and THETA
+##' These should be fully automated. They are automatically identified, and labels are auto-generated based on labels of the associated diagonal elements.
+##'
+##' Off-diagonal estimates are shown as correlations. But
+##' SE is standard error of the variances or
+##' cov-variances. For off-diagonal elements, the scale of the
+##' estimate (correlation) and the scale of the associated uncertainty
+##' (covariance) are different.
+##'
+##' 
+##' 
 ##' @import NMdata
 ##' @import scales
 ##' @importFrom NMcalc invlogit
@@ -33,12 +90,8 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.l
 ### parameters are assumed to be concistently labeled in $THETA,
 ### $OMEGA and $SIGMA sections
 
-### For off-diagonal elements to be identified in NMreadParsText, you must:
-    ## Include a counter in $OMEGA.
-    ## Use a - to delimit the row and column number, say 1-2 to denote covariance between OMEGA 1 and 2
-    ## Call the counter "num" when reading the labels.
+### Off-diagonal elements are automatically identified by NMreadParsText().
     
-#### requires a covariance step
     pars <- NMreadExt(file=file.lst,as.fun="data.table")
     
     labs <- do.call(NMreadParsText,
@@ -59,9 +112,9 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.l
     ## OMEGA off diag: (handled automatically)
 
 ### trans:
-    ## THETA none, log, addErr/SD, propErr/CV
+    ## THETA: none (default), log, logit, addErr/SD, propErr/CV
     ## OMEGA: lognormal (default), normal
-    ## OMEGA off diag: (handled automatically)
+    ## OMEGA: off diag: (handled automatically)
     
     if(!"panel"%in%colnames(pars)) pars[,panel:=NA_character_]
     pars[is.na(panel)&par.type=="THETA",panel:="struct"]
