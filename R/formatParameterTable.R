@@ -20,7 +20,7 @@
 ##' @keywords internal
 ##'
 
-formatParameterTable <- function(pars,include.fix="ifNotZero",include,drop){
+formatParameterTable <- function(pars,include.fix="ifNotZero",include,drop,drop.symbol="not used"){
 
     if(missing(include)) include <- NULL
     if(missing(drop)) drop <- NULL
@@ -37,6 +37,10 @@ formatParameterTable <- function(pars,include.fix="ifNotZero",include,drop){
     
     ## subset whatever should be in the parameter table. In this example, we skip FIXed parameters.
     ## pars <- pars[symbol!="not used"]
+    if(!is.null(drop.symbol)){
+        pars <- pars[!grepl(pattern=drop.symbol,symbol)]
+    }
+    
     if( is.logical(include.fix) && isFALSE(include.fix) ){
         pars <- pars[FIX==0|symbol%in%include]
     }

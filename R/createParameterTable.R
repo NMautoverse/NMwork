@@ -10,7 +10,7 @@
 ##' @param args.ParsText List of arguments to be passes to
 ##'     `NMreadParsText()`.
 ##' @param dt.labels Optional table of labels to overwrite results
-##'     from `NMreadParsText()`. Useful to correcissues on a model you
+##'     from `NMreadParsText()`. Useful to correct issues on a model you
 ##'     don´t want to rerun.
 ##' @param by.labels If `dt.labels` provided, names of columns to
 ##'     merge by.
@@ -47,7 +47,7 @@
 ##' 
 ##' Inverse of log (inverse is exp) and logit (NMcalc::invlogit) will
 ##' be applied to parameter values and confidence intervals. SE and
-##' RSE are calculated before te backtransformation and must be
+##' RSE are calculated before the backtransformation and must be
 ##' interpreted on the scale of the estimated THETA, not the scale of
 ##' the transformed parameter (e.g. Clerance when CL=EXP(THETA+...).
 ##'
@@ -77,12 +77,14 @@
 ### should also take arg to include fixed parameters. Maybe default
 ### should be estimated and non-zero?
 
-createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.labels){
+createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.labels="symbol",drop.symbol){
     
 ### If NMcalc version < 0.0.3 we need to define CVlnorm
     CVlnorm <- function(omega){
         sqrt(exp(omega)-1)
     }
+
+    if(missing(drop.symbol)) drop.symbol <- NULL
 
     
 ### this example requires NMdata 0.1.5 (a little more code is needed for 0.1.4)
@@ -98,7 +100,15 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.l
                     as.list(c(args.ParsText,file=file.lst,as.fun="data.table"))
                     )
     
-    ## subset whatever should be in the parameter table. In this example, we skip FIXed parameters.
+    ## if(!is.null(drop.symbol)){
+    ##     if(!"symbol"%in%colnames(labs)){
+    ##         warning("drop.symbol uses but symbol is not found in parameter labels. drop.symbol not used.")
+    ##         drop.symbol <- NULL
+    ##     }
+    ##     if(!is.null(drop.symbol)){
+    ##         labs <- labs[!grepl(pattern=drop.symbol,symbol)]
+    ##     }
+    ## }
     
     pars <- mergeCheck(labs[,!(c("i","j","par.type"))],pars,by=cc(model,parameter),all.x=T,quiet=T)
     
@@ -145,7 +155,17 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.l
         ## cols.drop <- intersect(cols.drop,colnames(pars))
         ## pars <- mergeCheck(pars[,!(cols.drop),with=F],dt.labels,by=by.labels,all.x=T,quiet=T)
         
-        pars <- mergeCheck(pars,dt.labels,by=by.labels,all.x=T,quiet=T,common.cols="drop.x")
+        pars0 <- copy(pars)
+        pars0[,row:=.I]
+        pars.new <- mergeCheck(dt.labels,pars0,by=by.labels,all.x=T,quiet=T,common.cols="drop.y")
+        
+        pars <- rbind(
+            pars0[!row%in%pars.new[,row]]
+           ,
+            pars.new
+        )
+        setorder(pars,row)
+        pars[,row:=NULL]
     }
 
 
@@ -226,7 +246,7 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.l
     pars[panel=="SIGMAcorr",tab.corr:=percent(corr,accuracy=1)]
 
 ### transformed values for reporting
-    ### do not transform se or rse
+### do not transform se or rse
     cols.trans <- intersect(cc(est,CI.l,CI.u),colnames(pars))
     pars[trans%in%cc(log,logTrans),(cols.trans):=lapply(.SD,exp),.SDcols=cols.trans]
     pars[trans%in%cc(logit),(cols.trans):=lapply(.SD,invlogit),.SDcols=cols.trans]
@@ -268,6 +288,16 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.l
     pars[par.type=="THETA",parameter.ltx:=paste0("$\\theta_{",i,"}$")]
     pars[par.type=="OMEGA",parameter.ltx:=paste0("$\\Omega_{",i,",",j,"}$")]
     pars[par.type=="SIGMA",parameter.ltx:=paste0("$\\sigma_{",i,",",j,"}$")]
+
+    if(!is.null(drop.symbol)){
+        if(!"symbol"%in%colnames(pars)){
+            warning("drop.symbol uses but symbol is not found in parameter labels. drop.symbol not used.")
+            drop.symbol <- NULL
+        }
+        if(!is.null(drop.symbol)){
+            pars <- pars[!grepl(pattern=drop.symbol,symbol)]
+        }
+    }
     
     pars[]
 }
