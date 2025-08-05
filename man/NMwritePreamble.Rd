@@ -27,7 +27,7 @@ be a comment in preamble).}
 will be returned to user as lines, and nothing else done.}
 }
 \value{
-lines (charachter) for new control stream
+lines (character) for new control stream
 }
 \description{
 Update the pirana-style comments in top of a Nonmem control stream

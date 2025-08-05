@@ -2,10 +2,10 @@
 # too long, wrap it onto multiple lines. This is more involved than one may
 # think as shown here.
 
-##' @import stringr
+##' @importFrom stringr str_split str_wrap
 ##' @import magrittr
 ##' @import data.table
-##' @import dplyr
+##' @importFrom dplyr mutate filter slice pull n
 ##' @export
 ##' 
 ##' @param text string to be wrapped

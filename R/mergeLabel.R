@@ -1,3 +1,13 @@
+
+##' @param pars parameters table
+##' @param tab.label table with a column for labels
+##' @param by column to merge pars and tab.label
+##' @param col.label column in `tab.label` to use for labelling
+##' @param suffix not sure
+##' @import data.table
+##' @importFrom NMdata mergeCheck 
+##' @export
+
 mergeLabel <- function(pars,tab.label=NULL,by="parameter",col.label="parameter",suffix=NULL){
 
     if(is.null(col.label)) col.label="parameter"

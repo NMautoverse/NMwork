@@ -67,10 +67,11 @@
 ##' (covariance) are different.
 ##'
 ##' 
-##' 
+##' @import data.table
 ##' @import NMdata
-##' @import scales
-##' @importFrom NMcalc invlogit
+##' @importFrom scales percent
+##' @importFrom stats cov2cor
+##' @importFrom NMcalc CVlnorm invlogit
 ##' @export
 ##' @seealso formatParTable
 
