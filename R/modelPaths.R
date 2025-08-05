@@ -1,6 +1,10 @@
-##' Create a convenient set of file paths and other info related to a model.
+##' Create a convenient set of file paths and other info related to a
+##' model.
 ##' @param file path to control stream, or almost any other model file
 ##' @param as.dt Return model information in a data.table?
+##' @param must.exist Make sure the provided paths match files?
+##'     Default is not to but it can be a good first check in a
+##'     script.
 ##' @param simplify If only one model supplied, and `as.dt=FALSE`,
 ##'     should the format be simplified to a list of model elements,
 ##'     rather than a list of (model) lists of elements?
@@ -8,8 +12,9 @@
 ##' @import NMdata
 ##' @export
 
-modelPaths <- function(file,as.dt=FALSE,simplify=TRUE){
+modelPaths <- function(file,as.dt=FALSE,must.exist=FALSE,simplify=TRUE){
     
+    if(must.exist && any(!file.exists(file))) stop("Not all models exist, and `must.exist=TRUE`")
     
     all <- list(mod=fnExtension(file,"mod")
                ,lst=fnExtension(file,"lst")

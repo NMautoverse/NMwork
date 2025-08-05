@@ -46,16 +46,20 @@ newModel <- function(file.mod,newfile,update=TRUE,values,
 
     if(missing(values)) values <- NULL
 
+    
     newmod <- NMwriteInits(file.mod,update=update,values=values)
+    
+    ## newmod is a list
+    ## str(newmod)
 
-    
-    
 ### update table file names
-    newmod <- NMupdateFn(lines=newmod,section="TABLE",
+    newmod <- NMupdateFn(lines=newmod[[1]],section="TABLE",
                          model=basename(newfile),
                          fnext=".tab",add.section.text=NULL,
                          par.file="FILE",
                          text.section=NULL)
+
+    ## str(newmod)
     
 ### update .msf
     newmod <- NMupdateFn(lines=newmod,section="EST",
@@ -76,12 +80,12 @@ newModel <- function(file.mod,newfile,update=TRUE,values,
 
     ## data file
     ## NMreplaceDataFile()
-
+    
     
 ##### write output
     if(write.file) {
         if(!file.exists(newfile) || overwrite){
-            NMdata:::writeTextFile(newmod,file=newfile)
+            NMsim:::writeTextFile(newmod,file=newfile)
         } else {
             message("Model not overwritten")
         }
@@ -111,14 +115,20 @@ NMupdateFn <- function(lines,section,model,fnext,add.section.text,par.file,text.
     
     fn.tab.base <- paste0(par.file,"=",run.sim,fnext)
     ## lines.mod <- readLines(model)
-
-    dollar.section <- section
-    dollar.section <- paste0("$",substr(dollar.section,1,3))    
+    
+    sec <- substr(toupper(section),1,3)
+    
+    ## what to look for 
+    dollar.section <- paste0("$",sec)
+    ## what to print
     dollar.section.new <- dollar.section
     if(dollar.section.new=="EST") dollar.section.new <- "ESTIMATION"
     if(dollar.section.new=="SIM") dollar.section.new <- "SIMULATION"
 
     
+    
+    
+### is NMreadSection returning a list?    
     lines.section <- NMreadSection(lines=lines,section=section,as.one=FALSE,simplify=FALSE)
     
     if(is.null(text.section)){
@@ -145,8 +155,9 @@ NMupdateFn <- function(lines,section,model,fnext,add.section.text,par.file,text.
     }
     
     ## replace old section with the updated one
-    NMdata:::NMwriteSectionOne(lines=lines,section=section,newlines=lines.section.new,quiet=TRUE)
+    lines <- NMsim:::NMwriteSectionOne(lines=lines,section=section,newlines=lines.section.new,quiet=TRUE)
 
+    lines
     
 }
 ### Section end: Function to update file name and optionally section contents
