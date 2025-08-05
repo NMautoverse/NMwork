@@ -23,7 +23,7 @@ Imports:
   ggplot2,
   ggpubr, 
   pals, 
-  purrr', 
+  purrr, 
   readr, 
   scales, 
   stringr, 

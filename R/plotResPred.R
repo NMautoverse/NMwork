@@ -1,7 +1,4 @@
 # Plot CWRES/IWRES vs population predictions (PRED) 
- # 2025-04-08: adding 'tidytable' package to imports -- this package is a
-# tidyverse interface to data.table, it seeks to provide the performance
-# advantages of data.table but with the readability of tidyverse
 
 ##' @import data.table
 ##' @import ggplot2

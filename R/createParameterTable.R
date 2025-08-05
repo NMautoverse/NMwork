@@ -1,5 +1,8 @@
 ##' Create parameter table data.frame using `NMreadExt()` and
 ##' `NMreadParsText()`
+##'
+##' Automated parameter table creation of Nonmem models. Currently,
+##' requires a covariance step.
 ##' 
 ##' @param file.lst Control stream. If possible, it is recommended to
 ##'     use output control stream. You can also use input control
@@ -7,14 +10,67 @@
 ##' @param args.ParsText List of arguments to be passes to
 ##'     `NMreadParsText()`.
 ##' @param dt.labels Optional table of labels to overwrite results
-##'     from `NMreadParsText()`. Useful to correcissues on a model you
+##'     from `NMreadParsText()`. Useful to correct issues on a model you
 ##'     don´t want to rerun.
 ##' @param by.labels If `dt.labels` provided, names of columns to
 ##'     merge by.
+##' @details
+##'
+##' ### Guideline for panel column:
+##'    ## THETA: struct (default), cov, RV
+##'    ## OMEGA: IIV/BSV (default), IOV/BOV
+##'    ## OMEGA off diag: (handled automatically)
+##'    ## SIGMA: (handled automatically)
+##'
+##' ### trans column:
+##'    ## THETA: none (default), log, logit, addErr/SD, propErr/CV
+##'    ## OMEGA: lognormal (default), normal
+##'    ## OMEGA: off diag: (handled automatically)
+##'    ## SIGMA: Not implemented.
+##' 
+##' trans is used for the following:
+##'
+##' - Transformation of model parameters (say THETA(1)) values and CI
+##' to the scale of the interpretable parameter, (say CL).
+##'
+##' Theta's addErr and propErr gives formatting as residual standard
+##' deviations for additive and proportional error terms,
+##' respectively. On OMEGA's, the lognormal distribut is for
+##' CL=EXP(THETA +ETA) , normal is for additive effects:
+##' PAR=EXP(THETA) + ETA.
+##' 
+##'
+##' - Formatting of CV
+##' trans="normal" or "none": CV=se/est
+##' trans="lognormal" : CV=sqrt(exp(OMEGA[i,i])-1)
+##' 
+##' 
+##' Inverse of log (inverse is exp) and logit (NMcalc::invlogit) will
+##' be applied to parameter values and confidence intervals. SE and
+##' RSE are calculated before the backtransformation and must be
+##' interpreted on the scale of the estimated THETA, not the scale of
+##' the transformed parameter (e.g. Clerance when CL=EXP(THETA+...).
+##'
+##' SIGMA's are sorted and grouped as residual error terms, but
+##' specific formatting of additive, proportional or exponential is
+##' missing. Estimates reported are of the variances and
+##' correlations.
+##'
+##'
+##' Off-diagonals in OMEGA and THETA
+##' These should be fully automated. They are automatically identified, and labels are auto-generated based on labels of the associated diagonal elements.
+##'
+##' Off-diagonal estimates are shown as correlations. But
+##' SE is standard error of the variances or
+##' cov-variances. For off-diagonal elements, the scale of the
+##' estimate (correlation) and the scale of the associated uncertainty
+##' (covariance) are different.
+##'
+##' 
 ##' @import data.table
-##' @importFrom NMdata NMreadExt NMreadParsText mergeCheck cc dt2mat
-##' @importFrom stats cov2cor
+##' @import NMdata
 ##' @importFrom scales percent
+##' @importFrom stats cov2cor
 ##' @importFrom NMcalc CVlnorm invlogit
 ##' @export
 ##' @seealso formatParTable
@@ -22,12 +78,14 @@
 ### should also take arg to include fixed parameters. Maybe default
 ### should be estimated and non-zero?
 
-createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.labels){
+createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.labels="symbol",drop.symbol){
     
 ### If NMcalc version < 0.0.3 we need to define CVlnorm
     CVlnorm <- function(omega){
         sqrt(exp(omega)-1)
     }
+
+    if(missing(drop.symbol)) drop.symbol <- NULL
 
     
 ### this example requires NMdata 0.1.5 (a little more code is needed for 0.1.4)
@@ -35,19 +93,23 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.l
 ### parameters are assumed to be concistently labeled in $THETA,
 ### $OMEGA and $SIGMA sections
 
-### For off-diagonal elements to be identified in NMreadParsText, you must:
-    ## Include a counter in $OMEGA.
-    ## Use a - to delimit the row and column number, say 1-2 to denote covariance between OMEGA 1 and 2
-    ## Call the counter "num" when reading the labels.
+### Off-diagonal elements are automatically identified by NMreadParsText().
     
-#### requires a covariance step
     pars <- NMreadExt(file=file.lst,as.fun="data.table")
     
     labs <- do.call(NMreadParsText,
                     as.list(c(args.ParsText,file=file.lst,as.fun="data.table"))
                     )
     
-    ## subset whatever should be in the parameter table. In this example, we skip FIXed parameters.
+    ## if(!is.null(drop.symbol)){
+    ##     if(!"symbol"%in%colnames(labs)){
+    ##         warning("drop.symbol uses but symbol is not found in parameter labels. drop.symbol not used.")
+    ##         drop.symbol <- NULL
+    ##     }
+    ##     if(!is.null(drop.symbol)){
+    ##         labs <- labs[!grepl(pattern=drop.symbol,symbol)]
+    ##     }
+    ## }
     
     pars <- mergeCheck(labs[,!(c("i","j","par.type"))],pars,by=cc(model,parameter),all.x=T,quiet=T)
     
@@ -61,9 +123,9 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.l
     ## OMEGA off diag: (handled automatically)
 
 ### trans:
-    ## THETA none, log, addErr/SD, propErr/CV
+    ## THETA: none (default), log, logit, addErr/SD, propErr/CV
     ## OMEGA: lognormal (default), normal
-    ## OMEGA off diag: (handled automatically)
+    ## OMEGA: off diag: (handled automatically)
     
     if(!"panel"%in%colnames(pars)) pars[,panel:=NA_character_]
     pars[is.na(panel)&par.type=="THETA",panel:="struct"]
@@ -94,7 +156,17 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.l
         ## cols.drop <- intersect(cols.drop,colnames(pars))
         ## pars <- mergeCheck(pars[,!(cols.drop),with=F],dt.labels,by=by.labels,all.x=T,quiet=T)
         
-        pars <- mergeCheck(pars,dt.labels,by=by.labels,all.x=T,quiet=T,common.cols="drop.x")
+        pars0 <- copy(pars)
+        pars0[,row:=.I]
+        pars.new <- mergeCheck(dt.labels,pars0,by=by.labels,all.x=T,quiet=T,common.cols="drop.y")
+        
+        pars <- rbind(
+            pars0[!row%in%pars.new[,row]]
+           ,
+            pars.new
+        )
+        setorder(pars,row)
+        pars[,row:=NULL]
     }
 
 
@@ -175,7 +247,7 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.l
     pars[panel=="SIGMAcorr",tab.corr:=percent(corr,accuracy=1)]
 
 ### transformed values for reporting
-    ### do not transform se or rse
+### do not transform se or rse
     cols.trans <- intersect(cc(est,CI.l,CI.u),colnames(pars))
     pars[trans%in%cc(log,logTrans),(cols.trans):=lapply(.SD,exp),.SDcols=cols.trans]
     pars[trans%in%cc(logit),(cols.trans):=lapply(.SD,invlogit),.SDcols=cols.trans]
@@ -217,6 +289,16 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.l
     pars[par.type=="THETA",parameter.ltx:=paste0("$\\theta_{",i,"}$")]
     pars[par.type=="OMEGA",parameter.ltx:=paste0("$\\Omega_{",i,",",j,"}$")]
     pars[par.type=="SIGMA",parameter.ltx:=paste0("$\\sigma_{",i,",",j,"}$")]
+
+    if(!is.null(drop.symbol)){
+        if(!"symbol"%in%colnames(pars)){
+            warning("drop.symbol uses but symbol is not found in parameter labels. drop.symbol not used.")
+            drop.symbol <- NULL
+        }
+        if(!is.null(drop.symbol)){
+            pars <- pars[!grepl(pattern=drop.symbol,symbol)]
+        }
+    }
     
     pars[]
 }
