@@ -1,14 +1,17 @@
-
-##' @param file.lst
-##' @param pars
-##' @import ggpubr
-##' @import NMdata
-##' @import flextable
+##' Plot correlation matrix heatmap from completed NONMEM run
+##' @param file.lst `.lst` file from completed NONMEM run
+##' @param pars a table of parameter names and labels to use for renaming parameters to descriptive labels
+##' @import ggplot2
+##' @importFrom ggpubr rotate_x_text
+##' @importFrom NMdata fnExtension NMreadCov mat2dt NMreadExt mergeCheck cc
+##' @importFrom flextable flextable autofit
 ##' @export
 
 plotEstCor <- function(file.lst,pars=NULL,label.by="parameter",col.label=NULL){
 
-    
+    # file.lst = "models/pk/028/028.lst"
+    # pars = partab.plots
+    # col.label = "par.label.symbol"
     ## file.lst <- "models/run372.lst"
     model.lab <- basename(file.lst) |> fnExtension("")
 
@@ -77,6 +80,8 @@ plotEstCor <- function(file.lst,pars=NULL,label.by="parameter",col.label=NULL){
     } else {
         dt.cor[,(paste(col.label,"i",sep=".")):=parameter.i]
         dt.cor[,(paste(col.label,"j",sep=".")):=parameter.j]
+        dt.cor[,label.i := (paste(col.label,"i",sep="."))]
+        dt.cor[,label.j := (paste(col.label,"j",sep="."))]
         ## dt.cor[,symbol.j:=parameter.j]
         ## dt.cor[,symbol2.i:=parameter.i]
         ## dt.cor[,symbol2.j:=parameter.j]
@@ -87,24 +92,27 @@ plotEstCor <- function(file.lst,pars=NULL,label.by="parameter",col.label=NULL){
     ## avoid fixed
     dt.cor <- dt.cor[FIX.i==0&FIX.j==0]
     dt.cor <- dt.cor[i!=j]
+    
 
-    if(T){
+    if(F){
         ### Bug in this section
         
         dt.cor[,par.type.i:=factor(par.type.i,levels=cc(THETA,OMEGA,SIGMA))]
         dt.cor[,par.type.j:=factor(par.type.j,levels=cc(THETA,OMEGA,SIGMA))]
         ## recode row and column according to ordering
+        ## match.i = c(1,2,3) for par.type.i = c("THETA","OMEGA","SIGMA")
         dt.cor[,match.i:=match(as.character(par.type.i),c("THETA","OMEGA","SIGMA"))]
         dt.cor[,match.j:=match(as.character(par.type.j),c("THETA","OMEGA","SIGMA"))]
         
-        dt.cor[,(paste(col.label,"i",sep=".")):=.GRP,keyby=.(match.i,i.i,i.j)]
+        dt.cor[,(paste(col.label,"i",sep=".")):=.GRP,keyby=.(match.i,i.i,j.i)]
         dt.cor[,(paste(col.label,"j",sep=".")):=.GRP,keyby=.(match.j,i.j,j.j)]
         ## dt.cor[,label.i:=reorder(label.i,counter.i)]
         ## dt.cor[,counter.j:=.GRP,keyby=.(par.type.j,i.j,j.j)]
         
         
         ## dt.cor[,counter.i:=.GRP,keyby=.(match(as.character(par.type.i),c("THETA","OMEGA","SIGMA")),i.i,i.j)]
-        dt.cor[,counter.i:=.GRP,keyby=.(match.i,j.i,i.i)]
+        dt.cor[,counter.i:=.GRP,keyby=.(match.i,j.i,j.i)]
+        #TODO: there is no label.i if we don't provide param table.
         dt.cor[,label.i:=reorder(label.i,counter.i)]
         
         dt.cor[,counter.j:=.GRP,keyby=.(match.j,i.j,j.j)]
@@ -123,7 +131,7 @@ plotEstCor <- function(file.lst,pars=NULL,label.by="parameter",col.label=NULL){
         dt.cor[,symbol2.i:=reorder(symbol2.i,row)]
         dt.cor[,symbol2.j:=reorder(symbol2.j,col)]
     }
-
+    
     
     ## use fixed thresholds for correlation colors
     dt.cor[,value.bin:=cut(abs(value),c(0,.25,.5,.7,.8,.95,1))]
@@ -137,7 +145,10 @@ plotEstCor <- function(file.lst,pars=NULL,label.by="parameter",col.label=NULL){
     ## avoid diagonal
 
     ## levels(dt.cor$symbol.j) <- rev(levels(dt.cor$symbol.j))
-    dt.cor[,label.j:=factor(label.j,levels=rev(levels(dt.cor$label.j)))]
+    # dt.cor[,label.j:=factor(label.j,levels=rev(levels(dt.cor$label.j)))]
+    dt.cor[,label.i := factor(label.i, levels = pars[[col.label]])]
+    dt.cor[,label.j := factor(label.j, levels = pars[[col.label]])]
+    
     p.corr <- ggplot(dt.cor,aes(label.i,label.j,fill=value.bin))+
         geom_tile()+
         rotate_x_text()+

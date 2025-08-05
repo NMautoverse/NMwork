@@ -15,7 +15,6 @@
 ##'     a warning because it is not recommended in final code.
 ##' @param silent Disables printning. Mainly used in testing.
 ##' @family FileSystem
-##' @import NMdata
 ##' @return None. Sources the specified file into the global environment.
 ##' @export
 
