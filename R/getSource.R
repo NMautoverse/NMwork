@@ -67,7 +67,7 @@ getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.dir
     if(!file.exists(dest) || overwrite){
         ## Copying the latest version of the file
         if (silent == FALSE){message("Copying ",file,"\n")}
-        dir.create(dest,recursive=TRUE,warn=FALSE)
+        dir.create(dest,recursive=TRUE,showWarnings=FALSE)
         file.copy(from=org,
                   to=dest,overwrite=TRUE)
         lines.script <- readLines(org,warn=FALSE)

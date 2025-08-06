@@ -27,6 +27,7 @@ NMscript <- function(
 
     if(missing(stdout_file)) stdout_file <- NULL
     if(missing(stderr_file)) stderr_file <- NULL
+    if(missing(file.mod)) file.mod <- " "
     
                                         #.cmd = glue::glue("Rscript {.script} {.file_mod}")
 
