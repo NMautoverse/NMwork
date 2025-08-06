@@ -9,8 +9,28 @@ plotDVpredIpred(
   .file.mod = NULL,
   .dvcol = "DV",
   .predcol = "PRED",
+  .AddSmooth = TRUE,
   .log = FALSE
 )
+}
+\arguments{
+\item{.data}{dataset object to use for plotting. Must have all columns
+required for plotting}
+
+\item{.file.mod}{the path to a completed NONMEM model which will be passed
+to `NMdata::NMscanData()` to read in the dataset}
+
+\item{.dvcol}{NONMEM dependent variable column name (i.e. "DV" ). Will be
+plotted as the y-axis.}
+
+\item{.predcol}{the population prediction column name (i.e. "PRED"). Will be
+plotted as the x-axis.}
+
+\item{.AddSmooth}{TRUE/FALSE. If TRUE, will add a smooth line using
+method="loess"}
+
+\item{.log}{TRUE/FALSE. If TRUE, will plot data on log-scale for both x and
+y axes}
 }
 \description{
 Plot DV vs PRED or IPRED

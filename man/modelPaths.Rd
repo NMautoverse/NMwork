@@ -2,19 +2,25 @@
 % Please edit documentation in R/modelPaths.R
 \name{modelPaths}
 \alias{modelPaths}
-\title{Create a convenient set of file paths and other info related to a model.}
+\title{Create a convenient set of file paths and other info related to a
+model.}
 \usage{
-modelPaths(file, as.dt = FALSE, simplify = TRUE)
+modelPaths(file, as.dt = FALSE, must.exist = FALSE, simplify = TRUE)
 }
 \arguments{
 \item{file}{path to control stream, or almost any other model file}
 
 \item{as.dt}{Return model information in a data.table?}
 
+\item{must.exist}{Make sure the provided paths match files?
+Default is not to but it can be a good first check in a
+script.}
+
 \item{simplify}{If only one model supplied, and `as.dt=FALSE`,
 should the format be simplified to a list of model elements,
 rather than a list of (model) lists of elements?}
 }
 \description{
-Create a convenient set of file paths and other info related to a model.
+Create a convenient set of file paths and other info related to a
+model.
 }

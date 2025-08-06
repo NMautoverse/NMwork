@@ -53,7 +53,7 @@ getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.dir
     ## do necessary files and dirs exist?
     if (!dir.exists(dir.central) || !file.exists(org)){
         if(file.exists(file.path(dir.local,file))){
-                                        #File exists locally, but not external. Load local
+            ## File exists locally, but not external. Load local
             source(file.path(dest),echo=FALSE)
             message("File not found at dir.central. Local version sourced.")
             return(invisible())
@@ -67,7 +67,7 @@ getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.dir
     if(!file.exists(dest) || overwrite){
         ## Copying the latest version of the file
         if (silent == FALSE){message("Copying ",file,"\n")}
-        
+        dir.create(dest,recursive=TRUE,warn=FALSE)
         file.copy(from=org,
                   to=dest,overwrite=TRUE)
         lines.script <- readLines(org,warn=FALSE)

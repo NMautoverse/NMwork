@@ -9,7 +9,8 @@ createParameterTable(
   file.lst,
   args.ParsText = NULL,
   dt.labels = NULL,
-  by.labels
+  by.labels = "symbol",
+  drop.symbol
 )
 }
 \arguments{
@@ -21,15 +22,66 @@ stream.}
 `NMreadParsText()`.}
 
 \item{dt.labels}{Optional table of labels to overwrite results
-from `NMreadParsText()`. Useful to correcissues on a model you
+from `NMreadParsText()`. Useful to correct issues on a model you
 don´t want to rerun.}
 
 \item{by.labels}{If `dt.labels` provided, names of columns to
 merge by.}
 }
 \description{
-Create parameter table data.frame using `NMreadExt()` and
-`NMreadParsText()`
+Automated parameter table creation of Nonmem models. Currently,
+requires a covariance step.
+}
+\details{
+### Guideline for panel column:
+   ## THETA: struct (default), cov, RV
+   ## OMEGA: IIV/BSV (default), IOV/BOV
+   ## OMEGA off diag: (handled automatically)
+   ## SIGMA: (handled automatically)
+
+### trans column:
+   ## THETA: none (default), log, logit, addErr/SD, propErr/CV
+   ## OMEGA: lognormal (default), normal
+   ## OMEGA: off diag: (handled automatically)
+   ## SIGMA: Not implemented.
+
+trans is used for the following:
+
+- Transformation of model parameters (say THETA(1)) values and CI
+to the scale of the interpretable parameter, (say CL).
+
+Theta's addErr and propErr gives formatting as residual standard
+deviations for additive and proportional error terms,
+respectively. On OMEGA's, the lognormal distribut is for
+CL=EXP(THETA +ETA) , normal is for additive effects:
+PAR=EXP(THETA) + ETA.
+
+
+- Formatting of CV
+trans="normal" or "none": CV=se/est
+trans="lognormal" : CV=sqrt(exp(OMEGA[i,i])-1)
+
+
+Inverse of log (inverse is exp) and logit (NMcalc::invlogit) will
+be applied to parameter values and confidence intervals. SE and
+RSE are calculated before the backtransformation and must be
+interpreted on the scale of the estimated THETA, not the scale of
+the transformed parameter (e.g. Clerance when CL=EXP(THETA+...).
+
+SIGMA's are sorted and grouped as residual error terms, but
+specific formatting of additive, proportional or exponential is
+missing. Estimates reported are of the variances and
+correlations.
+
+
+Off-diagonals in OMEGA and THETA
+These should be fully automated. They are automatically identified, and labels are auto-generated based on labels of the associated diagonal elements.
+
+Off-diagonal estimates are shown as correlations. But
+SE is standard error of the variances or
+cov-variances. For off-diagonal elements, the scale of the
+estimate (correlation) and the scale of the associated uncertainty
+(covariance) are different.
 }
 \seealso{
 formatParTable
