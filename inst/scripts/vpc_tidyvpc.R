@@ -7,12 +7,13 @@
 ##
 ## Author      : Philip Delff
 ## Date        : 2025-03-02
+## Updated     : 2025-09-09 - Brian Reilly 
 ################################################################################
 
 
 
 #### Section start: Initialization ####
-dir.main = "/data/prod_vx548_lsr_phase2_analysis/trunk/analysis/PK_review"
+dir.main = "~/wdirs/NMwork/inst/scripts"
 setwd(dir.main)
 ## source(".Rprofile")
 
@@ -21,7 +22,6 @@ setwd(dir.main)
 ##libraries
 library(data.table)
 library(devtools)
-## devtools::load_all("/data/sandbox/trunk/analysis/NMsim/wdirs/NMdata")
 ## NMdata 0.1.9 needed
 ## devtools::load_all("~/wdirs/NMdata")
 library(NMdata)
@@ -31,6 +31,7 @@ library(NMsim)
 library(tidyvpc)
 library(patchwork)
 library(tracee)
+# devtools::load_all("~/wdirs/NMwork")
 
 
 NMdataConf(as.fun="data.table"
@@ -40,25 +41,26 @@ NMdataConf(as.fun="data.table"
           ,col.flagn="EXCLF"
           ,col.flagc="EXCLFCOM"
           ,path.nonmem = "/opt/NONMEM/nm75/run/nmfe75"
-          ,dir.sims="simtmp/vpcs"
-          ,dir.res="simres/vpcs"
+          ,dir.sims=file.path(dir.main,"simtmp/vpcs")
+          ,dir.res=file.path(dir.main,"simres/vpcs")
            ## ,allow.unknown = TRUE
            )
+if(!dir.exists(NMdataGetOption("dir.sims"))){dir.creat(NMdataGetOption("dir.sims"))}
+if(!dir.exists(NMdataGetOption("dir.res"))){dir.creat(NMdataGetOption("dir.res"))}
 
 library(ggplot2)
 
 
 ## functions
-dir.funs.pain <- "/data/prod_cqp_code_library/trunk/DiseaseAreas/Pain/AnalysisTemplates/functions"
-if(!file.exists("functions/getSource.R")){
-    file.copy(file.path(dir.funs.pain,"getSource.R"),"functions/")
+##' Generate script label
+##' 
+scriptLabel <- function(dir.main,script.rel){
+    path.abs <- file.path(dir.main,script.rel)
+    if(!file.exists(path.abs)) warning(paste("script not found:",path.abs))
+    sub("^/data/","",path.abs)
 }
-source("functions/getSource.R")
-getSource(file="CQP_misc.R", dir.central=dir.funs.pain, dir.local="functions")
-getSource(file="modelPaths.R", dir.central=dir.funs.pain, dir.local="functions")
-getSource(file="plot_vpc.R", dir.central=dir.funs.pain, dir.local="functions")
 
-script  <-  scriptLabel(dir.main,"scripts/vpc_tidyvpc.R")
+script  <-  scriptLabel(dir.main,"vpc_tidyvpc.R")
 
 
 ### Section end: Initialization
@@ -71,8 +73,7 @@ args <- commandArgs(trailingOnly = TRUE)
 if(length(args)>0){
     file.mod <- args[1]
 } else {
-    ## file.mod <- "models/run017.mod"
-    file.mod <- "models/12746.mod"
+    file.mod <- "../nonmem/xgxr134.mod"
 }
 
 model <- modelPaths(file.mod,as.dt=T)
@@ -84,20 +85,10 @@ if(F){
         colnames()
 }
 
-## strat.raw <- list(split=c(params$col.dvid,"DEVPART"), facet="DOSESS")
-## strat.raw <- list(split=c(params$col.dvid,"DEVPART"), facet="DOSE1")
-## strat.predcorr=list(split=c(params$col.dvid))
-
-
 
 ## set the parameters of the vpc_template Rmd file
 params <- list(
-    ##dataset = minimal_data,
     file.mod = file.mod,
-    ## philip: isnt this just dir.dest?
-    ##dir_output = fnExtension(fnAppend(file.mod,"VPC"),""),
-    ## run_script = scriptLabel,
-    ## rmd_template = templateLabel,
     include_blq = TRUE,
     subproblems = 5,
     nsims = 100,
@@ -105,15 +96,10 @@ params <- list(
     nc = 18,
     reuse.results=TRUE,
 #### Postprocessing
-    ##covLookup = strat.vars, # used for creating plot filenames by their short name (i.e. "DOSE1_100mg" instead of "First Dose Amount (mg)_100mg" )
-    ## redundant
-    ## stratify_by = names(strat.vars),
-    col.bin = "NFRLT", # the column used for binning the vpc stats, usually nominal time after first dose
+    col.bin = "NOMTIME", # the column used for binning the vpc stats, usually nominal time after first dose
 #### Plotting
-    ## unitDV = "ng/mL",
     lab.y="Concentration (ng/mL)",
     ## not used
-    ## compound_name = c("SUZ","M6-SUZ"),
     col.dvid = "DVID"
 )
 
@@ -130,22 +116,22 @@ plot.layouts <- list(
     ##      predcorr=FALSE)
     ## ,
     raw_byDose=list(
-        split=c("DVID","DEVPART"),
-        facet=c("DOSESS"),
+        split=c("STUDY"),
+        facet=c("DOSE"),
         predcorr=FALSE)
    ,
     raw_Dose=list(
-        split=c("DVID","DEVPART","DOSESS"),
+        split=c("STUDY","DOSE"),
         facet=NULL,
         predcorr=FALSE)
    ,
     pcorr_all=list(
-        split="DVID",
+        split="STUDY",
         facet=NULL,
         predcorr=TRUE)
    ,
     pcorr=list(
-        split=c("DVID","DEVPART"),
+        split=c("STUDY"),
         facet=NULL,
         predcorr=TRUE)
 )
@@ -168,7 +154,7 @@ plot.versions <- list(
 filters <- NULL
 if(params$include_blq){
     
-    filters <- NMsim:::NMreadFilters(file=params$file.mod)
+    filters <- NMdata:::NMreadFilters(file=params$file.mod)
     ## filters[cond=="EXCLF.NE.0",cond:="EXCLF.GT.10"]
     filters[cond=="FLAG.NE.0",cond:="FLAG.GT.10"]
 }
@@ -206,10 +192,14 @@ path.res <- NMsim(
     ## data = data.inp,
     filters=filters,
     table.vars = cc(PRED, IPRED, Y),
-    carry.out=c("TIME","EVID","DV","LLOQ","BLQ",
-                strat.vars,params$col.dvid,
+    carry.out=c("TIME","EVID","DV",
+                #"LLOQ",
+                "BLQ",
+                strat.vars,
+                #params$col.dvid,
                 params$col.bin),
     name.sim = fnExtension(basename(script),""),
+    # dir.sims = file.path(dir.main, "simtmp/vpcs")
     file.res = file.path("simres/vpcs",paste0(model$run,"_vpc2.rds")),
     subproblems = params$subproblems,
     nsims = params$nsims,
@@ -229,9 +219,6 @@ path.res <- NMsim(
 simres <- NMreadSim(path.res,wait = TRUE)
 simres <- simres[EVID==0]
 
-## simres[,DVID:=PCTESTCD]
-## simres[,DVID:="VX-973"]
-## simres[,NFRLT:=TIME]
 
 ### deriving obs from first sim. I think this should be sufficient for in-sample VPCs
 data.obs <- simres[NMREP==first(NMREP)&model.sim==first(model.sim)] 
@@ -370,7 +357,9 @@ for(Nstrat in 1:length(list.plot.strat)){
     stats <- 
         observed(data.obs, x = TIME, y = DV) |>
         simulated(simres, x = TIME, y = Y) |>
-        censoring(blq = as.logical(BLQ), lloq = LLOQ) |>
+        # xgxr134 doesn't have lloq:
+#        censoring(blq = as.logical(BLQ), lloq = LLOQ) |>
+        
         stratify(reformulate(unlist(vars.strat))) 
     
     if(pcorr){

@@ -1,9 +1,9 @@
 library(NMdata)
 library(data.table)
 library(scales)
-source("~/wdirs/NMwork/R/modelPaths.R")
-source("/data/prod_cqp_code_library/trunk/DiseaseAreas/Pain/AnalysisTemplates/functions/latexify.R")
-
+# source("~/wdirs/NMwork/R/modelPaths.R")
+# source("~/wdirs/NMwork/R/latexify.R")
+getwd()
 file.lst <- "~/wdirs/NMdata/inst/examples/nonmem/xgxr132.lst"
 model <- modelPaths(file.lst)
 
@@ -24,11 +24,4 @@ source("~/wdirs/NMwork/R/plotEstCor.R")
 
 plotEstCorr(model$lst,pars=pars)
 
-NMreadSection(model$mod)
-library(devtools)
-load_all("~/wdirs/NMdata")
-filters <- NMreadFilters(file=model$mod,as.fun="data.table")
-    ## filters[cond=="EXCLF.NE.0",cond:="EXCLF.GT.10"]
-filters[cond=="FLAG.NE.0",cond:="FLAG.GT.10"]
 
-filters
