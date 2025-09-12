@@ -41,7 +41,7 @@ getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.dir
     dir.central <- filePathSimple(dir.central)
     
     ## It should be checked that destination folder exists before doing anything.
-    if(!dir.exists(dir.local)) {stop("Destination directory (dir.local) must exist.")}
+    ## if(!dir.exists(dir.local)) {stop("Destination directory (dir.local) must exist.")}
 
     ## Check that source directory is different from destination directory
     if(filePathSimple(dir.central)==filePathSimple(dir.local)){
@@ -64,10 +64,10 @@ getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.dir
         }
     }
     ## Checking whether there is a local version and if it missing, it is copied
-    if(!file.exists(dest) || overwrite){
+    if( overwrite || !(dir.exists(dir.local) && file.exists(dest))){
         ## Copying the latest version of the file
         if (silent == FALSE){message("Copying ",file,"\n")}
-        dir.create(dest,recursive=TRUE,showWarnings=FALSE)
+        dir.create(dir.local,recursive=TRUE,showWarnings=FALSE)
         file.copy(from=org,
                   to=dest,overwrite=TRUE)
         lines.script <- readLines(org,warn=FALSE)

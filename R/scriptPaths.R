@@ -12,6 +12,7 @@
 scriptPaths <- function(path){
     list(path=path,
          name=sub("\\.R *$","",basename(path)),
-         label=sub("^/data/","",script.path)
+         label=sub("^/data/","",path),
+         dir.main=dirname(dirname(path))
          )
 }

@@ -1,10 +1,10 @@
 ##' Update the pirana-style comments in top of a Nonmem control stream
 ##'
 ##' @param file.mod The control stream to edit
-##' @param description The desription to put in the preamble comments
+##' @param description The desription to put in the preamble comments. If a function is provided, te function will be run on the old description, and the result will be used.
 ##' @param based.on A control stream that the model was based on (will
-##'     be a comment in preamble).
-##' @param author Name of author to credit in preamble
+##'     be a comment in preamble). Functions not supported - todo.
+##' @param author Name of author to credit in preamble. Functions not supported - todo.
 ##' @param write.file Write to file? If not, resulting control stream
 ##'     will be returned to user as lines, and nothing else done.
 ##' @import data.table
@@ -26,7 +26,11 @@ NMwritePreamble <- function(file.mod,lines,description=NULL,based.on=NULL,author
     contents.updated <- NULL
     include <- NULL
 
-    
+## for this line in a control stream:    
+##;; 1. Based on:  0274_doseimpute
+    ## name="Based on"
+    ## full.name=";; 1. Based on"
+    ## contents="0273_doseimpute"
     
     lines <- NMdata:::getLines(file=file.mod,lines=lines)
     ## lines <- readLines(file.mod)
@@ -36,7 +40,7 @@ NMwritePreamble <- function(file.mod,lines,description=NULL,based.on=NULL,author
     if( is.na(code.start) || code.start==1 ){
         return(lines)
     }
-
+    
     
     pretext <- lines[1:(code.start-1)]
     dt.pretext <- data.table(text=pretext)[,line:=.I]
@@ -47,20 +51,36 @@ NMwritePreamble <- function(file.mod,lines,description=NULL,based.on=NULL,author
     
     ## does the field have a name?
     dt.pretext[,has.name:=has.field&grepl(" *;+ *[a-zA-Z]*[0-9]+\\. *.*:.*",text)]
-    dt.pretext[has.name==TRUE,full.name:=sub("(.*: ).*","\\1",text)]
+    ## dt.pretext[has.name==TRUE,full.name:=sub("(.*: ).*","\\1",text)]
+    ## dropping name
+    ## dt.pretext[has.name==TRUE,full.name:=sub("^[^:]*:+ *","",text)]
+    ## dropping what's after name
+    dt.pretext[has.name==TRUE,full.name:=sub("^ *([^:]*):+.*","\\1",text)]
     ## names of fields (if any)
     dt.pretext[has.name==TRUE,name:=sub(" *;+ *[a-zA-Z]*[0-9]+\\. *([^\\:]*):.*","\\1",text)]
     ## not needed to extract contents 
     dt.pretext[,contents:=NA_character_]
     ## modify contents
+    
     if(!is.null(based.on)){
         dt.pretext[name=="Based on",
                    contents:=sub("^ *[a-zA-Z]*","",fnExtension(basename(based.on),""))]
     }
-    if(!is.null(description)){
+
+    
+    dt.pretext[name%in%c("Author","Description"),contents:=sub(" *;+[^\\:]*:+ *","",text)]
+    ## dt.pretext[name=="Description",contents:=sub(" *;+[^:]*:+ *","",text)]
+    
+
+    if(!is.null(description) && is.function(description)){
+        dt.pretext[name=="Description",
+                   contents:=description(contents)]
+    } else if(!is.null(description)){
         dt.pretext[name=="Description",
                    contents:=description]
     }
+
+    
     if(!is.null(author)){
         dt.pretext[name=="Author",
                    contents:=author]
@@ -70,7 +90,7 @@ NMwritePreamble <- function(file.mod,lines,description=NULL,based.on=NULL,author
     ## put back together
     dt.pretext[,text.new:=NA_character_]
     
-    dt.pretext[!is.na(contents),text.new:=paste(full.name,contents)]
+    dt.pretext[!is.na(contents),text.new:=paste0(full.name,": ",contents)]
     dt.pretext[,contents.updated:=NA_integer_]
     dt.pretext[!is.na(contents),contents.updated:=1]
     dt.pretext[,contents.updated:=nafill(contents.updated,type="locf"),by=line.field]

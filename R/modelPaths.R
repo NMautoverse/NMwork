@@ -12,7 +12,7 @@
 ##' @import NMdata
 ##' @export
 
-modelPaths <- function(file,as.dt=FALSE,must.exist=FALSE,simplify=TRUE){
+modelPaths <- function(file,as.dt=FALSE,col.name="mod",must.exist=FALSE,simplify=TRUE){
     
     if(must.exist && any(!file.exists(file))) stop("Not all models exist, and `must.exist=TRUE`")
     
@@ -57,7 +57,7 @@ modelPaths <- function(file,as.dt=FALSE,must.exist=FALSE,simplify=TRUE){
     }
 
     
-    all <- lapply(split(all,by="name"),as.list)
+    all <- lapply(split(all,by=col.name),as.list)
     if(simplify && length(all)==1){
         all <- all[[1]]
     }

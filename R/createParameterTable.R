@@ -40,7 +40,7 @@
 ##' PAR=EXP(THETA) + ETA.
 ##' 
 ##'
-##' - Formatting of CV
+##' - Formatting of CV 
 ##' trans="normal" or "none": CV=se/est
 ##' trans="lognormal" : CV=sqrt(exp(OMEGA[i,i])-1)
 ##' 
