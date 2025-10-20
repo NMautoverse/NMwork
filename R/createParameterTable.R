@@ -10,10 +10,13 @@
 ##' @param args.ParsText List of arguments to be passes to
 ##'     `NMreadParsText()`.
 ##' @param dt.labels Optional table of labels to overwrite results
-##'     from `NMreadParsText()`. Useful to correct issues on a model you
-##'     don´t want to rerun.
+##'     from `NMreadParsText()`. Useful to correct issues on a model
+##'     you don´t want to rerun.
 ##' @param by.labels If `dt.labels` provided, names of columns to
 ##'     merge by.
+##' @param drop.symbol Symbol values to not include. To be specific,
+##'     rows with these values in the symbol column will be omitted in
+##'     the generated table.
 ##' @details
 ##'
 ##' ### Guideline for panel column:
@@ -57,8 +60,11 @@
 ##' correlations.
 ##'
 ##'
-##' Off-diagonals in OMEGA and THETA
-##' These should be fully automated. They are automatically identified, and labels are auto-generated based on labels of the associated diagonal elements.
+##' \strong{Off-diagonals in OMEGA and SIGMA}
+##' 
+##' These should be fully automated. They are automatically
+##' identified, and labels are auto-generated based on labels of the
+##' associated diagonal elements.
 ##'
 ##' Off-diagonal estimates are shown as correlations. But
 ##' SE is standard error of the variances or
@@ -73,7 +79,7 @@
 ##' @importFrom stats cov2cor
 ##' @importFrom NMcalc CVlnorm invlogit
 ##' @export
-##' @seealso formatParTable
+##' @seealso formatParameterTable
 
 ### should also take arg to include fixed parameters. Maybe default
 ### should be estimated and non-zero?
@@ -101,6 +107,10 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.l
                     as.list(c(args.ParsText,file=file.lst,as.fun="data.table"))
                     )
     
+    ## we need a pars with anything found in labels, plus estimated omega and sigma off-diags
+    pars.found <- merge(pars,labs[,.(parameter)],by="parameter",all.y=TRUE)
+    pars <- pars[parameter%in%pars.found[,parameter]|(FIX==0 & i!=j)]
+    
     ## if(!is.null(drop.symbol)){
     ##     if(!"symbol"%in%colnames(labs)){
     ##         warning("drop.symbol uses but symbol is not found in parameter labels. drop.symbol not used.")
@@ -111,7 +121,8 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.l
     ##     }
     ## }
     
-    pars <- mergeCheck(labs[,!(c("i","j","par.type"))],pars,by=cc(model,parameter),all.x=T,quiet=T)
+    ## pars <- mergeCheck(labs[,!(c("i","j","par.type"))],pars,by=cc(model,parameter),all.x=T,quiet=T)
+    pars <- mergeCheck(pars,labs[,!(c("i","j","par.type"))],by=cc(model,parameter),all.x=T,quiet=T)
     
 ##### group parameters
 
