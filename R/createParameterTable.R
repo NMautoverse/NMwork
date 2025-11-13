@@ -8,35 +8,78 @@
 ##'     use output control stream. You can also use input control
 ##'     stream.
 ##' @param args.ParsText List of arguments to be passes to
-##'     `NMreadParsText()`.
-##' @param dt.labels Optional table of labels to overwrite results
-##'     from `NMreadParsText()`. Useful to correct issues on a model
-##'     you don´t want to rerun.
-##' @param by.labels If `dt.labels` provided, names of columns to
+##'     `NMreadParsText()`. This will only be used if `df.labs` is
+##'     omitted.
+##' @param df.repair Optional table of labels to overwrite results
+##'     from `NMreadParsText()`. Useful to correct table issues
+##'     without rerunning the model. This is only relevant if df.labs
+##'     is omitted, and `NMreadParsText()` is run by
+##'     `createParameterTable()`. Notice, the `df.labs` argument
+##'     provides full flexibility to construct the labels before
+##'     running `createParameterTable()`, and `dt.labels` is only a
+##'     solution to a more specific case. `dt.labels` is likely to be
+##'     re-designed or even dropped in the future.
+##' @param by.repair If `dt.labels` provided, names of columns to
 ##'     merge by.
+##' @param df.labs An optional data.frame with parameter labels. If
+##'     provided, this will be the only source of labels and other
+##'     columns like units, transformations, etc. 
 ##' @param drop.symbol Symbol values to not include. To be specific,
 ##'     rows with these values in the symbol column will be omitted in
 ##'     the generated table.
-##' @details
+##' @details The following columns are attempted used and may be
+##'     modified. It is important for the user to understand how these
+##'     must be formatted.
 ##'
+##' In many cases, a combination of args.ParsText and
+##' df.repair+by.repair is an easy way to have createParameterTable()
+##' do all the work. This will use NMreadParsText() and mergeCoal() to
+##' repair the table. If this is insufficient, the labels can be read
+##' into a data.frame first and passed as df.labs. In that case, other
+##' tools like NMrelate() can also be used.
+##' 
+##' \itemize{
+##' \item label The parameter label "Clearance"
+##' \item trans Optional parameter transformation (character strings). See below for possible strings.
+##' \item unit The parameter unit "L/h"
+##' \item panel Blocks of parameters types. See below for options.
+##' }
+##'
+##' Adding rse, CI.l, CI.u, and corr
+##'
+##' \itemize{
+##'
+##' \item tab.est The value column to be shown in parameter
+##' tables. The format depends on the parameter type and the
+##' transformation. 
+##'
+##' \item tab.est.ltx A latex version of tab.est
+##'
+##' \item parameter.ltx. A latex version of the
+##' parameter name (like theta(1)). In case a THETA is log tranformed, an asterisk
+##' (*) is appended, for logit transformed THETAs, two asterisks (**)
+##' are appended. This is for footnoteing that the parameter estimates
+##' are shown on the physiologigical or natural scale.
+##' }
+##' 
 ##' ### Guideline for panel column:
-##'    ## THETA: struct (default), cov, RV
+##'    ## THETA: struct (default), cov (covariates), RV (residual variability parameters)
 ##'    ## OMEGA: IIV/BSV (default), IOV/BOV
 ##'    ## OMEGA off diag: (handled automatically)
 ##'    ## SIGMA: (handled automatically)
 ##'
 ##' ### trans column:
-##'    ## THETA: none (default), log, logit, addErr/SD, propErr/CV
+##'    ## THETA: none (default), log/logTrans, logit, addErr/SD, propErr/CV
 ##'    ## OMEGA: lognormal (default), normal
 ##'    ## OMEGA: off diag: (handled automatically)
 ##'    ## SIGMA: Not implemented.
 ##' 
 ##' trans is used for the following:
 ##'
-##' - Transformation of model parameters (say THETA(1)) values and CI
+##' - Transformation: Model parameters (say THETA(1)) values and CI
 ##' to the scale of the interpretable parameter, (say CL).
 ##'
-##' Theta's addErr and propErr gives formatting as residual standard
+##' - Formatting: For Theta's trans equalling addErr and propErr gives formatting as residual standard
 ##' deviations for additive and proportional error terms,
 ##' respectively. On OMEGA's, the lognormal distribut is for
 ##' CL=EXP(THETA +ETA) , normal is for additive effects:
@@ -46,7 +89,6 @@
 ##' - Formatting of CV 
 ##' trans="normal" or "none": CV=se/est
 ##' trans="lognormal" : CV=sqrt(exp(OMEGA[i,i])-1)
-##' 
 ##' 
 ##' Inverse of log (inverse is exp) and logit (NMcalc::invlogit) will
 ##' be applied to parameter values and confidence intervals. SE and
@@ -63,8 +105,9 @@
 ##' \strong{Off-diagonals in OMEGA and SIGMA}
 ##' 
 ##' These should be fully automated. They are automatically
-##' identified, and labels are auto-generated based on labels of the
-##' associated diagonal elements.
+##' identified, and labels should be auto-generated based on labels of
+##' the associated diagonal elements. I don't think the labeling is
+##' implemented yet, but it should be relatively simple.
 ##'
 ##' Off-diagonal estimates are shown as correlations. But
 ##' SE is standard error of the variances or
@@ -72,9 +115,14 @@
 ##' estimate (correlation) and the scale of the associated uncertainty
 ##' (covariance) are different.
 ##'
+##' Latex versions (.ltx columns) are generated using
+##' dplR::latexify. Because dplR is not included in MPN, and we need
+##' just that one function from dplR, the function has been copied
+##' into NMwork instead.
 ##' 
 ##' @import data.table
 ##' @import NMdata
+##' @import stringi
 ##' @importFrom scales percent
 ##' @importFrom stats cov2cor
 ##' @importFrom NMcalc CVlnorm invlogit
@@ -84,45 +132,53 @@
 ### should also take arg to include fixed parameters. Maybe default
 ### should be estimated and non-zero?
 
-createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.labels="symbol",drop.symbol){
-    
+createParameterTable <- function(file.lst,args.ParsText=NULL,df.repair=NULL,by.repair="symbol",df.labs,drop.symbol,file.ext){
 ### If NMcalc version < 0.0.3 we need to define CVlnorm
     CVlnorm <- function(omega){
         sqrt(exp(omega)-1)
     }
 
     if(missing(drop.symbol)) drop.symbol <- NULL
-
+    if(missing(file.ext)) file.ext <- file.lst
     
-### this example requires NMdata 0.1.5 (a little more code is needed for 0.1.4)
 
 ### parameters are assumed to be concistently labeled in $THETA,
 ### $OMEGA and $SIGMA sections
 
 ### Off-diagonal elements are automatically identified by NMreadParsText().
     
-    pars <- NMreadExt(file=file.lst,as.fun="data.table")
-    
-    labs <- do.call(NMreadParsText,
-                    as.list(c(args.ParsText,file=file.lst,as.fun="data.table"))
-                    )
+    pars <- NMreadExt(file=file.ext,as.fun="data.table")
+
+    if(is.null(df.labs)){
+        labs <- do.call(NMreadParsText,
+                        as.list(c(args.ParsText,file=file.lst,as.fun="data.table"))
+                        )
+    } else {
+        labs <- df.labs
+    }
     
     ## we need a pars with anything found in labels, plus estimated omega and sigma off-diags
-    pars.found <- merge(pars,labs[,.(parameter)],by="parameter",all.y=TRUE)
+    pars.found <- merge(
+        pars
+       ,
+        labs[,.(parameter)]
+       ,by="parameter",all.y=TRUE)
     pars <- pars[parameter%in%pars.found[,parameter]|(FIX==0 & i!=j)]
+    ## only for debugging
+    pars0 <- copy(pars)
+
     
-    ## if(!is.null(drop.symbol)){
-    ##     if(!"symbol"%in%colnames(labs)){
-    ##         warning("drop.symbol uses but symbol is not found in parameter labels. drop.symbol not used.")
-    ##         drop.symbol <- NULL
-    ##     }
-    ##     if(!is.null(drop.symbol)){
-    ##         labs <- labs[!grepl(pattern=drop.symbol,symbol)]
-    ##     }
-    ## }
     
-    ## pars <- mergeCheck(labs[,!(c("i","j","par.type"))],pars,by=cc(model,parameter),all.x=T,quiet=T)
-    pars <- mergeCheck(pars,labs[,!(c("i","j","par.type"))],by=cc(model,parameter),all.x=T,quiet=T)
+    ## compareCols(pars0,labs)
+    pars <- mergeCheck(
+        pars0
+       ,
+        labs[,!(c("i","j","par.type"))]
+       ,by=intersect(intersect(colnames(pars0),colnames(labs)),cc(model,parameter)),
+        all.x=T,quiet=T,
+        ## common.cols="merge.by"
+        common.cols="drop.y"
+    )
     
 ##### group parameters
 
@@ -132,7 +188,7 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.l
     ## THETA: struct (default), cov, RV
     ## OMEGA: IIV/BSV (default), IOV/BOV
     ## OMEGA off diag: (handled automatically)
-
+    
 ### trans:
     ## THETA: none (default), log, logit, addErr/SD, propErr/CV
     ## OMEGA: lognormal (default), normal
@@ -157,29 +213,26 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.l
     ## pars[,panel:=factor(parGRP,levels=cc(theta,OMEGAdiag,OMEGAcorr,resVar))]
 
     
-    ## pars[,.N,by=.(parGRP)]
-
-    ##  colnames(pars)
-
-    ## if(!"panel"%in%colnames(pars))
-    if(!is.null(dt.labels)){
-        ## cols.drop <- setdiff(colnames(dt.labels),by.labels)
-        ## cols.drop <- intersect(cols.drop,colnames(pars))
-        ## pars <- mergeCheck(pars[,!(cols.drop),with=F],dt.labels,by=by.labels,all.x=T,quiet=T)
-        
-        pars0 <- copy(pars)
-        pars0[,row:=.I]
-        pars.new <- mergeCheck(dt.labels,pars0,by=by.labels,all.x=T,quiet=T,common.cols="drop.y")
-        
-        pars <- rbind(
-            pars0[!row%in%pars.new[,row]]
-           ,
-            pars.new
-        )
-        setorder(pars,row)
-        pars[,row:=NULL]
+    if(FALSE){
+        if(!is.null(dt.labels)){
+           
+            pars0 <- copy(pars)
+            pars0[,row:=.I]
+            pars.new <- mergeCheck(dt.labels,pars0,by=by.labels,all.x=T,quiet=T,common.cols="drop.y")
+            
+            pars <- rbind(
+                pars0[!row%in%pars.new[,row]]
+               ,
+                pars.new
+            )
+            setorder(pars,row)
+            pars[,row:=NULL]
+        }
     }
 
+    if(!is.null(df.repair)){
+        pars <- mergeCoal(x=pars,y=df.repair,by=by.repair)
+    }
 
     
 #### requires a covariance step
@@ -208,45 +261,53 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.l
     dt.cor[,j:=as.numeric(j)]
     dt.cor <- dt.cor[j<=i]
     ## pars <- mergeCheck(pars,dt.cor[,.(par.type="OMEGA",i,j,tab.corr=round(value))],by=cc(par.type,i,j),all.x=TRUE)
+
     pars <- mergeCheck(pars,dt.cor[,.(par.type="OMEGA",i,j,corr=value)],by=cc(par.type,i,j),all.x=TRUE,quiet=T)
 
-
-    
-### these use parGRP to identify the groups
-    if(!"label"%in%colnames(pars)){
-        pars[,label:=""]
-    }
-    if(!"unit"%in%colnames(pars)){
-        pars[,unit:=""]
-    }
-    pars[par.type=="THETA"&panel!="cov",tab.lab:=paste(label,symbol,sep=", ")]
-
-    pars[grepl("^ *-* *$",unit),unit:=NA]
-
-    pars[panel=="BSV"&is.na(label),label:=paste("BSV",symbol)]
-    pars[panel=="BOV"&is.na(label),label:=paste("BOV",symbol)]
 
 ###### patching/standardizing trans
     if(!"trans"%in%colnames(pars)){
         pars[,trans:=NA_character_]
     }
-
     pars[par.type=="THETA"&is.na(trans),trans:="none"]
     pars[par.type=="THETA"&trans=="logTrans",trans:="log"]
-    pars[par.type=="OMEGA"&i==j&is.na(trans),trans:="lognormal"]
-    pars[par.type=="OMEGA"&trans=="lognormalOm",trans:="lognormal"]
-
     pars[par.type=="THETA"&tolower(trans)=="SD",trans:="addErr"]
     pars[par.type=="THETA"&tolower(trans)=="CV",trans:="propErr"]
+    pars[par.type=="OMEGA"&i==j&is.na(trans),trans:="lognormal"]
+    pars[par.type=="OMEGA"&trans=="lognormalOm",trans:="lognormal"]
+#### trans done
+    
+    
+### label
+    if(!"label"%in%colnames(pars)){
+        pars[,label:=NA_character_]
+    }
+    if("symbol"%in%colnames(pars)){
+        pars[,label:=fcoalesce(label,symbol)]
+    }
+    pars[is.na(label),label:=""]
+    
+    pars[panel=="BSV"&is.na(label),label:=paste("BSV",symbol)]
+    pars[panel=="BOV"&is.na(label),label:=paste("BOV",symbol)]
     
     pars[par.type=="OMEGA"&trans=="normal",label:=paste(label,"(additive)")]
-    ## label done
+### label done
 
+### unit
+    if(!"unit"%in%colnames(pars)){
+        pars[,unit:=""]
+    }
+    ## if unit is empty, use NA
+    pars[grepl("^ *-* *$",unit),unit:=NA]
+### 
     
-    ## tab.lab is the formatted string (not latex) to show in a table
+### tab.lab is the formatted string (not latex) to show in a table
+    pars[par.type=="THETA"&panel!="cov",tab.lab:=paste(label,symbol,sep=", ")]
     pars[!is.na(unit),tab.lab:=sprintf("%s (%s)",label,unit)]
     pars[is.na(unit),tab.lab:=sprintf("%s",label)]
-    
+### tab.lab done
+
+####### Creating additional columns related to rse, correlation of omegas/sigmas
     if("rse"%in%colnames(pars)){
         pars[,tab.rse:=percent(rse,accuracy=.1)]
         pars[FIX==1,tab.rse:="-"]
@@ -290,9 +351,9 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.l
     
     pars[par.type=="SIGMA",tab.est:=sprintf("%s (%s)",signif(est,3),tab.rse)]
 
-
+    
     ## parameter - label
-    pars[,par.label:=sprintf("%s - %s", par.name,label)]
+    ## pars[,par.label:=sprintf("%s - %s", par.name,label)]
 
     ## Latex versions of columns for report tables
     pars[,tab.est.ltx:=latexify(tab.est,doublebackslash = FALSE)]
@@ -301,9 +362,15 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,dt.labels=NULL,by.l
     pars[par.type=="OMEGA",parameter.ltx:=paste0("$\\Omega_{",i,",",j,"}$")]
     pars[par.type=="SIGMA",parameter.ltx:=paste0("$\\sigma_{",i,",",j,"}$")]
 
+### Include * at log-transformed variables
+    pars[par.type=="THETA"&trans%in%c("log"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\*\\$",parameter.ltx)]
+### Include * at logit-transformed variables
+    pars[par.type=="THETA"&trans%in%c("logit"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\*\\*\\$",parameter.ltx)]
+
+    
     if(!is.null(drop.symbol)){
         if(!"symbol"%in%colnames(pars)){
-            warning("drop.symbol uses but symbol is not found in parameter labels. drop.symbol not used.")
+            warning("drop.symbol provied but column symbol is not found in table. drop.symbol not used.")
             drop.symbol <- NULL
         }
         if(!is.null(drop.symbol)){

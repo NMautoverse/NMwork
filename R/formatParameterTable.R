@@ -31,8 +31,6 @@ formatParameterTable <- function(pars,include.fix="ifNotZero",include,drop,drop.
     if(missing(drop)) drop <- NULL
     
 
-### Include * at transformed variables
-    pars[trans%in%c("log","logTrans"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\*\\$",parameter.ltx)]
     ## shrinkage is not included in the parameter table for now.
 
 #### It would be good to be able to save this one
