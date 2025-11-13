@@ -51,7 +51,8 @@ newModel <- function(newfile,file.mod,update=TRUE,values,
 
     
     newmod <- NMwriteInits(file.mod,update=update,values=values)
-
+    if(is.list(newmod)) newmod <- newmod[[1]]
+    
 ######### Inits
 ## if(FALSE){
     if(!is.null(inits)){
@@ -73,7 +74,7 @@ newModel <- function(newfile,file.mod,update=TRUE,values,
     ## str(newmod)
     
 ### update table file names
-    newmod <- NMupdateFn(lines=newmod[[1]],section="TABLE",
+    newmod <- NMupdateFn(lines=newmod,section="TABLE",
                          model=basename(newfile),
                          fnext=".tab",add.section.text=NULL,
                          par.file="FILE",

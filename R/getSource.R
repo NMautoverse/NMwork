@@ -66,7 +66,7 @@ getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.dir
     ## Checking whether there is a local version and if it missing, it is copied
     if( overwrite || !(dir.exists(dir.local) && file.exists(dest))){
         ## Copying the latest version of the file
-        if (silent == FALSE){message("Copying ",file,"\n")}
+        if (silent == FALSE){message("Copying ",file)}
         dir.create(dir.local,recursive=TRUE,showWarnings=FALSE)
         file.copy(from=org,
                   to=dest,overwrite=TRUE)

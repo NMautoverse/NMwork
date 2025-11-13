@@ -9,7 +9,7 @@
 
 NMupdateFn <- function(lines,section,model,fnext,add.section.text,par.file,text.section){
 ### Arguments to replace: FILE, .tab, text.table
-
+    
     if(missing(text.section)) text.section <- NULL
     run.sim <- fnExtension(basename(model),ext="")
     
@@ -55,7 +55,7 @@ NMupdateFn <- function(lines,section,model,fnext,add.section.text,par.file,text.
     }
     
     ## replace old section with the updated one
-    lines <- NMsim:::NMwriteSectionOne(lines=lines,section=section,newlines=lines.section.new,quiet=TRUE)
+    lines <- NMdata:::NMwriteSectionOne(lines=lines,section=section,newlines=lines.section.new,quiet=TRUE)
 
     lines
     
