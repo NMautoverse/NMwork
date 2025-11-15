@@ -43,6 +43,10 @@ formatParameterTable <- function(pars,include.fix="ifNotZero",include,drop,drop.
     if(!is.null(drop.symbol)){
         pars <- pars[!grepl(pattern=drop.symbol,symbol)]
     }
+
+    if( !is.null(drop) ){
+        pars <- pars[!symbol%in%drop]
+    }
     
     if( is.logical(include.fix) && isFALSE(include.fix) ){
         pars <- pars[FIX==0|symbol%in%include]
@@ -52,9 +56,6 @@ formatParameterTable <- function(pars,include.fix="ifNotZero",include,drop,drop.
         pars <- pars[FIX==0|est!=0|symbol%in%include]
     }
 
-    if( !is.null(drop) ){
-        pars <- pars[!symbol%in%drop]
-    }
 
     
     ## pars <- pars[]

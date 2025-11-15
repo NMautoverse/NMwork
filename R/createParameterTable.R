@@ -132,7 +132,7 @@
 ### should also take arg to include fixed parameters. Maybe default
 ### should be estimated and non-zero?
 
-createParameterTable <- function(file.lst,args.ParsText=NULL,df.repair=NULL,by.repair="symbol",df.labs,drop.symbol,file.ext){
+createParameterTable <- function(file.lst,args.ParsText=NULL,df.repair=NULL,by.repair="symbol",df.labs,drop.symbol,file.ext,df.panels){
 ### If NMcalc version < 0.0.3 we need to define CVlnorm
     CVlnorm <- function(omega){
         sqrt(exp(omega)-1)
@@ -140,6 +140,7 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,df.repair=NULL,by.r
 
     if(missing(drop.symbol)) drop.symbol <- NULL
     if(missing(file.ext)) file.ext <- file.lst
+    if(missing(df.labs)) df.labs <- NULL
     
 
 ### parameters are assumed to be concistently labeled in $THETA,
@@ -212,23 +213,30 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,df.repair=NULL,by.r
 ### TODO: do we want to generate a factor with the observed values, guessing an order?
     ## pars[,panel:=factor(parGRP,levels=cc(theta,OMEGAdiag,OMEGAcorr,resVar))]
 
+### This automates the labeling of the parameter blocks.
+    dt.panels.std <- fread(text="panel,panel.label
+struct,Structural parameters
+cov,Covariate effects
+IIV,Inter-individual variances
+OMEGAcorr,Inter-individual covariances
+IOV,Inter-occasion variances
+resvar,Residual error standard deviation")
+
+    if(missing(df.panels)) df.panels <- NULL
+    if(!is.null(df.panels)) df.panels <- as.data.table(df.panels)
+
+    df.panels <- rbind(df.panels,dt.panels.std)
+    df.panels <- unique(df.panels,by="panel")
     
-    if(FALSE){
-        if(!is.null(dt.labels)){
-           
-            pars0 <- copy(pars)
-            pars0[,row:=.I]
-            pars.new <- mergeCheck(dt.labels,pars0,by=by.labels,all.x=T,quiet=T,common.cols="drop.y")
-            
-            pars <- rbind(
-                pars0[!row%in%pars.new[,row]]
-               ,
-                pars.new
-            )
-            setorder(pars,row)
-            pars[,row:=NULL]
-        }
-    }
+    
+    pars <- mergeCoal(pars,df.panels,by="panel")
+    ## pars[,panel.label:=fcoalesce(panel.label,panel)]
+    
+    pars[,panel:=factor(panel,levels=df.panels[,panel])]
+    pars[,panel.label:=factor(panel.label,levels=df.panels[,panel.label])]
+    setorder(pars,panel)
+
+    setorder(pars,panel)
 
     if(!is.null(df.repair)){
         pars <- mergeCoal(x=pars,y=df.repair,by=by.repair)
