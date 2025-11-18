@@ -179,6 +179,7 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,df.repair=NULL,by.r
         all.x=T,quiet=T,
         ## common.cols="merge.by"
         common.cols="drop.y"
+       ,as.fun="data.table"
     )
     
 ##### group parameters
@@ -229,7 +230,7 @@ resvar,Residual error standard deviation")
     df.panels <- unique(df.panels,by="panel")
     
     
-    pars <- mergeCoal(pars,df.panels,by="panel")
+    pars <- mergeCoal(pars,df.panels,by="panel",as.fun="data.table")
     ## pars[,panel.label:=fcoalesce(panel.label,panel)]
     
     pars[,panel:=factor(panel,levels=df.panels[,panel])]
@@ -239,7 +240,7 @@ resvar,Residual error standard deviation")
     setorder(pars,panel)
 
     if(!is.null(df.repair)){
-        pars <- mergeCoal(x=pars,y=df.repair,by=by.repair)
+        pars <- mergeCoal(x=pars,y=df.repair,by=by.repair,as.fun="data.table")
     }
 
     
@@ -270,7 +271,7 @@ resvar,Residual error standard deviation")
     dt.cor <- dt.cor[j<=i]
     ## pars <- mergeCheck(pars,dt.cor[,.(par.type="OMEGA",i,j,tab.corr=round(value))],by=cc(par.type,i,j),all.x=TRUE)
 
-    pars <- mergeCheck(pars,dt.cor[,.(par.type="OMEGA",i,j,corr=value)],by=cc(par.type,i,j),all.x=TRUE,quiet=T)
+    pars <- mergeCheck(pars,dt.cor[,.(par.type="OMEGA",i,j,corr=value)],by=cc(par.type,i,j),all.x=TRUE,quiet=T,as.fun="data.table")
 
 
 ###### patching/standardizing trans
@@ -310,9 +311,10 @@ resvar,Residual error standard deviation")
 ### 
     
 ### tab.lab is the formatted string (not latex) to show in a table
+    pars[,tab.lab:=label]
     pars[par.type=="THETA"&panel!="cov",tab.lab:=paste(label,symbol,sep=", ")]
-    pars[!is.na(unit),tab.lab:=sprintf("%s (%s)",label,unit)]
-    pars[is.na(unit),tab.lab:=sprintf("%s",label)]
+    pars[!is.na(unit),tab.lab:=sprintf("%s (%s)",tab.lab,unit)]
+    ##pars[is.na(unit),tab.lab:=sprintf("%s",label)]
 ### tab.lab done
 
 ####### Creating additional columns related to rse, correlation of omegas/sigmas
@@ -385,8 +387,13 @@ resvar,Residual error standard deviation")
             pars <- pars[!grepl(pattern=drop.symbol,symbol)]
         }
     }
-    
+
+    NMstamp(pars,script
+
+            =script$label,model=file.lst)
     pars[]
+
+
 }
 
 

@@ -3,40 +3,91 @@
 ##' @param include
 ##' @param drop
 ##' @param drop.symbol
-##' @details A simple printing function for createParameterTable(). It creates three objects.
-##' \itemize{
-##' \item partab_full: a df with all columns for selected parameters.
-##' \item partab_detail: a flextable with selected columns for selected parameters.
-##' \item partab_present: a flextable with fewer selected columns for selected parameters.
-##' }
-##'
-##' Notes: I suggest dropping the asterisk on parameter.ltx and
-##' instead include a nicely formated transformation column in
-##' createParameterTable(). It could be included in a parameter table
-##' only if non-standard transformations are used.
-##'
-##' formatParameterTable is a bad name. This function selects rows and
-##' columns in three different levels of detail and returns those
-##' three objects. Formatting should happen in
-##' `createParameterTable()`.
 ##'
 ##' @import data.table
-##' @importFrom flextable flextable autofit
+##' @import flextable
+##' @import ftExtra
+##' @import kable
+##' @import kableExtra
+##' @importFrom dplyr group_by
 ##' @export
 ##'
 
-printParameterTable <- function(pars,format){
+## todo
 
+## tolowor(format)
 
+## get.arg format
+
+## switch
+
+## if rmd, latexify footnotes? How about underscores - fixUnder too? Yes, do both fixes in rmd case.
+
+### for rmd and rmd-latex: can't get longtable to work with
+### footnotes. Currently not using footnotes.
+
+printParameterTable <- function(pars,format,footnotes=NULL,script=NULL,file.mod){
+    
+    fixUnder <- function(x)gsub("\\_","\\\\_",x)
+    
     ##paramtbl <- readRDS(file.rds)
     paramtbl <- pars
-    
     info.source <- NMinfo(paramtbl)
+    model <- NULL
+
+### only one format at a time supported
+    
+    if(tolower(fnExtension(format))=="pdf"){
+        file.pdf <- format
+        format <- "rmd-pdf"
+    }
+
+    fixUnder <- ifelse(format%in%c("rmd","rmd-pdf"),
+                       function(x)gsub("\\_","\\\\_",x),
+                       identity)
+    
+    if( !missing(file.mod) && !is.null(file.mod) ){
+        model <- modelPaths(file.mod)
+    } else if(!is.null(info.source$dataCreate$model)){
+        model <- modelPaths(info.source$dataCreate$model)
+    }
+    
+### this is a header
+    string.caption <- paste0("Base model parameters"
+                            ," (Model ",fixUnder(model$run),")"
+                             )
+
+
+    footnotes <- c(footnotes,
+                   "* parameter was estimated in the log domain and back-transformed for clarity.",
+                   "RSE: Relative Standard Error on the scale where the parameter was estimated.")
+
+    if(!is.null(script)){
+        footnotes <- c(footnotes,sprintf("Source: %s",fixUnder(script)))
+    }
+    if(!is.null(model)){
+        footnotes <- c(footnotes,sprintf("Model: %s",fixUnder(model$label)))
+    }
+
+
+    if(format=="R"){
+
+        paramtbl <- paramtbl[,.(
+            Panel=panel.label,
+            "Parameter"=par.name,
+            "Label"=tab.lab,
+            "Estimate (RSE%) [CV% or Corr%]"=tab.est,
+            "95% Confidence Interval"=CI
+            )]
+
+lapply(footnotes,message)
+        return(kable(paramtbl,format="pipe"))
+    }
+
+
+    
 
     if(format=="flextable"){
-
-        library(ftExtra)
-        library(dplyr)
 
         paramtbl <- paramtbl[,.(
             "  "=par.name,
@@ -53,15 +104,28 @@ printParameterTable <- function(pars,format){
         ##as_flextable(hide_grouplabel = TRUE)
         ft <- as_flextable(paramtbl2,hide_grouplabel = TRUE) ##|> autofit()
 
+        ft <- theme_vanilla(ft)
+        ft <- add_footer_lines(ft, footnotes)
+        ft <- color(ft, part = "footer", color = "#666666")
+        ft <- fontsize(ft, part = "footer", size=10)
+        ft <- align(ft, part="footer", align = "left")
+        ft <- line_spacing(ft, space = 1, part = "footer")
+        
         return(ft)
         
     }
 
 
 
-    if(format=="kbl"){
+    if(format%in%c("rmd","rmd-pdf")){
+        ## fixUnder <- function(x)gsub("\\_","\\\\_",x)
 
-        fixUnder <- function(x)gsub("\\_","\\\\_",x)
+        nmbrows <- paramtbl[,.N,keyby=.(panel.label)]
+        nmbrows[,start:=cumsum(shift(N,1,fill=0))+1]
+        nmbrows[,end:=cumsum(N)]
+        ## merge onto dt.panel
+        ##dt.panel <- mergeCheck(nmbrows,dt.panel,by.x="parGRP",by.y="panel",all.x=TRUE,quiet=TRUE)
+
 
         paramtbl2 <- paramtbl[,.(
             "  "=parameter.ltx,
@@ -73,45 +137,46 @@ printParameterTable <- function(pars,format){
 #### configure column justification and sizes. The widths are not automated.
         paramtbl2 <- 
             paramtbl2 |>
-            knitr::kable(caption = string.caption,
-                         format = "latex",
-                         align = paste0("ll",paste(rep("c",times=(ncol(paramtbl2)-2)),collapse = "")),
-                         booktabs=T, escape=F) |> 
+            knitr::kable(
+                       format = "latex",
+                       align = paste0("ll",paste(rep("c",times=(ncol(paramtbl2)-2)),collapse = "")),
+                       caption = string.caption,
+                       ## longtable=T,
+                       booktabs=T, escape=F) |> 
                                         #col.names = gsub("Description", " ", names(paramtbl))) |>
-            kable_styling(full_width = T,font_size = 7.5,  latex_options = "HOLD_position") |>
+            kable_styling(full_width = T,
+               font_size = 7.5,  latex_options = "HOLD_position") |>
             column_spec(1, width="4em")|>
             column_spec(2, width = "26em") |>
             column_spec(3, width = "12em")
 
-
-        nmbrows <- paramtbl[,.N,keyby=.(parGRP)]
-        nmbrows[,start:=cumsum(shift(N,1,fill=0))+1]
-        nmbrows[,end:=cumsum(N)]
-        ## merge onto dt.panel
-        dt.panel <- mergeCheck(nmbrows,dt.panel,by.x="parGRP",by.y="panel",all.x=TRUE,quiet=TRUE)
-
-        for(I in 1:nrow(dt.panel)){
+        
+        ## for(I in 1:nrow(dt.panel)){
+        for(I in 1:nrow(nmbrows)){
             paramtbl2 <- 
-                dt.panel[I,pack_rows(paramtbl2,panel.label, start, end)]
+                nmbrows[I,pack_rows(paramtbl2,panel.label, start, end)]
         }
+
+        
 
 ### Footnotes
-        footnotes <- c("Rationale behind fixed values provided in Section \\ref{sec:BaseModelResults}.",
-                       "* parameter was estimated in the log domain and back-transformed for clarity.",
-                       "RSE: Relative Standard Error on the scale where the parameter was estimated.")
 
-        if(!is.null(info.source$dataCreate$DataCreateScript)){
-            footnotes <- c(footnotes,sprintf("Source: %s",fixUnder(info.source$dataCreate$DataCreateScript)))
-        }
-        if(!is.null(info.source$dataCreate$model)){
-            footnotes <- c(footnotes,sprintf("Model: %s",fixUnder(info.source$dataCreate$model)))
-        }
-
-
-        paramtbl2 <- paramtbl2 |>
+        
+        pars.ltx <- paramtbl2 |>
             add_footnote(label=footnotes,notation="none",escape=FALSE)
 
-        paramtbl2
+
+        if(format=="rmd") return(pars.ltx)
+        
+    }
+
+    if(format=="rmd-pdf"){
+        ## "\\usepackage[margin=1in]{geometry}",
+        latexStandAlone(pars.ltx,file.pdf=file.pdf,
+                        usepackage=cc("geometry:margin=1in",
+                                      booktabs,float,tabu,longtable
+                                      ))
+        ## return path to output?
     }
 
 }
