@@ -118,15 +118,12 @@ lapply(footnotes,message)
 
 
     if(format%in%c("rmd","rmd-pdf")){
-        ## fixUnder <- function(x)gsub("\\_","\\\\_",x)
 
+        ## 
         nmbrows <- paramtbl[,.N,keyby=.(panel.label)]
         nmbrows[,start:=cumsum(shift(N,1,fill=0))+1]
         nmbrows[,end:=cumsum(N)]
-        ## merge onto dt.panel
-        ##dt.panel <- mergeCheck(nmbrows,dt.panel,by.x="parGRP",by.y="panel",all.x=TRUE,quiet=TRUE)
-
-
+       
         paramtbl2 <- paramtbl[,.(
             "  "=parameter.ltx,
             " "=tab.lab.ltx,
