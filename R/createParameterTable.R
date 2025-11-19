@@ -136,6 +136,7 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,df.repair=NULL,by.r
     CVlnorm <- function(omega){
         sqrt(exp(omega)-1)
     }
+    invlogit <- function(x) 1/(1+exp(-x))
 
     if(missing(drop.symbol)) drop.symbol <- NULL
     if(missing(file.ext)) file.ext <- file.lst
