@@ -131,7 +131,7 @@
 ### should also take arg to include fixed parameters. Maybe default
 ### should be estimated and non-zero?
 
-createParameterTable <- function(file.lst,args.ParsText=NULL,df.repair=NULL,by.repair="symbol",df.labs,drop.symbol,file.ext,df.panels){
+createParameterTable <- function(file.lst,args.ParsText=NULL,df.repair=NULL,by.repair="symbol",df.labs,drop.symbol,file.ext,df.panels,script=NULL){
 ### If NMcalc version < 0.0.3 we need to define CVlnorm
     CVlnorm <- function(omega){
         sqrt(exp(omega)-1)
@@ -387,8 +387,8 @@ resvar,Residual error")
         }
     }
 
+    
     NMstamp(pars,script
-
             =script$label,model=file.lst)
     pars[]
 
