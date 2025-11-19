@@ -8,9 +8,12 @@
 createParameterTable(
   file.lst,
   args.ParsText = NULL,
-  dt.labels = NULL,
-  by.labels = "symbol",
-  drop.symbol
+  df.repair = NULL,
+  by.repair = "symbol",
+  df.labs,
+  drop.symbol,
+  file.ext,
+  df.panels
 )
 }
 \arguments{
@@ -19,48 +22,97 @@ use output control stream. You can also use input control
 stream.}
 
 \item{args.ParsText}{List of arguments to be passes to
-`NMreadParsText()`.}
+`NMreadParsText()`. This will only be used if `df.labs` is
+omitted.}
 
-\item{dt.labels}{Optional table of labels to overwrite results
-from `NMreadParsText()`. Useful to correct issues on a model you
-don´t want to rerun.}
+\item{df.repair}{Optional table of labels to overwrite results
+from `NMreadParsText()`. Useful to correct table issues
+without rerunning the model. This is only relevant if df.labs
+is omitted, and `NMreadParsText()` is run by
+`createParameterTable()`. Notice, the `df.labs` argument
+provides full flexibility to construct the labels before
+running `createParameterTable()`, and `dt.labels` is only a
+solution to a more specific case. `dt.labels` is likely to be
+re-designed or even dropped in the future.}
 
-\item{by.labels}{If `dt.labels` provided, names of columns to
+\item{by.repair}{If `dt.labels` provided, names of columns to
 merge by.}
+
+\item{df.labs}{An optional data.frame with parameter labels. If
+provided, this will be the only source of labels and other
+columns like units, transformations, etc.}
+
+\item{drop.symbol}{Symbol values to not include. To be specific,
+rows with these values in the symbol column will be omitted in
+the generated table.}
 }
 \description{
 Automated parameter table creation of Nonmem models. Currently,
 requires a covariance step.
 }
 \details{
+The following columns are attempted used and may be
+    modified. It is important for the user to understand how these
+    must be formatted.
+
+In many cases, a combination of args.ParsText and
+df.repair+by.repair is an easy way to have createParameterTable()
+do all the work. This will use NMreadParsText() and mergeCoal() to
+repair the table. If this is insufficient, the labels can be read
+into a data.frame first and passed as df.labs. In that case, other
+tools like NMrelate() can also be used.
+
+\itemize{
+\item label The parameter label "Clearance"
+\item trans Optional parameter transformation (character strings). See below for possible strings.
+\item unit The parameter unit "L/h"
+\item panel Blocks of parameters types. See below for options.
+}
+
+Adding rse, CI.l, CI.u, and corr
+
+\itemize{
+
+\item tab.est The value column to be shown in parameter
+tables. The format depends on the parameter type and the
+transformation. 
+
+\item tab.est.ltx A latex version of tab.est
+
+\item parameter.ltx. A latex version of the
+parameter name (like theta(1)). In case a THETA is log tranformed, an asterisk
+(*) is appended, for logit transformed THETAs, two asterisks (**)
+are appended. This is for footnoteing that the parameter estimates
+are shown on the physiologigical or natural scale.
+}
+
 ### Guideline for panel column:
-   ## THETA: struct (default), cov, RV
+   ## THETA: struct (default), cov (covariates), RV (residual variability parameters)
    ## OMEGA: IIV/BSV (default), IOV/BOV
    ## OMEGA off diag: (handled automatically)
    ## SIGMA: (handled automatically)
 
 ### trans column:
-   ## THETA: none (default), log, logit, addErr/SD, propErr/CV
+   ## THETA: none (default), log/logTrans, logit, addErr/SD, propErr/CV
    ## OMEGA: lognormal (default), normal
    ## OMEGA: off diag: (handled automatically)
    ## SIGMA: Not implemented.
 
 trans is used for the following:
 
-- Transformation of model parameters (say THETA(1)) values and CI
+- Transformation: Model parameters (say THETA(1)) values and CI
 to the scale of the interpretable parameter, (say CL).
 
-Theta's addErr and propErr gives formatting as residual standard
+- Formatting: For Theta's trans equalling addErr and propErr gives formatting as residual standard
 deviations for additive and proportional error terms,
 respectively. On OMEGA's, the lognormal distribut is for
 CL=EXP(THETA +ETA) , normal is for additive effects:
 PAR=EXP(THETA) + ETA.
 
 
-- Formatting of CV
+- Formatting of CV 
 trans="normal" or "none": CV=se/est
 trans="lognormal" : CV=sqrt(exp(OMEGA[i,i])-1)
-
 
 Inverse of log (inverse is exp) and logit (NMcalc::invlogit) will
 be applied to parameter values and confidence intervals. SE and
@@ -74,15 +126,24 @@ missing. Estimates reported are of the variances and
 correlations.
 
 
-Off-diagonals in OMEGA and THETA
-These should be fully automated. They are automatically identified, and labels are auto-generated based on labels of the associated diagonal elements.
+\strong{Off-diagonals in OMEGA and SIGMA}
+
+These should be fully automated. They are automatically
+identified, and labels should be auto-generated based on labels of
+the associated diagonal elements. I don't think the labeling is
+implemented yet, but it should be relatively simple.
 
 Off-diagonal estimates are shown as correlations. But
 SE is standard error of the variances or
 cov-variances. For off-diagonal elements, the scale of the
 estimate (correlation) and the scale of the associated uncertainty
 (covariance) are different.
+
+Latex versions (.ltx columns) are generated using
+dplR::latexify. Because dplR is not included in MPN, and we need
+just that one function from dplR, the function has been copied
+into NMwork instead.
 }
 \seealso{
-formatParTable
+formatParameterTable
 }

@@ -14,7 +14,7 @@
 ##' @importFrom purrr map2 map
 ##' @importFrom tibble tibble
 ##' 
-##' @export
+##' @keywords internal
 read_cor_mat <-  function(
   file.lst,
   tableno = "max"

@@ -5,8 +5,8 @@
 \title{Create new control stream based on an existing model}
 \usage{
 newModel(
-  file.mod,
   newfile,
+  file.mod,
   update = TRUE,
   values,
   description = NULL,
@@ -14,14 +14,16 @@ newModel(
   author = NULL,
   write.file = TRUE,
   overwrite = FALSE,
-  modify = NULL
+  modify = NULL,
+  inits = NULL,
+  filters = NULL
 )
 }
 \arguments{
+\item{newfile}{The new control stream file path.}
+
 \item{file.mod}{The path to the control stream to use as the
 starting point.}
-
-\item{newfile}{The new control stream file path.}
 
 \item{update}{Update initial values with final paremeter estimates
 of `file.mod`.}

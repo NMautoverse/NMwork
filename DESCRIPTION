@@ -7,35 +7,36 @@ Authors@R: c(person("Philip", "Delff", email = "philip@delff.dk",role = c("aut",
 Maintainer: Philip Delff <philip@delff.dk>
 Description: Tools and scripts for R/Nonmem workflows
 License: MIT + file LICENSE
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Roxygen: list(roclets=c("collate", "namespace", "rd", "vignette"))
 Depends: R (>= 3.5.0)
 Imports:
   data.table,
-  NMdata (>= 0.1.6),
+  NMdata (>= 0.2.1),
+  NMsim (>= 0.2.5),
   magrittr,
   stringi,
-  GGally, 
   NMcalc, 
   dplyr, 
-  flextable, 
+  flextable,
+  ftExtra,
   forcats, 
   ggplot2,
-  ggpubr, 
+  kableExtra,
   pals, 
   purrr, 
   readr, 
   scales, 
   stringr, 
   tibble,
-  tidyr
+  tidyvpc,
+  tidyr,
+  tinytex
 Suggests: 
   dplyr,
   flextable,
   forcats,
-  GGally,
   ggplot2,
-  ggpubr,
   knitr,
   NMcalc,
   pals,
@@ -46,15 +47,17 @@ Suggests:
   scales,
   stringr,
   stats,
-  testthat,
+  testthat (>= 3.0.0),
   tibble,
   tidyr,
-  tidyvpc,
   tracee
+Enhances:
+  GGally,
+  ggpubr
 Remotes: 
   NMautoverse/NMdata
 Encoding: UTF-8
 BugReports: https://github.com/NMautoverse/NMwork/issues
 Language: en-US
 URL: https://NMautoverse.github.io/NMwork/
-
+Config/testthat/edition: 3

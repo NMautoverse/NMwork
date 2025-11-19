@@ -33,10 +33,13 @@
 ##' # based on run21. We want them to be identical to run21, so use
 ##' # update=FALSE.
 ##' newmod <- newmodel(file.mod="run21.mod",newfile="run22.mod",based.on="run11.mod",update=FALSE)
+##' @import NMsim
+##' @export
+
 
 ### NMwriteInits is from NMsim 0.1.9 or NMdata 0.2.0
-## newModel() should make it into NMdata at some point. But it uses
-## the NMwritePreamble which is a pirana-specific function.
+## newModel() should make it into NMdata or NMsim at some point. But
+## it uses the NMwritePreamble which is a pirana-specific function.
 
 newModel <- function(newfile,file.mod,update=TRUE,values,
                      ## preamble arguments

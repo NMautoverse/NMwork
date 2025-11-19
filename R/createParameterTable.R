@@ -125,7 +125,6 @@
 ##' @import stringi
 ##' @importFrom scales percent
 ##' @importFrom stats cov2cor
-##' @importFrom NMcalc CVlnorm invlogit
 ##' @export
 ##' @seealso formatParameterTable
 
@@ -221,7 +220,7 @@ cov,Covariate effects
 IIV,Inter-individual variances
 OMEGAcorr,Inter-individual covariances
 IOV,Inter-occasion variances
-resvar,Residual error standard deviation")
+resvar,Residual error")
 
     if(missing(df.panels)) df.panels <- NULL
     if(!is.null(df.panels)) df.panels <- as.data.table(df.panels)
@@ -375,7 +374,7 @@ resvar,Residual error standard deviation")
 ### Include * at log-transformed variables
     pars[par.type=="THETA"&trans%in%c("log"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\*\\$",parameter.ltx)]
 ### Include * at logit-transformed variables
-    pars[par.type=="THETA"&trans%in%c("logit"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\*\\*\\$",parameter.ltx)]
+    pars[par.type=="THETA"&trans%in%c("logit"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\{\\*\\*\\}\\$",parameter.ltx)]
 
     
     if(!is.null(drop.symbol)){

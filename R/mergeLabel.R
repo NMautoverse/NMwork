@@ -1,12 +1,14 @@
-
+##' Add parameter labels from a parameter table
 ##' @param pars parameters table
 ##' @param tab.label table with a column for labels
 ##' @param by column to merge pars and tab.label
 ##' @param col.label column in `tab.label` to use for labelling
 ##' @param suffix not sure
 ##' @import data.table
-##' @importFrom NMdata mergeCheck 
-##' @export
+##' @importFrom NMdata mergeCheck
+##' @details This is internally used in plotEstCor and plotTrace. Not
+##'     sure it should its worth exporting.
+
 
 mergeLabel <- function(pars,tab.label=NULL,by="parameter",col.label="parameter",suffix=NULL){
 

@@ -47,6 +47,7 @@ SIGA=SIGMA(2,2)
   Y=F+F*ERR(1)+ERR(2)
 
 ;-----------------------INITIAL ESTIMATES---------------------------------
+;; format: %idx; %symbol ; %label [%unit] ; %trans
 $THETA  (.1)             ; 1 : LTVKA ; Absorption rate [1/h] ; log
 $THETA  (3)             ; 2 : LTVV2 ;  Central volume [L] ; log
 $THETA  (1)             ; 3 : LTVCL ; Clearance [L/h] ; log
@@ -62,6 +63,7 @@ $OMEGA 0.1   ; 3 : BSV.CL ; CL Between-subject variability
 $OMEGA 0 FIX ; 4 : BSV.V3 ; V3 Between-subject variability
 $OMEGA 0 FIX ; 5 : BSV.Q  ; Q Between-subject variability
 
+;; format.sigma: %symbol - %label 
 $SIGMA 0.1    ; SigP - Prop err
 $SIGMA 0 FIX  ; SigA - Add err 
 

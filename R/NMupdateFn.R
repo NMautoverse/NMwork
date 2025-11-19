@@ -1,37 +1,46 @@
-#### Section start: Function to update file name and optionally section contents ####
+##' Update file names in control stream to match model name
+##' @param x a control stream, path or `NMctl` object.
+##' @param section What section to update
+##' @param model Model name
+##' @param fnext The file name extension of the file name to be
+##'     updated (e.g., one of "tab", "csv", "msf").
+##' @param add.section.text Addditional text to insert right after
+##'     $SECTION. It can be additional TABLE variables.
+##' @param par.file The Nonmem parameter that specifies the file. In
+##'     $TABLE, this is FILE. In $EST it's probably MSFO.
+##' @param text.section This is used to overwrite the contents of the section. The section output file name will still handled/updated.
+##' @param quiet Suppress messages? Default is `FALSE`.
+##' @keywords internal
 
-### issue:     if(exists("add.var.table")) - add.var.table is defined outside the function
+##### Don't edit. This is temporarily borrowed from NMsim to not
+##### depend on very latest version.
 
-## In $EST, "FILE" is "MSFO"
-
-##' @param add.section.text Addditional text to insert right after $SECTION. It can be additional TABLE variables.
-##' @param par.file The Nonmem parameter that secifies te file. In $TABLE, this is FILE. In $EST it's probably MSFO.
-
-NMupdateFn <- function(lines,section,model,fnext,add.section.text,par.file,text.section){
-### Arguments to replace: FILE, .tab, text.table
+NMupdateFn <- function(x,section,model,fnext,add.section.text,par.file,text.section,quiet=FALSE){### Arguments to replace: FILE, .tab, text.table
+    
+    lines <- as.NMctl(x)
     
     if(missing(text.section)) text.section <- NULL
+    if(missing(add.section.text)) add.section.text <- NULL
     run.sim <- fnExtension(basename(model),ext="")
     
     fn.tab.base <- paste0(par.file,"=",run.sim,fnext)
     ## lines.mod <- readLines(model)
-    
-    sec <- substr(toupper(section),1,3)
-    
-    ## what to look for 
-    dollar.section <- paste0("$",sec)
-    ## what to print
+
+    dollar.section <- toupper(section)
+    dollar.section <- paste0("$",substr(dollar.section,1,3))    
     dollar.section.new <- dollar.section
     if(dollar.section.new=="EST") dollar.section.new <- "ESTIMATION"
     if(dollar.section.new=="SIM") dollar.section.new <- "SIMULATION"
 
     
-    
-    
-### is NMreadSection returning a list?    
     lines.section <- NMreadSection(lines=lines,section=section,as.one=FALSE,simplify=FALSE)
-    
+     if(is.null(lines.section)){
+         if(!quiet){message("Section not found. Nothing done.")}
+         return(lines)
+     }
+
     if(is.null(text.section)){
+       
         ## replace output table name
         if(length(lines.section)==0){
             stop(sprintf("No %s statements found in control stream.",section))
@@ -55,9 +64,6 @@ NMupdateFn <- function(lines,section,model,fnext,add.section.text,par.file,text.
     }
     
     ## replace old section with the updated one
-    lines <- NMdata:::NMwriteSectionOne(lines=lines,section=section,newlines=lines.section.new,quiet=TRUE)
-
-    lines
+    NMdata:::NMwriteSectionOne(lines=lines,section=section,newlines=lines.section.new,quiet=TRUE)
     
 }
-### Section end: Function to update file name and optionally section contents

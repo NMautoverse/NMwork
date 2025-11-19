@@ -16,12 +16,12 @@ NMwritePreamble(
 \arguments{
 \item{file.mod}{The control stream to edit}
 
-\item{description}{The desription to put in the preamble comments}
+\item{description}{The desription to put in the preamble comments. If a function is provided, te function will be run on the old description, and the result will be used.}
 
 \item{based.on}{A control stream that the model was based on (will
-be a comment in preamble).}
+be a comment in preamble). Functions not supported - todo.}
 
-\item{author}{Name of author to credit in preamble}
+\item{author}{Name of author to credit in preamble. Functions not supported - todo.}
 
 \item{write.file}{Write to file? If not, resulting control stream
 will be returned to user as lines, and nothing else done.}

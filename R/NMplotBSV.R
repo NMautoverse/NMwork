@@ -31,7 +31,6 @@
 ##' @import ggplot2
 ##' @import data.table 
 ##' @importFrom NMdata cc findCovs fnExtension NMreadPhi mergeCheck findVars
-##' @importFrom GGally ggpairs
 ##' @importFrom stats dnorm
 ##' @family Plotting
 ##' @export
@@ -70,9 +69,9 @@ NMplotBSV <- function(data,regex.eta,names.eta=NULL,parameters=NULL,col.id="ID",
     points.and.smooth <- function(data, mapping, method="lm", ...){
         if(nrow(data)==0) return(ggplot(data.table(a=0,b=0)))
         p <- try(ggplot(data = data, mapping = mapping) + 
-            geom_point() + 
-            geom_smooth(method=method, formula=y~x, ...)
-            )
+                 geom_point() + 
+                 geom_smooth(method=method, formula=y~x, ...)
+                 )
         if(inherits(p,"try-error")){
             return(ggplot(data.table(a=0,b=0)))
         }
@@ -219,10 +218,16 @@ NMplotBSV <- function(data,regex.eta,names.eta=NULL,parameters=NULL,col.id="ID",
     }
     names.etas.pairs <- as.character(etas.l.pairs[,unique(label)])
     etas.w <- dcast(etas.l.pairs,ID~label,value.var="value")
-    iiv.pairs <- ggpairs(etas.w,columns=names.etas.pairs,lower=list(continuous=points.and.smooth),title=title)
 
-    all.output[["iiv.pairs"]]  <- iiv.pairs
+    loadres <- requireNamespace("GGally",quietly=TRUE)
+    if(loadres) {
+        iiv.pairs <- ggpairs(etas.w,columns=names.etas.pairs,lower=list(continuous=points.and.smooth),title=title)
+        all.output[["iiv.pairs"]]  <- iiv.pairs
+    } else {
+        message("GGally not found. pairs plot not generated.")
+    }
 
+        
     
 #### this is the histograms of non-zeros and with gaussian approximations
     dat <- etas.l

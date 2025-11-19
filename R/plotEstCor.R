@@ -2,7 +2,6 @@
 ##' @param file.lst `.lst` file from completed NONMEM run
 ##' @param pars a table of parameter names and labels to use for renaming parameters to descriptive labels
 ##' @import ggplot2
-##' @importFrom ggpubr rotate_x_text
 ##' @importFrom NMdata fnExtension NMreadCov mat2dt NMreadExt mergeCheck cc
 ##' @importFrom flextable flextable autofit
 ##' @export
@@ -151,10 +150,15 @@ plotEstCor <- function(file.lst,pars=NULL,label.by="parameter",col.label=NULL){
     
     p.corr <- ggplot(dt.cor,aes(label.i,label.j,fill=value.bin))+
         geom_tile()+
-        rotate_x_text()+
         coord_fixed()+
         labs(x="",y="",fill="Correlation")
 
+    loadres <- requireNamespace("ggpubr",quietly=TRUE)
+    if(loadres) {
+        p.corr <- p.corr+rotate_x_text()
+    } else {
+        message("Install ggpubr to include rotation of x axis tick labels.")
+    }
 ### todo table with all correlations > 0.8 ordered by correlation
 
     dt.cor[,value.abs:=abs(value)]

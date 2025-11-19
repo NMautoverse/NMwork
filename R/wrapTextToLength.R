@@ -1,17 +1,18 @@
-# Take script path and test if it is too long to fit on a typical page. If it is
-# too long, wrap it onto multiple lines. This is more involved than one may
-# think as shown here.
-
-##' @importFrom stringr str_split str_wrap
-##' @import magrittr
-##' @import data.table
-##' @importFrom dplyr mutate filter slice pull n
-##' @export
+##' Does a script fit on a single page?
+##' 
+##' Take script path and test if it is too long to fit on a typical
+##' page. If it is too long, wrap it onto multiple lines. This is more
+##' involved than one may think as shown here.
 ##' 
 ##' @param text string to be wrapped
 ##' @param page_width  
 ##' @param font_size 
 ##' @param font_family 
+##' @importFrom stringr str_split str_wrap
+##' @import magrittr
+##' @import data.table
+##' @importFrom dplyr mutate filter slice pull n
+##' @export
 
 wrapTextToLength = function(
   text = "Source code: path/to/some/file/thatIsVery/Very/Veryvery/looooooooonnnnng/scripts/testing.R", 

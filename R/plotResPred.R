@@ -1,5 +1,4 @@
-# Plot CWRES/IWRES vs population predictions (PRED) 
-
+##' Plot CWRES/IWRES vs population predictions (PRED) 
 ##' @import data.table
 ##' @import ggplot2
 ##' @importFrom NMdata NMscanData

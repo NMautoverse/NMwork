@@ -1,7 +1,4 @@
-# Plot CWRES/IWRES vs time (after dose, after first dose) 
-# 2025-04-07: do we want to include summarizeBy var?
-
-
+##' Plot CWRES/IWRES vs time (after dose, after first dose) 
 ##' @import data.table
 ##' @import ggplot2
 ##' @importFrom NMdata NMscanData
@@ -21,6 +18,9 @@
 ##'   confidence interval for each nominal time point. Helpful when many
 ##'   observations occur at the same time point and are hard to interpret.
 ##' @param .AddSmooth TRUE/FALSE. If TRUE, will add a smooth line using method="loess"
+
+# 2025-04-07: do we want to include summarizeBy var?
+
 
 plotResTime = function(
   .data=NULL,
