@@ -12,6 +12,8 @@
 ##'     from "main". When x.lst (derived from x.mod) matches a lst
 ##'     file from main, the order of methods is used to prioritize.
 
+### Need more use cases before exporting
+
 findModels <- function(dir,pattern=".*.lst$",methods=c("main","bbr"),recursive=FALSE,ext.mod.bbr=".mod"){
 ### variables named files., lsts contain files known to
 ### exist. Those named path are unknown to matched existing files.

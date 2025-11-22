@@ -34,6 +34,7 @@
 ##' # update=FALSE.
 ##' newmod <- newmodel(file.mod="run21.mod",newfile="run22.mod",based.on="run11.mod",update=FALSE)
 ##' @import NMsim
+##' @import NMdata
 ##' @export
 
 
@@ -57,7 +58,7 @@ newModel <- function(newfile,file.mod,update=TRUE,values,
     if(is.list(newmod)) newmod <- newmod[[1]]
     
 ######### Inits
-## if(FALSE){
+    ## if(FALSE){
     if(!is.null(inits)){
         
         ## newmod <- do.call(NMwriteInits,args=c(list(file.mod=newfile,lines=newmod),inits))
@@ -70,23 +71,25 @@ newModel <- function(newfile,file.mod,update=TRUE,values,
         )
         
     }
-##}
+    ##}
     
+    newmod <- NMdata::as.NMctl(x=newmod,lines=TRUE)
+    ## newmod <- NMsim:::readCtl.character(x=newmod,lines=TRUE)
     
     ## newmod is a list
     ## str(newmod)
     
 ### update table file names
-    newmod <- NMupdateFn(lines=newmod,section="TABLE",
+    newmod <- NMupdateFn(x=newmod,section="TABLE",
                          model=basename(newfile),
                          fnext=".tab",add.section.text=NULL,
                          par.file="FILE",
                          text.section=NULL)
 
     ## str(newmod)
-    
+    newmod <- NMdata::as.NMctl(x=newmod,lines=TRUE)    
 ### update .msf
-    newmod <- NMupdateFn(lines=newmod,section="EST",
+    newmod <- NMupdateFn(x=newmod,section="EST",
                          model=basename(newfile),
                          fnext=".msf",add.section.text=NULL,
                          par.file="MSFO",
@@ -124,7 +127,7 @@ newModel <- function(newfile,file.mod,update=TRUE,values,
         }
 ### in this case, we return the path. Ready for NMexec(res)
         message(paste("returning path to newfile:",newfile))
-        return(invisible(newfile))
+        return(invisible(modelPaths(newfile)))
     }
     message("returning new control stream text")
     return(invisible(newModel))
