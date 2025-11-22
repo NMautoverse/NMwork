@@ -19,6 +19,8 @@
 ##' @export
 
 getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.directly=FALSE,silent=F){
+
+    filePathSimple <- NMdata:::filePathSimple
     
 ### Getting the paths right
     if(is.null(dir.central)){
@@ -26,20 +28,9 @@ getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.dir
         file <- basename(file)
     }
     if(missing(dir.local)) dir.local <- getwd()
-    org = file.path(dir.central,file)
-
-
-    if(source.directly)
-    {
-        source(org)
-        message("Central file was sourced directly. Only allowed for debugging. Switch off and run once with overwrite=TRUE if you want to update. Use this option for debugging only.")
-        return(invisible())
-    }
-
-    filePathSimple <- NMdata:::filePathSimple
     dir.local <- filePathSimple(dir.local)
     dir.central <- filePathSimple(dir.central)
-    
+
     ## It should be checked that destination folder exists before doing anything.
     ## if(!dir.exists(dir.local)) {stop("Destination directory (dir.local) must exist.")}
 
@@ -47,8 +38,37 @@ getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.dir
     if(filePathSimple(dir.central)==filePathSimple(dir.local)){
         stop("source and destination directories are identical. Makes no sense.")
     }
+
     
-    dest = file.path(dir.local,file)
+    dt.files <- data.table(file=file)[
+       ,org := file.path(dir.central,file)][
+       ,dest := file.path(dir.local,file)][
+       ,row:=.I]
+
+    
+    dt.files[,org.exists:=file.exists(org)]
+
+### without dt.files
+    org <- file.path(dir.central,file)
+    dest <- file.path(dir.local,file)
+
+    if(source.directly){
+        ##source(org)
+        dt.files[org.exists==FALSE,{
+            if(.N>0) message("Source files not found and will be ignored:",paste(file,collapse=", "))
+        }]
+
+        dt.files[org.exists==TRUE,{
+            source(org,echo=FALSE)
+            NULL
+        },by=row]
+
+        
+        message("Central file(s) was/were sourced directly. Only allowed for debugging. Switch off and run once with overwrite=TRUE if you want to update. Use this option for debugging only.")
+        return(invisible())
+    }
+
+### from here, dt.files not implemented    
     
     ## do necessary files and dirs exist?
     if (!dir.exists(dir.central) || !file.exists(org)){
@@ -77,6 +97,8 @@ getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.dir
         NMsim:::writeTextFile(lines=lines.script,file=dest)
     }
     ## Sourcing the file
-    source(dest,echo=FALSE)
+    ## source(dest,echo=FALSE)
+    ## lapply(dest,source,echo=FALSE)
+    for(d in dest) source(d,echo=FALSE)
 }
 
