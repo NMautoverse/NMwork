@@ -79,30 +79,30 @@ printParameterTable <- function(pars,format,footnotes=NULL,script=NULL,file.mod,
         footnotes <- c(footnotes,sprintf("Model: %s",fixUnder(model$label)))
     }
 
-
+    
 ##### subset parameters
-    if("symbol" %in% colnames(pars)){
+    if("symbol" %in% colnames(paramtbl)){
         if( !is.null(drop) ){
-            pars <- pars[!symbol%in%drop]
+            paramtbl <- paramtbl[!symbol%in%drop]
         }
         if( !is.null(include) ){
-            pars <- pars[symbol%in%include]
+            paramtbl <- paramtbl[symbol%in%include]
         }
 
         if(!is.null(drop.pattern)){
-            pars <- pars[!grepl(pattern=drop.pattern,symbol,fix=FALSE)]
+            paramtbl <- paramtbl[!grepl(pattern=drop.pattern,symbol,fix=FALSE)]
         }
 
         if(!is.null(include.pattern)){
-            pars <- pars[!grepl(pattern=drop.pattern,symbol,fix=FALSE)]
+            paramtbl <- paramtbl[!grepl(pattern=drop.pattern,symbol,fix=FALSE)]
         }
         
         if( is.logical(include.fix) && isFALSE(include.fix) ){
-            pars <- pars[FIX==0|symbol%in%include]
+            paramtbl <- paramtbl[FIX==0|symbol%in%include]
         }
         
         if( !is.logical(include.fix) && tolower(include.fix)=="ifnotzero" ){
-            pars <- pars[FIX==0|est!=0|symbol%in%include]
+            paramtbl <- paramtbl[FIX==0|est!=0|symbol%in%include]
         }
     }
 

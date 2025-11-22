@@ -231,10 +231,13 @@ resvar,Residual error")
     
     
     pars <- mergeCoal(pars,df.panels,by="panel",as.fun="data.table")
-    ## pars[,panel.label:=fcoalesce(panel.label,panel)]
-    
-    pars[,panel:=factor(panel,levels=df.panels[,panel])]
-    pars[,panel.label:=factor(panel.label,levels=df.panels[,panel.label])]
+### if not matched with label, just use panel code
+    pars[,panel.label:=fcoalesce(panel.label,panel)]
+
+    ### this puts non-specified panels last. Maybe panel levels with thetas only should come earlier
+    pars[,panel:=factor(panel,levels=c(df.panels[,panel],setdiff(panel,df.panels[,panel])))]
+    ## pars[,panel.label:=factor(panel.label,levels=df.panels[,panel])]
+    pars[,panel.label:=reorder(panel.label,as.numeric(panel))]
     setorder(pars,panel)
 
     setorder(pars,panel)
