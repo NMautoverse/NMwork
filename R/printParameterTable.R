@@ -9,6 +9,7 @@
 ##' @import flextable
 ##' @import ftExtra
 ##' @import kableExtra
+##' @import pmtables
 ##' @importFrom dplyr group_by
 ##' @examples
 ##' file.mod <- system.file("nonmem/xgxr134.mod",package="NMwork")
@@ -24,6 +25,8 @@
 
 ### for rmd and rmd-latex: can't get longtable to work with
 ### footnotes. Currently not using footnotes.
+
+### no current way to generate rmd-pdf using kable, now defaults to using pmtables
 
 printParameterTable <- function(pars,format,footnotes=NULL,script=NULL,file.mod,include,include.pattern,drop,drop.pattern,include.fix){
 
@@ -48,11 +51,11 @@ printParameterTable <- function(pars,format,footnotes=NULL,script=NULL,file.mod,
     format <- tolower(format)
     format <- NMdata:::cleanSpaces(format)
     if(length(format)>1) stop("Only one format can be specified.")
-    if(!format %in% c("r","flextable","rmd","rmd-pdf")) {
+    if(!format %in% c("r","flextable","rmd","rmd-pdf","pdf","kable-rmd","kable-rmd-pdf")) {
         stop("format must be one of R, flextable, rmd, or a path to a file with extension .pdf.")
     }
     
-    fixUnder <- ifelse(format%in%c("rmd","rmd-pdf"),
+    fixUnder <- ifelse(format%in%c("rmd","kable-rmd","rmd-pdf"),
                        function(x)gsub("\\_","\\\\_",x),
                        identity)
     
@@ -107,21 +110,36 @@ printParameterTable <- function(pars,format,footnotes=NULL,script=NULL,file.mod,
     }
 
     
+    # if(format=="r"){
+    # 
+    #     paramtbl <- paramtbl[,.(
+    #         Panel=panel.label,
+    #         "Parameter"=par.name,
+    #         "Label"=tab.lab,
+    #         "Estimate (RSE%) [CV% or Corr%]"=tab.est,
+    #         "95% Confidence Interval"=CI
+    #     )]
+    # 
+    #     lapply(footnotes,message)
+    #     return(kable(paramtbl,format="pipe"))
+    # }
+    
+    
     if(format=="r"){
-
-        paramtbl <- paramtbl[,.(
-            Panel=panel.label,
-            "Parameter"=par.name,
-            "Label"=tab.lab,
-            "Estimate (RSE%) [CV% or Corr%]"=tab.est,
-            "95% Confidence Interval"=CI
-        )]
-
-        lapply(footnotes,message)
-        return(kable(paramtbl,format="pipe"))
+      
+      paramtbl <- paramtbl[,.(
+        Panel=panel,
+        "Parameter"=par.name,
+        "Label"=tab.lab,
+        # "Label"=symbol,
+        "Est [CV% or Corr%] (RSE%)"=tab.est,
+        "95% CI"=CI
+      )]
+      
+      lapply(footnotes,message)
+      return(kable(paramtbl,format="pipe"))
     }
-
-
+    
     
 
     if(format=="flextable"){
@@ -154,13 +172,13 @@ printParameterTable <- function(pars,format,footnotes=NULL,script=NULL,file.mod,
 
 
 
-    if(format%in%c("rmd","rmd-pdf")){
+    if(format%in%c("kable-rmd","kable-rmd-pdf")){
 
-        ## 
+        ##
         nmbrows <- paramtbl[,.N,keyby=.(panel.label)]
         nmbrows[,start:=cumsum(shift(N,1,fill=0))+1]
         nmbrows[,end:=cumsum(N)]
-        
+
         paramtbl2 <- paramtbl[,.(
             "  "=parameter.ltx,
             " "=tab.lab.ltx,
@@ -169,14 +187,14 @@ printParameterTable <- function(pars,format,footnotes=NULL,script=NULL,file.mod,
 
         
 #### configure column justification and sizes. The widths are not automated.
-        paramtbl2 <- 
+        paramtbl2 <-
             paramtbl2 |>
             knitr::kable(
                        format = "latex",
                        align = paste0("ll",paste(rep("c",times=(ncol(paramtbl2)-2)),collapse = "")),
                        caption = string.caption,
                        ## longtable=T,
-                       booktabs=T, escape=F) |> 
+                       booktabs=T, escape=F) |>
                                         #col.names = gsub("Description", " ", names(paramtbl))) |>
             kable_styling(full_width = T,
                           font_size = 7.5,  latex_options = "HOLD_position") |>
@@ -200,17 +218,107 @@ printParameterTable <- function(pars,format,footnotes=NULL,script=NULL,file.mod,
             add_footnote(label=footnotes,notation="none",escape=FALSE)
 
 
-        if(format=="rmd") return(pars.ltx)
-        
+        if(format=="kable-rmd") return(pars.ltx)
+
     }
 
-    if(format=="rmd-pdf"){
+    if(format=="kable-rmd-pdf"){
         ## "\\usepackage[margin=1in]{geometry}",
         latexStandAlone(pars.ltx,file.pdf=file.pdf,
                         usepackage=cc("geometry:margin=1in",
                                       booktabs,float,tabu,longtable
                                       ))
         ## return path to output?
+    }
+
+    
+    
+    if(format=="rmd"){
+      
+      paramtbl2 <-
+        paramtbl %>%
+        dplyr::select(par.type, panel.label, i, j, parameter.ltx, tab.lab.ltx, tab.est.ltx, CI) %>%
+        dplyr::arrange(panel.label, i, j) %>%
+        dplyr::transmute(panel.label, parameter.ltx, tab.lab.ltx, tab.est.ltx, CI) %>%
+        dplyr::mutate(rows.group = 1:dplyr::n(),.by=tab.lab.ltx) %>%
+        dplyr::filter(rows.group==1) %>%
+        dplyr::select(-rows.group)
+
+      pars.ltx = 
+        paramtbl2 %>%
+        st_new() %>%
+        st_panel("panel.label") %>%
+        st_center(tab.lab.ltx = col_ragged(6.5)) %>%
+        st_blank("parameter.ltx","tab.lab.ltx") %>%
+        st_rename("Estimate (RSE\\%)...[CV\\% or Corr\\%]" = "tab.est.ltx",
+                  "95\\% Confidence Interval" = "CI") %>%
+        st_notes("$^*$Parameter was estimated in the log-domain and back-transformed for clarity") %>%
+        st_notes("Abbreviations: RSE = relative standard error (on the scale where the parameter was estimated)") %>%
+        st_notes(paste0("Model: ", model$mod)) %>%
+        st_noteconf(type = "minipage", width = 1) %>% 
+        st_make(long=TRUE)
+      
+      return(pars.ltx)
+      
+    }
+
+    
+    if(format=="pdf"){
+      
+      paramtbl2 <-
+        paramtbl %>%
+        dplyr::select(par.type, panel.label, i, j, parameter.ltx, tab.lab.ltx, tab.est.ltx, CI) %>%
+        dplyr::arrange(panel.label, i, j) %>%
+        dplyr::transmute(panel.label, parameter.ltx, tab.lab.ltx, tab.est.ltx, CI) %>%
+        dplyr::mutate(rows.group = 1:dplyr::n(),.by=tab.lab.ltx) %>%
+        dplyr::filter(rows.group==1) %>%
+        dplyr::select(-rows.group)
+      
+      paramtbl2 %>%
+        st_new() %>%
+        st_panel("panel.label") %>%
+        st_center(tab.lab.ltx = col_ragged(6.5)) %>%
+        st_blank("parameter.ltx","tab.lab.ltx") %>%
+        st_rename("Estimate (RSE\\%)...[CV\\% or Corr\\%]" = "tab.est.ltx",
+                  "95\\% Confidence Interval" = "CI") %>%
+        st_notes("$^*$Parameter was estimated in the log-domain and back-transformed for clarity") %>%
+        st_notes("Abbreviations: RSE = relative standard error (on the scale where the parameter was estimated)") %>%
+        st_notes(paste0("Model: ", model$mod)) %>%
+        st_noteconf(type = "minipage", width = 1) %>%
+        stable_long() %>%
+        st2report()
+      
+    }
+    
+    
+    
+    
+    if(format=="rmd-pdf"){
+
+      paramtbl2 <-
+        paramtbl %>%
+        dplyr::select(par.type, panel.label, i, j, parameter.ltx, tab.lab.ltx, tab.est.ltx, CI) %>%
+        dplyr::arrange(panel.label, i, j) %>%
+        dplyr::transmute(panel.label, parameter.ltx, tab.lab.ltx, tab.est.ltx, CI) %>%
+        dplyr::mutate(rows.group = 1:dplyr::n(),.by=tab.lab.ltx) %>%
+        dplyr::filter(rows.group==1) %>%
+        dplyr::select(-rows.group)
+
+      paramtbl2 %>%
+        st_new() %>%
+        st_panel("panel.label") %>%
+        st_center(tab.lab.ltx = col_ragged(6.5)) %>%
+        st_blank("parameter.ltx","tab.lab.ltx") %>%
+        st_rename("Estimate (RSE\\%)...[CV\\% or Corr\\%]" = "tab.est.ltx",
+                  "95\\% Confidence Interval" = "CI") %>%
+        st_notes("$^*$Parameter was estimated in the log-domain and back-transformed for clarity") %>%
+        st_notes("Abbreviations: RSE = relative standard error (on the scale where the parameter was estimated)") %>%
+        st_notes(paste0("Model: ", model$mod)) %>%
+        st_noteconf(type = "minipage", width = 1) %>%
+        stable_long() %>%
+        st2pdf(dir = dirname(file.pdf), stem = fnExtension(basename(file.pdf), ""))
+  
+
     }
 
 }
