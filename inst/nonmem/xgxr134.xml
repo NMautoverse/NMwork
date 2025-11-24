@@ -5,17 +5,19 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:schemaLocation="http://namespaces.oreilly.com/xmlnut/address output.xsd"
 xmlns:nm="http://namespaces.oreilly.com/xmlnut/address"
 >
-<nm:start_datetime>2024-08-06T08:32:43.950</nm:start_datetime>
+<nm:start_datetime>2025-11-23T21:08:34.031</nm:start_datetime>
 <nm:control_stream><![CDATA[
 $PROBLEM    132 with sex and weight eff
-;; $INPUT ROW ID NOMTIME TIME EVID CMT AMT DV FLAG STUDY
 
+;; $INPUT ROW ID NOMTIME TIME EVID CMT AMT DV FLAG STUDY
 ;; BLQ CYCLE DOSE PART PROFDAY PROFTIME WEIGHTB eff0
-$INPUT      ROW ID NOMTIME TIME EVID CMT AMT DV FLAG STUDY AGE BLQ
-            CYCLE DOSE MALEN PART PROFDAY PROFTIME WEIGHTB
-$DATA      xgxr2covs.csv IGNORE=@ IGNORE=(FLAG.NE.0)
-            IGNORE(DOSE.LT.30)
+$INPUT ROW ID NOMTIME TIME EVID CMT AMT DV FLAG STUDY AGE BLQ CYCLE
+DOSE MALEN PART PROFDAY PROFTIME WEIGHTB
+
+$DATA      xgxr2covs.csv IGNORE=@ IGNORE=(FLAG.NE.0) IGNORE(DOSE.LT.30)
+
 $SUBROUTINE ADVAN4 TRANS4
+
 $PK
 LTVKA=THETA(1)
 LTVV2=THETA(2)
@@ -27,10 +29,10 @@ MU_1=LTVKA
 KA=EXP(MU_1+ETA(1))
 MU_2=LTVV2
 V2=EXP(MU_2+ETA(2))
-AGEEFF = THETA(6)
-WEIGHTEFF = THETA(7)
-MALEEFF = THETA(8)
-MU_3=LTVCL + AGEEFF * LOG(AGE/54) + WEIGHTEFF * LOG(WEIGHTB/117) + MALEEFF**MALEN
+AGECL = THETA(6)
+WEIGHTCL = THETA(7)
+MALECL = THETA(8)
+MU_3=LTVCL + AGECL * LOG(AGE/54) + WEIGHTCL * LOG(WEIGHTB/117) + MALECL**MALEN
 CL=EXP(MU_3+ETA(3))
 MU_4=LTVV3
 V3=EXP(MU_4+ETA(4))
@@ -54,31 +56,35 @@ SIGA=SIGMA(2,2)
   Y=F+F*ERR(1)+ERR(2)
 
 ;-----------------------INITIAL ESTIMATES---------------------------------
-$THETA  .1 ; 1 : LTVKA; Absorption rate [1/h] ;log
-$THETA  3 ; 2 : LTVV2; Central volume [L] ;log
-$THETA  1 ; 3 : LTVCL; Clearance [L/h] ;log
-$THETA  4 ; 4 : LTVV3; Peripheral volume [L] ;log
-$THETA  -1 ; 5 : LTVQ; Intercomparmental clearance [L/h] ;log
-$THETA  .1 ; 6 : AGEEFF; Age effect on clearance [];log
-$THETA  .1 ; 7 : WEIGHTEFF; Body-weight effect on clearance [];log
-$THETA  .1 ; 8 : MALEEFF; Male effect on clearance [];log
-$OMEGA  0  FIX  ; 1 : BSV.KA  ; KA Between-subject variability
-$OMEGA  0.1  ; 2 : BSV.V2  ; V2 Between-subject variability
-$OMEGA  0.1  ; 3 : BSV.CL  ; CL Between-subject variability
-$OMEGA  0  FIX  ; 4 : BSV.V3  ; V3 Between-subject variability
-$OMEGA  0  FIX  ;  5 : BSV.Q  ; Q Between-subject variability
-$SIGMA  0.1  ; SigP - Prop err
-$SIGMA  0  FIX  ; SigA - Add err
-$ESTIMATION METHOD=SAEM INTERACTION NOABORT NBURN=1000 NITER=1000
-            CTYPE=3 MAX=99999 NSIG=3 SEED=3442 PRINT=10 RANMETHOD=P
-            MSFO=xgxr134.msf
-$ESTIMATION METHOD=IMP INTERACTION EONLY=1 NITER=20 PRINT=1
-            ISAMPLE=5000 RANMETHOD=P
-$COVARIANCE PRINT=E
-$TABLE      ROW KA V2 V3 CL Q PRED IPRED Y NOPRINT
-            FILE=xgxr134_res.txt
-$TABLE      ETAS(1:LAST) NOAPPEND NOPRINT FILE=xgxr134_etas.txt
+;; format: %idx: %symbol ; %label [%unit] ; %trans
+$THETA  (.1)             ; 1 : TVKA ; Absorption rate [1/h] ; log
+$THETA  (3)             ; 2 : TVV2 ;  Central volume [L] ; log
+$THETA  (1)             ; 3 : TVCL ; Clearance [L/h] ; log
+$THETA  (4)             ; 4 : TVV3 ; Peripheral volume [L] ; log
+$THETA  (-1)             ; 5 : TVQ ; Intercomparmental clearance [L/h] ; log
+$THETA .1              ; 6 : AGECL ; Age effect on clearance []; log
+$THETA .1              ; 7 : WEIGHTCL ; Body-weight effect on clearance []; log
+$THETA .1              ; 8 : MALECL ; Male effect on clearance []; log
 
+$OMEGA 0 FIX ; 1 : KA
+$OMEGA 0.1   ; 2 : V2
+$OMEGA 0.1   ; 3 : CL
+$OMEGA 0 FIX ; 4 : V3
+$OMEGA 0 FIX ; 5 : Q
+
+;; format.sigma: %symbol - %label ; %trans
+$SIGMA 0.1    ; SigP - Prop err ; propErr
+$SIGMA 0 FIX  ; SigA - Add err ; addErr
+
+
+$ESTIMATION METHOD=SAEM INTERACTION NOABORT NBURN=1000 NITER=1000 CTYPE=3 MAX=99999 NSIG=3 SEED=3442 PRINT=10 RANMETHOD=P MSFO=xgxr134.msf
+
+$ESTIMATION METHOD=IMP INTERACTION EONLY=1 NITER=20 PRINT=1 ISAMPLE=5000 RANMETHOD=P
+																	
+$COV PRINT=E
+
+$TABLE ROW KA V2 V3 CL Q PRED IPRED Y NOPRINT FILE=xgxr134_res.txt
+$TABLE ETAS(1:LAST) NOAPPEND NOPRINT FILE=xgxr134_etas.txt
 ]]></nm:control_stream>
 <nm:nmtran><![CDATA[
 
@@ -96,13 +102,15 @@ $TABLE      ETAS(1:LAST) NOAPPEND NOPRINT FILE=xgxr134_etas.txt
 
  * THE MAXIMUM NUMBER OF WARNINGS OF ONE OR MORE TYPES WAS REACHED.
  IT IS POSSIBLE THAT SOME WARNING MESSAGES WERE SUPPRESSED.
+
+ LIM VALUES MAXLIM ASSESSED BY NMTRAN: 1,2,3,4,5,6,7,8,10,11,13,15,16
 ]]></nm:nmtran>
 <nm:nonmem nm:version='7.5.0'>
 <nm:license_information><![CDATA[
 License Registered to: Vertex Pharmaceuticals Inc
-Expiration Date:    14 JAN 2025
-Current Date:        6 AUG 2024
-Days until program expires : 163
+Expiration Date:    14 JAN 2026
+Current Date:       23 NOV 2025
+Days until program expires :  56
 ]]></nm:license_information>
 <nm:program_information><![CDATA[
 1NONLINEAR MIXED EFFECTS MODEL PROGRAM (NONMEM) VERSION 7.5.0
@@ -309,7 +317,7 @@ Days until program expires : 163
  EXCLUDE NON-INFLUENTIAL (NON-INFL.) ETAS
        IN SHRINKAGE (ETASTYPE):             NO
  NON-INFL. ETA CORRECTION (NONINFETA):      0
- RAW OUTPUT FILE (FILE): psn.ext
+ RAW OUTPUT FILE (FILE): xgxr134.ext
  EXCLUDE TITLE (NOTITLE):                   NO
  EXCLUDE COLUMN LABELS (NOLABEL):           NO
  FORMAT FOR ADDITIONAL FILES (FORMAT):      S1PE12.5
@@ -352,13 +360,13 @@ Days until program expires : 163
  nm:cond_estim='yes' nm:centered_eta='no' nm:epseta_interaction='yes' nm:laplace='no' nm:predflag='0' nm:maxfn='99999'
  nm:nsig='3' nm:msfo='yes' nm:abort='no' nm:objsort='no' nm:numder='0' nm:optmap='0' nm:etader='0' nm:mceta='0' nm:siglo='100'
  nm:sigl='100' nm:noprior='0' nm:nocov='0' nm:dercont='0' nm:atol='0' nm:fnleta='1' nm:etastype='0' nm:noninfeta='0'
- nm:file='psn.ext' nm:notitle='0' nm:nolabel='0' nm:format='s1pe12.5' nm:order='tsol' nm:knuthsumoff='0' nm:lntwopi='0'
- nm:priorc='0' nm:olntwopi='0' nm:estimation_method='saem' nm:mum='BLANK' nm:grd='BLANK' nm:auto='0' nm:ctype='3'
- nm:cinterval='10' nm:citer='10' nm:calpha='5.000000000000000E-02' nm:nburn='1000' nm:mapiters='0' nm:niter='1000'
- nm:constrain='1' nm:anneal='BLANK' nm:seed='3442' nm:clockseed='0' nm:isample='2' nm:ranmethod='3up' nm:eonly='0'
- nm:iscale_min='1.000000000000000E-06' nm:iscale_max='1000000.00000000' nm:iaccept='0.400000000000000'
- nm:isample_m1='2' nm:isample_m1a='0' nm:isample_m1b='2' nm:isample_m2='2' nm:isample_m3='2'
- nm:ikappa='1.00000000000000' nm:massreset='-1'
+ nm:file='xgxr134.ext' nm:notitle='0' nm:nolabel='0' nm:format='s1pe12.5' nm:order='tsol' nm:knuthsumoff='0'
+ nm:lntwopi='0' nm:priorc='0' nm:olntwopi='0' nm:estimation_method='saem' nm:mum='BLANK' nm:grd='BLANK' nm:auto='0'
+ nm:ctype='3' nm:cinterval='10' nm:citer='10' nm:calpha='5.000000000000000E-02' nm:nburn='1000' nm:mapiters='0'
+ nm:niter='1000' nm:constrain='1' nm:anneal='BLANK' nm:seed='3442' nm:clockseed='0' nm:isample='2' nm:ranmethod='3up'
+ nm:eonly='0' nm:iscale_min='1.000000000000000E-06' nm:iscale_max='1000000.00000000'
+ nm:iaccept='0.400000000000000' nm:isample_m1='2' nm:isample_m1a='0' nm:isample_m1b='2' nm:isample_m2='2'
+ nm:isample_m3='2' nm:ikappa='1.00000000000000' nm:massreset='-1'
 />
 <nm:monitor>
 <nm:obj nm:iteration='-1000'>1596.7539212479214</nm:obj>
@@ -573,7 +581,7 @@ Days until program expires : 163
 <nm:col nm:cname='EPS2'>100.00000000000000</nm:col>
 </nm:row>
 </nm:epsshrinkvr>
-<nm:estimation_elapsed_time>31.55</nm:estimation_elapsed_time>
+<nm:estimation_elapsed_time>31.10</nm:estimation_elapsed_time>
 <nm:covariance_information><![CDATA[
 ]]></nm:covariance_information>
 <nm:covariance_status nm:error='0' nm:numnegeigenvalues='0' nm:mineigenvalue='0.15049784376520159' nm:maxeigenvalue='11069.252193398417' nm:rms='0.0000000000000000'/>
@@ -2007,7 +2015,7 @@ Days until program expires : 163
  EXCLUDE NON-INFLUENTIAL (NON-INFL.) ETAS
        IN SHRINKAGE (ETASTYPE):             NO
  NON-INFL. ETA CORRECTION (NONINFETA):      0
- RAW OUTPUT FILE (FILE): psn.ext
+ RAW OUTPUT FILE (FILE): xgxr134.ext
  EXCLUDE TITLE (NOTITLE):                   NO
  EXCLUDE COLUMN LABELS (NOLABEL):           NO
  FORMAT FOR ADDITIONAL FILES (FORMAT):      S1PE12.5
@@ -2046,12 +2054,12 @@ Days until program expires : 163
  nm:cond_estim='yes' nm:centered_eta='no' nm:epseta_interaction='yes' nm:laplace='no' nm:predflag='0' nm:maxfn='99999'
  nm:nsig='3' nm:msfo='yes' nm:abort='no' nm:objsort='no' nm:numder='0' nm:optmap='0' nm:etader='0' nm:mceta='0' nm:siglo='100'
  nm:sigl='100' nm:noprior='0' nm:nocov='0' nm:dercont='0' nm:atol='0' nm:fnleta='1' nm:etastype='0' nm:noninfeta='0'
- nm:file='psn.ext' nm:notitle='0' nm:nolabel='0' nm:format='s1pe12.5' nm:order='tsol' nm:knuthsumoff='0' nm:lntwopi='0'
- nm:priorc='0' nm:olntwopi='0' nm:estimation_method='imp' nm:mum='BLANK' nm:grd='BLANK' nm:auto='0' nm:ctype='3'
- nm:cinterval='1' nm:citer='10' nm:calpha='5.000000000000000E-02' nm:niter='20' nm:constrain='1' nm:anneal='BLANK'
- nm:seed='3442' nm:clockseed='0' nm:isample='5000' nm:ranmethod='3up' nm:eonly='1' nm:iscale_min='0.100000000000000'
- nm:iscale_max='10.0000000000000' nm:iaccept='0.400000000000000' nm:iacceptl='0.00000000000000' nm:df='0'
- nm:mapiter='1' nm:mapinter='0' nm:mapcov='1' nm:grdq='0.00000000000000'
+ nm:file='xgxr134.ext' nm:notitle='0' nm:nolabel='0' nm:format='s1pe12.5' nm:order='tsol' nm:knuthsumoff='0'
+ nm:lntwopi='0' nm:priorc='0' nm:olntwopi='0' nm:estimation_method='imp' nm:mum='BLANK' nm:grd='BLANK' nm:auto='0'
+ nm:ctype='3' nm:cinterval='1' nm:citer='10' nm:calpha='5.000000000000000E-02' nm:niter='20' nm:constrain='1'
+ nm:anneal='BLANK' nm:seed='3442' nm:clockseed='0' nm:isample='5000' nm:ranmethod='3up' nm:eonly='1'
+ nm:iscale_min='0.100000000000000' nm:iscale_max='10.0000000000000' nm:iaccept='0.400000000000000'
+ nm:iacceptl='0.00000000000000' nm:df='0' nm:mapiter='1' nm:mapinter='0' nm:mapcov='1' nm:grdq='0.00000000000000'
 />
 <nm:monitor>
 <nm:obj nm:iteration='0' nm:effective='5546.7981124171774' nm:sample='5000.0000000000000' nm:fitness='0.94383276309633879'>-1732.2971509944912</nm:obj>
@@ -2166,11 +2174,11 @@ Days until program expires : 163
 <nm:col nm:cname='EPS2'>100.00000000000000</nm:col>
 </nm:row>
 </nm:epsshrinkvr>
-<nm:estimation_elapsed_time>41.14</nm:estimation_elapsed_time>
+<nm:estimation_elapsed_time>40.57</nm:estimation_elapsed_time>
 <nm:covariance_information><![CDATA[
 ]]></nm:covariance_information>
 <nm:covariance_status nm:error='0' nm:numnegeigenvalues='0' nm:mineigenvalue='0.15053673476708704' nm:maxeigenvalue='11038.513289886410' nm:rms='0.0000000000000000'/>
-<nm:covariance_elapsed_time>176.05</nm:covariance_elapsed_time>
+<nm:covariance_elapsed_time>170.89</nm:covariance_elapsed_time>
 <nm:final_objective_function_text>FINAL VALUE OF OBJECTIVE FUNCTION</nm:final_objective_function_text>
 <nm:final_objective_function>-1732.1916146378935</nm:final_objective_function>
 <nm:theta>
@@ -3567,11 +3575,11 @@ Days until program expires : 163
 </nm:eigenvalues>
 </nm:estimation>
 <nm:post_process_times>
-<nm:post_elapsed_time>0.04</nm:post_elapsed_time>
+<nm:post_elapsed_time>0.02</nm:post_elapsed_time>
 <nm:finaloutput_elapsed_time>0.03</nm:finaloutput_elapsed_time>
 </nm:post_process_times>
 </nm:problem>
 </nm:nonmem>
-<nm:stop_datetime>2024-08-06T08:36:52.917</nm:stop_datetime>
-<nm:total_cputime>248.944</nm:total_cputime>
+<nm:stop_datetime>2025-11-23T21:12:36.790</nm:stop_datetime>
+<nm:total_cputime>242.743</nm:total_cputime>
 </nm:output>

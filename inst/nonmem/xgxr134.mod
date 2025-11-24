@@ -20,10 +20,10 @@ MU_1=LTVKA
 KA=EXP(MU_1+ETA(1))
 MU_2=LTVV2
 V2=EXP(MU_2+ETA(2))
-AGEEFF = THETA(6)
-WEIGHTEFF = THETA(7)
-MALEEFF = THETA(8)
-MU_3=LTVCL + AGEEFF * LOG(AGE/54) + WEIGHTEFF * LOG(WEIGHTB/117) + MALEEFF**MALEN
+AGECL = THETA(6)
+WEIGHTCL = THETA(7)
+MALECL = THETA(8)
+MU_3=LTVCL + AGECL * LOG(AGE/54) + WEIGHTCL * LOG(WEIGHTB/117) + MALECL**MALEN
 CL=EXP(MU_3+ETA(3))
 MU_4=LTVV3
 V3=EXP(MU_4+ETA(4))
@@ -47,25 +47,25 @@ SIGA=SIGMA(2,2)
   Y=F+F*ERR(1)+ERR(2)
 
 ;-----------------------INITIAL ESTIMATES---------------------------------
-;; format: %idx; %symbol ; %label [%unit] ; %trans
-$THETA  (.1)             ; 1 : LTVKA ; Absorption rate [1/h] ; log
-$THETA  (3)             ; 2 : LTVV2 ;  Central volume [L] ; log
-$THETA  (1)             ; 3 : LTVCL ; Clearance [L/h] ; log
-$THETA  (4)             ; 4 : LTVV3 ; Peripheral volume [L] ; log
-$THETA  (-1)             ; 5 : LTVQ ; Intercomparmental clearance [L/h] ; log
-$THETA .1              ; 6 : AGEEFF ; Age effect on clearance []; log
-$THETA .1              ; 7 : WEIGHTEFF ; Body-weight effect on clearance []; log
-$THETA .1              ; 8 : MALEEFF ; Male effect on clearance []; log
+;; format: %idx: %symbol ; %label [%unit] ; %trans
+$THETA  (.1)             ; 1 : TVKA ; Absorption rate [1/h] ; log
+$THETA  (3)             ; 2 : TVV2 ;  Central volume [L] ; log
+$THETA  (1)             ; 3 : TVCL ; Clearance [L/h] ; log
+$THETA  (4)             ; 4 : TVV3 ; Peripheral volume [L] ; log
+$THETA  (-1)             ; 5 : TVQ ; Intercomparmental clearance [L/h] ; log
+$THETA .1              ; 6 : AGECL ; Age effect on clearance []; log
+$THETA .1              ; 7 : WEIGHTCL ; Body-weight effect on clearance []; log
+$THETA .1              ; 8 : MALECL ; Male effect on clearance []; log
 
-$OMEGA 0 FIX ; 1 : BSV.KA ; KA Between-subject variability
-$OMEGA 0.1   ; 2 : BSV.V2 ; V2 Between-subject variability
-$OMEGA 0.1   ; 3 : BSV.CL ; CL Between-subject variability
-$OMEGA 0 FIX ; 4 : BSV.V3 ; V3 Between-subject variability
-$OMEGA 0 FIX ; 5 : BSV.Q  ; Q Between-subject variability
+$OMEGA 0 FIX ; 1 : KA 
+$OMEGA 0.1   ; 2 : V2 
+$OMEGA 0.1   ; 3 : CL 
+$OMEGA 0 FIX ; 4 : V3 
+$OMEGA 0 FIX ; 5 : Q  
 
-;; format.sigma: %symbol - %label 
-$SIGMA 0.1    ; SigP - Prop err
-$SIGMA 0 FIX  ; SigA - Add err 
+;; format.sigma: %symbol - %label ; %trans
+$SIGMA 0.1    ; SigP - Prop err ; propErr
+$SIGMA 0 FIX  ; SigA - Add err ; addErr
 
 
 $ESTIMATION METHOD=SAEM INTERACTION NOABORT NBURN=1000 NITER=1000 CTYPE=3 MAX=99999 NSIG=3 SEED=3442 PRINT=10 RANMETHOD=P MSFO=xgxr134.msf

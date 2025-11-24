@@ -1,13 +1,15 @@
-Tue Aug  6 08:32:39 EDT 2024
+Sun Nov 23 21:08:29 EST 2025
 $PROBLEM    132 with sex and weight eff
-;; $INPUT ROW ID NOMTIME TIME EVID CMT AMT DV FLAG STUDY
 
+;; $INPUT ROW ID NOMTIME TIME EVID CMT AMT DV FLAG STUDY
 ;; BLQ CYCLE DOSE PART PROFDAY PROFTIME WEIGHTB eff0
-$INPUT      ROW ID NOMTIME TIME EVID CMT AMT DV FLAG STUDY AGE BLQ
-            CYCLE DOSE MALEN PART PROFDAY PROFTIME WEIGHTB
-$DATA      xgxr2covs.csv IGNORE=@ IGNORE=(FLAG.NE.0)
-            IGNORE(DOSE.LT.30)
+$INPUT ROW ID NOMTIME TIME EVID CMT AMT DV FLAG STUDY AGE BLQ CYCLE
+DOSE MALEN PART PROFDAY PROFTIME WEIGHTB
+
+$DATA      xgxr2covs.csv IGNORE=@ IGNORE=(FLAG.NE.0) IGNORE(DOSE.LT.30)
+
 $SUBROUTINE ADVAN4 TRANS4
+
 $PK
 LTVKA=THETA(1)
 LTVV2=THETA(2)
@@ -19,10 +21,10 @@ MU_1=LTVKA
 KA=EXP(MU_1+ETA(1))
 MU_2=LTVV2
 V2=EXP(MU_2+ETA(2))
-AGEEFF = THETA(6)
-WEIGHTEFF = THETA(7)
-MALEEFF = THETA(8)
-MU_3=LTVCL + AGEEFF * LOG(AGE/54) + WEIGHTEFF * LOG(WEIGHTB/117) + MALEEFF**MALEN
+AGECL = THETA(6)
+WEIGHTCL = THETA(7)
+MALECL = THETA(8)
+MU_3=LTVCL + AGECL * LOG(AGE/54) + WEIGHTCL * LOG(WEIGHTB/117) + MALECL**MALEN
 CL=EXP(MU_3+ETA(3))
 MU_4=LTVV3
 V3=EXP(MU_4+ETA(4))
@@ -46,31 +48,35 @@ SIGA=SIGMA(2,2)
   Y=F+F*ERR(1)+ERR(2)
 
 ;-----------------------INITIAL ESTIMATES---------------------------------
-$THETA  .1 ; 1 : LTVKA; Absorption rate [1/h] ;log
-$THETA  3 ; 2 : LTVV2; Central volume [L] ;log
-$THETA  1 ; 3 : LTVCL; Clearance [L/h] ;log
-$THETA  4 ; 4 : LTVV3; Peripheral volume [L] ;log
-$THETA  -1 ; 5 : LTVQ; Intercomparmental clearance [L/h] ;log
-$THETA  .1 ; 6 : AGEEFF; Age effect on clearance [];log
-$THETA  .1 ; 7 : WEIGHTEFF; Body-weight effect on clearance [];log
-$THETA  .1 ; 8 : MALEEFF; Male effect on clearance [];log
-$OMEGA  0  FIX  ; 1 : BSV.KA  ; KA Between-subject variability
-$OMEGA  0.1  ; 2 : BSV.V2  ; V2 Between-subject variability
-$OMEGA  0.1  ; 3 : BSV.CL  ; CL Between-subject variability
-$OMEGA  0  FIX  ; 4 : BSV.V3  ; V3 Between-subject variability
-$OMEGA  0  FIX  ;  5 : BSV.Q  ; Q Between-subject variability
-$SIGMA  0.1  ; SigP - Prop err
-$SIGMA  0  FIX  ; SigA - Add err
-$ESTIMATION METHOD=SAEM INTERACTION NOABORT NBURN=1000 NITER=1000
-            CTYPE=3 MAX=99999 NSIG=3 SEED=3442 PRINT=10 RANMETHOD=P
-            MSFO=xgxr134.msf
-$ESTIMATION METHOD=IMP INTERACTION EONLY=1 NITER=20 PRINT=1
-            ISAMPLE=5000 RANMETHOD=P
-$COVARIANCE PRINT=E
-$TABLE      ROW KA V2 V3 CL Q PRED IPRED Y NOPRINT
-            FILE=xgxr134_res.txt
-$TABLE      ETAS(1:LAST) NOAPPEND NOPRINT FILE=xgxr134_etas.txt
+;; format: %idx: %symbol ; %label [%unit] ; %trans
+$THETA  (.1)             ; 1 : TVKA ; Absorption rate [1/h] ; log
+$THETA  (3)             ; 2 : TVV2 ;  Central volume [L] ; log
+$THETA  (1)             ; 3 : TVCL ; Clearance [L/h] ; log
+$THETA  (4)             ; 4 : TVV3 ; Peripheral volume [L] ; log
+$THETA  (-1)             ; 5 : TVQ ; Intercomparmental clearance [L/h] ; log
+$THETA .1              ; 6 : AGECL ; Age effect on clearance []; log
+$THETA .1              ; 7 : WEIGHTCL ; Body-weight effect on clearance []; log
+$THETA .1              ; 8 : MALECL ; Male effect on clearance []; log
 
+$OMEGA 0 FIX ; 1 : KA 
+$OMEGA 0.1   ; 2 : V2 
+$OMEGA 0.1   ; 3 : CL 
+$OMEGA 0 FIX ; 4 : V3 
+$OMEGA 0 FIX ; 5 : Q  
+
+;; format.sigma: %symbol - %label ; %trans
+$SIGMA 0.1    ; SigP - Prop err ; propErr
+$SIGMA 0 FIX  ; SigA - Add err ; addErr
+
+
+$ESTIMATION METHOD=SAEM INTERACTION NOABORT NBURN=1000 NITER=1000 CTYPE=3 MAX=99999 NSIG=3 SEED=3442 PRINT=10 RANMETHOD=P MSFO=xgxr134.msf
+
+$ESTIMATION METHOD=IMP INTERACTION EONLY=1 NITER=20 PRINT=1 ISAMPLE=5000 RANMETHOD=P
+																	    
+$COV PRINT=E
+
+$TABLE ROW KA V2 V3 CL Q PRED IPRED Y NOPRINT FILE=xgxr134_res.txt
+$TABLE ETAS(1:LAST) NOAPPEND NOPRINT FILE=xgxr134_etas.txt
 
 NM-TRAN MESSAGES
   
@@ -89,10 +95,12 @@ NM-TRAN MESSAGES
  * THE MAXIMUM NUMBER OF WARNINGS OF ONE OR MORE TYPES WAS REACHED.
  IT IS POSSIBLE THAT SOME WARNING MESSAGES WERE SUPPRESSED.
 
+ LIM VALUES MAXLIM ASSESSED BY NMTRAN: 1,2,3,4,5,6,7,8,10,11,13,15,16        
+
 License Registered to: Vertex Pharmaceuticals Inc
-Expiration Date:    14 JAN 2025
-Current Date:        6 AUG 2024
-Days until program expires : 163
+Expiration Date:    14 JAN 2026
+Current Date:       23 NOV 2025
+Days until program expires :  56
 1NONLINEAR MIXED EFFECTS MODEL PROGRAM (NONMEM) VERSION 7.5.0
  ORIGINALLY DEVELOPED BY STUART BEAL, LEWIS SHEINER, AND ALISON BOECKMANN
  CURRENT DEVELOPERS ARE ROBERT BAUER, ICON DEVELOPMENT SOLUTIONS,
@@ -278,7 +286,7 @@ Days until program expires : 163
  EXCLUDE NON-INFLUENTIAL (NON-INFL.) ETAS
        IN SHRINKAGE (ETASTYPE):             NO
  NON-INFL. ETA CORRECTION (NONINFETA):      0
- RAW OUTPUT FILE (FILE): psn.ext
+ RAW OUTPUT FILE (FILE): xgxr134.ext
  EXCLUDE TITLE (NOTITLE):                   NO
  EXCLUDE COLUMN LABELS (NOLABEL):           NO
  FORMAT FOR ADDITIONAL FILES (FORMAT):      S1PE12.5
@@ -484,7 +492,7 @@ Days until program expires : 163
  REPORTED OBJECTIVE FUNCTION DOES NOT CONTAIN CONSTANT
   
  #TERE:
- Elapsed estimation  time in seconds:    31.55
+ Elapsed estimation  time in seconds:    31.10
  Elapsed covariance  time in seconds:     0.01
 1
  
@@ -1103,7 +1111,7 @@ Days until program expires : 163
  EXCLUDE NON-INFLUENTIAL (NON-INFL.) ETAS
        IN SHRINKAGE (ETASTYPE):             NO
  NON-INFL. ETA CORRECTION (NONINFETA):      0
- RAW OUTPUT FILE (FILE): psn.ext
+ RAW OUTPUT FILE (FILE): xgxr134.ext
  EXCLUDE TITLE (NOTITLE):                   NO
  EXCLUDE COLUMN LABELS (NOLABEL):           NO
  FORMAT FOR ADDITIONAL FILES (FORMAT):      S1PE12.5
@@ -1199,8 +1207,8 @@ Days until program expires : 163
  TOTAL EFFECTIVE ETAS (NIND*NETA):                           180
   
  #TERE:
- Elapsed estimation  time in seconds:    41.14
- Elapsed covariance  time in seconds:   176.05
+ Elapsed estimation  time in seconds:    40.57
+ Elapsed covariance  time in seconds:   170.89
 1
  
  
@@ -1783,8 +1791,8 @@ Days until program expires : 163
  
          9.70E-02  2.66E-01  4.27E-01  5.57E-01  7.96E-01  8.49E-01  9.82E-01  1.18E+00  1.38E+00  1.74E+00  2.73E+00
  
- Elapsed postprocess time in seconds:     0.04
+ Elapsed postprocess time in seconds:     0.02
  Elapsed finaloutput time in seconds:     0.03
- #CPUT: Total CPU Time in Seconds,      248.944
+ #CPUT: Total CPU Time in Seconds,      242.743
 Stop Time:
-Tue Aug  6 08:36:52 EDT 2024
+Sun Nov 23 21:12:36 EST 2025

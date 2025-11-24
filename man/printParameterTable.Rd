@@ -6,7 +6,7 @@
 \usage{
 printParameterTable(
   pars,
-  format,
+  format = "R",
   footnotes = NULL,
   script = NULL,
   file.mod,

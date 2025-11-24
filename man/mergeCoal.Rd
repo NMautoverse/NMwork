@@ -26,17 +26,4 @@ Merges must be done using the same "by" columns for all rows. If
 rows needs to be merged using varying by columns, the merges must
 be done sequentially.
 }
-\examples{
-library(data.table)
-x <- data.table(idx=1:3,a=paste0("xa",1:3),b=paste0("xb",1:3))
-y <- data.table(idx=1:2,a=c("ya1",NA),b=c(NA,"yb2"))
-mergeCoal(x,y,by="idx")
-## multiple rows in x matched by one row in y
-x <- data.table(idx=1:3,grp=c(1,1,2),a=paste0("xa",1:3),b=paste0("xb",1:3))
-y <- data.table(grp=1,a="y1")
-mergeCoal(x,y,by="grp")
-## new column (c in y, not in x)
-x <- data.table(idx=1:3,a=paste0("xa",1:3),b=paste0("xb",1:3))
-y <- data.table(idx=1:2,a=c("ya1",NA),b=c(NA,"yb2"),c=1)
-mergeCoal(x,y,by="idx")
-}
+\keyword{internal}

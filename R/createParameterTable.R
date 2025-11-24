@@ -171,6 +171,7 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,df.repair=NULL,by.r
     } else {
         labs <- df.labs
     }
+    
     ## dropping model from labs. Since the parameter estimates are
     ## coming from NMreadExt, it seems more accurate to carry the
     ## model name over from there.
@@ -214,9 +215,9 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,df.repair=NULL,by.r
     ## OMEGA: lognormal (default), normal
     ## OMEGA: off diag: (handled automatically)
     
-    ## if(!"panel"%in%colnames(pars)) pars[,panel:=NA_character_]
-    if(!"panel"%in%colnames(pars)) pars[,panel:=par.type]
-    pars[is.na(panel)&par.type=="THETA",panel:="struct"]
+    if(!"panel"%in%colnames(pars)) pars[,panel:=NA_character_]
+    ## if(!"panel"%in%colnames(pars)) pars[,panel:=par.type]
+    pars[is.na(panel)&par.type=="THETA",panel:="FixedEff"]
     ## pars[par.type=="THETA"&trans%in%cc(addErr,propErr),parGRP:="resVar"]
     ## pars[par.type=="THETA"&symbol%in%cc(ADDP,ADDM,PROPP,PROPM),parGRP:="resVar"]
     
@@ -232,27 +233,40 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,df.repair=NULL,by.r
 
 ### TODO: do we want to generate a factor with the observed values, guessing an order?
     ## pars[,panel:=factor(parGRP,levels=cc(theta,OMEGAdiag,OMEGAcorr,resVar))]
-
+    
 ### This automates the labeling of the parameter blocks.
     dt.panels.std <- fread(text="panel,panel.label
-struct,Structural parameters
-cov,Covariate effects
-IIV,Inter-individual variances
-OMEGAcorr,Inter-individual covariances
-IOV,Inter-occasion variances
-resvar,Residual error")
+FixedEff,Fixed Effects
+Struct,Structural Parameters
+Cov,Covariate Effects
+IIV,Inter-Individual Variances
+OMEGAcorr,Inter-Individual Covariances
+IOV,Inter-Occasion Variances
+resvar,Residual Error")
 
     if(missing(df.panels)) df.panels <- NULL
     if(!is.null(df.panels)) df.panels <- as.data.table(df.panels)
 
     df.panels <- rbind(df.panels,dt.panels.std)
+    ## this unique is case-sensitive so df.panels$panel will have to
+    ## match dt.panels.std$panel exactly to overwrite it.
     df.panels <- unique(df.panels,by="panel")
-    
+
+    ### align case of panel column with df.panels
+    if("panel"%in%colnames(pars)){
+        col.pold <- tmpcol(pars,base="panelold")
+        pars[,(col.pold):=tolower(panel)]
+        ## setnames(pars,"panel",col.pold)
+        pars[,panel:=NULL]
+        pars <- mergeCheck(pars,df.panels[,.(panelold=tolower(panel),panel)],by.x=col.pold,by.y="panelold")
+        pars[,(col.pold):=NULL]
+    }
     
     pars <- mergeCoal(pars,df.panels,by="panel",as.fun="data.table")
 ### if not matched with label, just use panel code
     pars[,panel.label:=fcoalesce(panel.label,panel)]
 
+    
 ### this puts non-specified panels last. Maybe panel levels with thetas only should come earlier
     pars[,panel:=factor(panel,levels=c(df.panels[,panel],setdiff(panel,df.panels[,panel])))]
     ## pars[,panel.label:=factor(panel.label,levels=df.panels[,panel])]
@@ -334,13 +348,11 @@ resvar,Residual error")
     }
     pars[is.na(tab.lab),tab.lab:=""]
 
-##### Bug: this will not happen. BSV/BOV were standardized to IIV/IOV already
-    pars[panel=="BSV"&is.na(tab.lab),tab.lab:=paste("BSV",symbol)]
-    pars[panel=="BOV"&is.na(tab.lab),tab.lab:=paste("BOV",symbol)]
     
     pars[par.type=="OMEGA"&trans=="normal",tab.lab:=paste(tab.lab,"(additive)")]
 
-    pars[par.type=="THETA"&panel!="cov"&!is.na(label)&!is.na(symbol),tab.lab:=paste(label,symbol,sep=", ")]
+    ## pars[par.type=="THETA"&panel!="cov"&!is.na(label)&!is.na(symbol),tab.lab:=paste(label,symbol,sep=", ")]
+    pars[par.type=="THETA"&!is.na(label)&!is.na(symbol),tab.lab:=paste(label,symbol,sep=", ")]
     pars[!is.na(unit),tab.lab:=sprintf("%s (%s)",ifelse(is.na(tab.lab),NA_character_,tab.lab),unit)]
 
 ### tab.lab done
@@ -366,20 +378,21 @@ resvar,Residual error")
     cols.trans <- intersect(cc(est,CI.l,CI.u),colnames(pars))
     pars[trans%in%cc(log,logTrans),(cols.trans):=lapply(.SD,exp),.SDcols=cols.trans]
     pars[trans%in%cc(logit),(cols.trans):=lapply(.SD,invlogit),.SDcols=cols.trans]
-
+    
     pars[par.type=="THETA",tab.est:=sprintf("%s (%s)",signif(est,3),tab.rse)]
-    pars[par.type=="THETA"&FIX==1,tab.est:=sprintf("%s (fixed)",signif(est,3))]
-    pars[par.type=="OMEGA"&trans=="lognormal",tab.CV:=percent(CVlnorm(est),acc=1)]
-    pars[par.type=="OMEGA"&trans=="lognormal",tab.est:=sprintf("%s [%s] (%s)",signif(est,3),tab.CV,tab.rse)]
+    ## pars[par.type=="THETA"&FIX==1,tab.est:=sprintf("%s (fixed)",signif(est,3))]
+    pars[FIX!=0,tab.est:=sprintf("%s (fixed)",signif(est,3))]
+    pars[par.type=="OMEGA"&trans=="lognormal"&FIX==0,tab.CV:=percent(CVlnorm(est),acc=1)]
+    pars[par.type=="OMEGA"&trans=="lognormal"&FIX==0,tab.est:=sprintf("%s [%s] (%s)",signif(est,3),tab.CV,tab.rse)]
 
     ## for this, the associated theta est has to be used to calc CV
     ## pars[panel=="OMEGAdiag"&trans=="normal",tab.CV:=percent(sd/est,acc=1)]
     ## pars[panel=="OMEGAdiag"&trans=="normal",tab.est:=sprintf("%s [%s] (%s)",signif(est,3),tab.CV,tab.rse)]
-    pars[par.type=="OMEGA"&trans=="normal",tab.est:=sprintf("%s (%s)",signif(est,3),tab.rse)]
+    pars[par.type=="OMEGA"&trans=="normal"&FIX==0,tab.est:=sprintf("%s (%s)",signif(est,3),tab.rse)]
     ##    pars[panel=="OMEGAdiag"&is.na(label),tab.lab:=paste("BSV",symbol)]
 
     
-    pars[panel=="OMEGAcorr",tab.est:=sprintf("%s [%s] (%s)",signif(est,3),tab.corr,tab.rse)]
+    pars[panel=="OMEGAcorr"&FIX==0,tab.est:=sprintf("%s [%s] (%s)",signif(est,3),tab.corr,tab.rse)]
 
 
     if(all(cc(CI.l,CI.u)%in%colnames(pars))){
@@ -392,8 +405,9 @@ resvar,Residual error")
     pars[par.type=="THETA"&trans=="addErr",tab.est:=sprintf("%s (%s)",signif(est,3),tab.rse)]
     pars[par.type=="THETA"&trans=="propErr",tab.est:=sprintf("%s (%s)",percent(est,acc=1.1),tab.rse)]
     
-    pars[par.type=="SIGMA",tab.est:=sprintf("%s (%s)",signif(est,3),tab.rse)]
-
+    pars[par.type=="SIGMA"&FIX==0,tab.est:=sprintf("%s (%s)",signif(est,3),tab.rse)]
+    pars[par.type=="SIGMA"&trans=="propErr"&FIX==0,
+         tab.est:=sprintf("%s [%s] (%s)",est,percent(sqrt(est),acc=1.1),tab.rse)]
     
     ## Latex versions of columns for report tables
     pars[,tab.est.ltx:=latexify(tab.est,doublebackslash = FALSE)]

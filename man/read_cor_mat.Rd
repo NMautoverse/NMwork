@@ -22,3 +22,4 @@ file as an argument. output is a list with length equal to the number of
 tables output in the .cor file. Use: when more than one table is listed in
 .cor file and you want all of them
 }
+\keyword{internal}

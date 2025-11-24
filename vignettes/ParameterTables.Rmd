@@ -1,0 +1,296 @@
+---
+title: "NMwork - Create Nonmem Parameter Tables"
+author: 
+  - name: "Philip Delff"
+date: '`r format(Sys.Date(), "%B %d, %Y")` using NMsim `r packageVersion("NMwork")`'
+toctitle: "Contents"
+output:
+    html_document:
+      toc: true
+      toc_depth: 4
+      toc_float: true
+      number_sections: false
+      df_print: kable
+      editor_options:
+        chunk_output_type: inline
+      code_folding: show
+pkgdown:
+  as_is: true
+---
+
+
+```{css echo=FALSE}
+
+body{
+  font-size: 12pt;
+}
+
+h1.title {
+  font-size: 24px;
+  color: DarkRed;
+  margin-top: 2em;
+  margin-bottom: 1em;
+}
+h1 { /* Header 1 */
+  font-size: 20px;
+  color: DarkBlue;
+}
+h2 { /* Header 2 */
+  margin-top: 1em;
+  font-size: 20px;
+  color: DarkBlue;
+}
+h3 { /* Header 3 */
+  font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkBlue;
+}
+h4 { /* Header 4 */
+  font-size: 16px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkBlue;
+}
+table.Rtable1 {
+    font-size: 12px;
+}
+
+.superbigimage{
+      overflow-x:scroll;
+      white-space: nowrap;
+  }
+
+.superbigimage img{
+     max-width: none;
+  }
+  
+h4.author {
+  font-weight:bold;
+  font-style:italic;
+  margin-top: 0em;
+  margin-bottom: 1em;
+}
+h4.date {
+  font-weight:bold;
+  margin-top: 0em;
+  margin-bottom: 5em;
+}
+
+
+/* -----------div tips------------- */
+
+div.summary {
+ padding: 1em;
+ margin: 1em;
+ padding-left: 50px;
+ background-size: 30px;
+ background-repeat: no-repeat;
+ background-position: 10px 10px;
+ min-height: 40px;
+ font-size: 16px;
+ color: #000000;
+ background-color: #bed3ec;
+ border: solid 5px #dfedff;
+ /* background-image: url("Summary_ffffff.png"); */
+}
+
+div.data {
+ padding: 1em;
+ margin: 1em;
+ padding-left: 50px;
+ background-size: 30px;
+ background-repeat: no-repeat;
+ background-position: 10px 10px;
+ min-height: 40px;
+ font-size: 16px;
+ color: #000000;
+ background-color: #FAD07D;
+ border: solid 5px #FFDE9C;
+ /* background-image: url("Stats graph_ffffff.png"); */
+}
+
+
+/* ----------- code fold button ------------- */
+.showopt {
+  display:inline-block;
+  width: 120px;
+  height: 29px;
+  text-align: center;
+  font-weight:400;
+  vertical-align: middle !important;
+  float: right;
+  font-family: sans-serif;
+  border-radius: 8px;
+  cursor: pointer;
+  border-color: #adb1b8 #a2a6ac #8d9096;
+  border-style: solid;
+  box-shadow: rgba(255,255,255,.6) 0 1px 0 inset;
+  background-image:none;
+}
+
+pre{
+  width:100%;
+}
+
+
+
+
+``` 
+
+
+
+```{r, setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      tidy = FALSE,
+                      message = FALSE,
+                      fig.align = 'center',
+                      out.width = "100%"
+                     ,fig.height=3.7
+                      )
+
+knitr::opts_hooks$set(function(options) {
+  if (is.null(options$fig.alt) && !is.null(options$fig.cap)) {
+    options$fig.alt <- options$fig.cap
+  }
+  options
+})
+
+options(knitr.table.format = "html") 
+
+library(data.table)
+library(knitr)
+library(kableExtra)
+library(NMdata)
+library(NMsim)
+
+## Get the setup ready for NMsim
+path.candidates <- c(## metworx
+    "/opt/NONMEM/nm75/run/nmfe75"
+    ## custom linux
+   ,"/opt/nonmem/nm751/run/nmfe75"
+    ## Ahmed
+   ,"c:/nm75g64/run/nmfe75.bat"
+)
+NMdataConf(path.nonmem = NMsim:::prioritizePaths(path.candidates)) ## path to whichever NONM
+
+NMdataConf(##path.nonmem = "/opt/NONMEM/nm75/run/nmfe75"
+           ## path.nonmem = "/opt/nonmem/nm751/run/nmfe75"
+          ## ,dir.sims="~/NMsim_vignette/simtmp/simtmp-intro"
+          dir.sims="simtmp-intro"
+          ,dir.res="simres-intro"
+           )
+
+library(ggplot2)
+## theme_set(theme_bw()+theme(legend.position="bottom",strip.background =element_rect(fill="white")))
+theme_set(theme_classic()+theme(legend.position="bottom",strip.background = element_blank()))
+##scale_color_manual(values=c("orange","blue","darkgreen"))
+options(ggplot2.discrete.colour=c("orange","blue","darkgreen"))
+options(ggplot2.discrete.fill=c("orange","blue","darkgreen"))
+
+set.seed(11112024)
+
+reuse.results <- TRUE
+```
+
+
+# Objectives
+
+- Create parameter tables, using annotation of control stream parameter sections 
+
+- Print parameter tables to various formats (R console, jpg, word, ppt, pdf, include in Rmd document)
+
+- Modify subsets of information provided in parameter section annotations 
+
+- Use flexible tools to generate information when parameter sections are less diligently annotated
+
+# Introduction
+
+A table of model parameter estimates is some of the most basic model
+information. Nevertheless, it is often cumbersome to get a decently
+annotated table of parameter estimates. In Nonmem control streams, the
+definition of parameters such as \theta's, \Omega's and \Sigma's is
+handled in `$THETA`, `$OMEGA` and `$SIGMA` while the definition of
+variables such as `CL` or `KIN` is handled elsewhere, typically in
+`$PK`, `$PRED` or `$ERROR`. This allows for flexibility in model
+definition but it also leaves some book keeping to the user for
+interpretation of the parameter estimates. One can choose to avoid
+interpretation of parameters by outputting the variables themselves in
+`$TABLE`. That way, they can simulate out the (often) more easily
+interpretable variable values without relying on translation between
+parameters and variables. However, by interpreting the parameter
+values (preferably including appropriate transformation to
+physiological variables), one can make direct use of other properties
+estimated by Nonmem such as parameter precision as estimated in the
+$COVARIANCE step. This vignette presents a flexible and easy-to-use
+framework for handling this bookkeeping, with the benefit of automated
+generation of annotated parameter tables.
+
+
+Let's break the generation of parameter tables into four steps. 
+
+1. Annotation of control streams (down to the user)
+
+2. Compilation of annotations, parameter estimates and precision, if present (Tools available in NMdata)
+
+3. Formatting of parameter table information (NMwork::createParameterTable)
+
+4. Printing of parameter table information (NMwork::printParameterTable)
+
+
+Provided that step 1. is done informatively, step 2 is fully wrapped into step 3. This means, you can end up with as simple a workflow as this
+
+
+```{r,eval=TRUE,results="asis"}
+load_all("~/wdirs/NMdata")
+load_all("~/wdirs/NMwork")
+
+file.mod <- system.file("nonmem/xgxr134.mod",package="NMwork")
+partab <- createParameterTable(file.mod)
+printParameterTable(partab,format="R")
+```
+
+```{r,results="asis"}
+printParameterTable(partab,format="rmd")
+```
+
+In the rest of this document, we will see what all this did, how you
+can get it to work, and how you can fill in the information if this
+was not done during model development (the annotation in step 1
+above).
+
+While `createParameterTable()` and `printParameterTable()` are offered
+by `NMwork`, the underlying functionality is largely provided by
+`NMdata`. For the best experience, make sure to keep NMdata up to date
+from CRAN.
+
+
+## Example 1: Annotation of Control Stream Parameter Sections
+This approach is the simplest to show because it is what we already did in the introduction. All the preparations are done in the control stream, and `createParamaterTable()` can do the rest of the work.
+
+<!-- show how the annotation is done in the control stream -->
+
+```{r,echo=FALSE,comment=""}
+all.lines <- as.NMctl(file.mod)
+c(all.lines[grepl("format:",all.lines)],
+NMdata::as.NMctl(
+    NMreadSection(file.mod,section="THETA"),
+    lines=TRUE
+    ),
+
+all.lines[grepl("format\\.omega:",all.lines)],
+NMdata::as.NMctl(
+    NMreadSection(file.mod,section="OMEGA"),
+    lines=TRUE
+    ),
+
+##all.lines[grepl("format\\.sigma:",all.lines)],
+NMdata::as.NMctl(
+    NMreadSection(file.mod,section="SIGMA"),
+    lines=TRUE
+    )
+
+
+) |> cat(sep="\n")
+
+```
+

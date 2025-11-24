@@ -28,7 +28,7 @@
 
 ### no current way to generate rmd-pdf using kable, now defaults to using pmtables
 
-printParameterTable <- function(pars,format,footnotes=NULL,script=NULL,file.mod,include,include.pattern,drop,drop.pattern,include.fix){
+printParameterTable <- function(pars,format="R",footnotes=NULL,script=NULL,file.mod,include,include.pattern,drop,drop.pattern,include.fix){
 
     if(missing(drop)) drop <- NULL
     if(missing(drop.pattern)) drop.pattern <- NULL
@@ -128,12 +128,12 @@ printParameterTable <- function(pars,format,footnotes=NULL,script=NULL,file.mod,
     if(format=="r"){
       
       paramtbl <- paramtbl[,.(
-        Panel=panel,
         "Parameter"=par.name,
         "Label"=tab.lab,
         # "Label"=symbol,
         "Est [CV% or Corr%] (RSE%)"=tab.est,
-        "95% CI"=CI
+        "95% CI"=CI,
+        Panel=panel
       )]
       
       lapply(footnotes,message)
