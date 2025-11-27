@@ -308,7 +308,7 @@ NMdata::as.NMctl(
 
 ```
 
-Each parameter definition is annotated with the 
+Each parameter definition is annotated with descriptive information such as labels
 
 
 # Printing the Parameter Table
