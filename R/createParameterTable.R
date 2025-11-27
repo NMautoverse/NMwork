@@ -254,12 +254,17 @@ resvar,Residual Error")
 
     ### align case of panel column with df.panels
     if("panel"%in%colnames(pars)){
+        
         col.pold <- tmpcol(pars,base="panelold")
-        pars[,(col.pold):=tolower(panel)]
+        col.pl <- tmpcol(pars,base="panellow")
+        pars[,(col.pl):=tolower(panel)]
+        setnames(pars,"panel",col.pold)
         ## setnames(pars,"panel",col.pold)
-        pars[,panel:=NULL]
-        pars <- mergeCheck(pars,df.panels[,.(panelold=tolower(panel),panel)],by.x=col.pold,by.y="panelold")
+        pars <- mergeCheck(pars,df.panels[,.(panellow=tolower(panel),panel)],
+                           by.x=col.pl,by.y="panellow",all.x=TRUE)
+        pars[,panel:=fcoalesce(panel,get(col.pold))]
         pars[,(col.pold):=NULL]
+        pars[,(col.pl):=NULL]
     }
     
     pars <- mergeCoal(pars,df.panels,by="panel",as.fun="data.table")
