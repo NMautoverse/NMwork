@@ -11,6 +11,7 @@
 ##'     x.lst is the result. But a x.mod is used to compare to results
 ##'     from "main". When x.lst (derived from x.mod) matches a lst
 ##'     file from main, the order of methods is used to prioritize.
+##' @import NMdata
 
 ### Need more use cases before exporting
 
@@ -67,5 +68,5 @@ findModels <- function(dir,pattern=".*.lst$",methods=c("main","bbr"),recursive=F
     ## very quickly, prioritizing according to order in methods
     all <- all[order(file.lst.main,match(method,methods))][!duplicated(file.lst.main)]
     
-    all[,file.lst]
+    all[,NMdata:::filePathSimple(file.lst)]
 }

@@ -6,7 +6,8 @@
 \usage{
 printParameterTable(
   pars,
-  format = "R",
+  engine = "kable",
+  format,
   footnotes = NULL,
   script = NULL,
   file.mod,

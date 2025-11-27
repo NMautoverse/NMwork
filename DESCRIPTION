@@ -1,7 +1,7 @@
 Package: NMwork
 Type: Package
 Title: Seamless 'Nonmem' Simulation Platform
-Version: 0.0.0.904
+Version: 0.0.0.906
 Authors@R: c(person("Philip", "Delff", email = "philip@delff.dk",role = c("aut","cre")),
   person("Brian", "Reilly", email = "reilly.brian.m@gmail.com",role = c("ctb")))
 Maintainer: Philip Delff <philip@delff.dk>

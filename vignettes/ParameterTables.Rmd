@@ -240,7 +240,7 @@ Let's break the generation of parameter tables into four steps.
 Provided that step 1. is done informatively, step 2 is fully wrapped into step 3. This means, you can end up with as simple a workflow as this
 
 
-```{r,eval=TRUE,results="asis"}
+```{r,eval=FALSE,results="asis",include=FALSE}
 load_all("~/wdirs/NMdata")
 load_all("~/wdirs/NMwork")
 
@@ -249,9 +249,18 @@ partab <- createParameterTable(file.mod)
 printParameterTable(partab,format="R")
 ```
 
-```{r,results="asis"}
-printParameterTable(partab,format="rmd")
+```{r,eval=FALSE,include=FALSE}
+printParameterTable(partab,engine="flextable") |>
+    save_as_image(path="partab1.png")
+library(knitr)
+include_graphics("partab1.png")
 ```
+
+```{r}
+printParameterTable(partab,format="html") 
+```
+
+
 
 In the rest of this document, we will see what all this did, how you
 can get it to work, and how you can fill in the information if this
@@ -263,10 +272,15 @@ by `NMwork`, the underlying functionality is largely provided by
 `NMdata`. For the best experience, make sure to keep NMdata up to date
 from CRAN.
 
+# Creating the Parameter Table (`createParameterTable()`)
 
 ## Example 1: Annotation of Control Stream Parameter Sections
-This approach is the simplest to show because it is what we already did in the introduction. All the preparations are done in the control stream, and `createParamaterTable()` can do the rest of the work.
+This approach is the simplest to show because it is what we already
+did in the introduction. All the preparations are done in the control
+stream, and `createParamaterTable()` can do the rest of the work.
 
+
+Take a look at the parameter sections of the control stream of the model we just read for the parameter table above. 
 <!-- show how the annotation is done in the control stream -->
 
 ```{r,echo=FALSE,comment=""}
@@ -294,3 +308,7 @@ NMdata::as.NMctl(
 
 ```
 
+Each parameter definition is annotated with the 
+
+
+# Printing the Parameter Table

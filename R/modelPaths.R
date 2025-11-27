@@ -13,8 +13,14 @@
 ##' @export
 
 modelPaths <- function(file,as.dt=FALSE,col.name="mod",must.exist=FALSE,simplify=TRUE){
-    
-    if(must.exist && any(!file.exists(file))) stop("Not all models exist, and `must.exist=TRUE`")
+
+
+    if(must.exist){
+        files.missing <- file[!file.exists(file)]
+        if(length(files.missing)){
+            stop("Not all models exist, and `must.exist=TRUE`:\n",paste(files.missing,collapse=",\n"))
+        }
+    }
     
     all <- list(mod=fnExtension(file,"mod")
                ,lst=fnExtension(file,"lst")
