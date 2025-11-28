@@ -61,3 +61,4 @@ BugReports: https://github.com/NMautoverse/NMwork/issues
 Language: en-US
 URL: https://NMautoverse.github.io/NMwork/
 Config/testthat/edition: 3
+VignetteBuilder: knitr

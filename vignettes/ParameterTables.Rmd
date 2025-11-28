@@ -22,123 +22,124 @@ pkgdown:
 ```{css echo=FALSE}
 
 body{
-  font-size: 12pt;
+	font-size: 12pt;
 }
 
 h1.title {
-  font-size: 24px;
-  color: DarkRed;
-  margin-top: 2em;
-  margin-bottom: 1em;
+	font-size: 24px;
+	color: DarkRed;
+	margin-top: 2em;
+	margin-bottom: 1em;
 }
 h1 { /* Header 1 */
-  font-size: 20px;
-  color: DarkBlue;
+	font-size: 20px;
+	color: DarkBlue;
 }
 h2 { /* Header 2 */
-  margin-top: 1em;
-  font-size: 20px;
-  color: DarkBlue;
+	margin-top: 1em;
+	font-size: 20px;
+	color: DarkBlue;
 }
 h3 { /* Header 3 */
-  font-size: 18px;
-  font-family: "Times New Roman", Times, serif;
-  color: DarkBlue;
+	font-size: 18px;
+	font-family: "Times New Roman", Times, serif;
+	color: DarkBlue;
 }
 h4 { /* Header 4 */
-  font-size: 16px;
-  font-family: "Times New Roman", Times, serif;
-  color: DarkBlue;
+	font-size: 16px;
+	font-family: "Times New Roman", Times, serif;
+	color: DarkBlue;
 }
 table.Rtable1 {
     font-size: 12px;
 }
 
 .superbigimage{
-      overflow-x:scroll;
-      white-space: nowrap;
-  }
+    overflow-x:scroll;
+    white-space: nowrap;
+}
 
 .superbigimage img{
-     max-width: none;
-  }
-  
+    max-width: none;
+}
+
 h4.author {
-  font-weight:bold;
-  font-style:italic;
-  margin-top: 0em;
-  margin-bottom: 1em;
+	font-weight:bold;
+	font-style:italic;
+	margin-top: 0em;
+	margin-bottom: 1em;
 }
 h4.date {
-  font-weight:bold;
-  margin-top: 0em;
-  margin-bottom: 5em;
+	font-weight:bold;
+	margin-top: 0em;
+	margin-bottom: 5em;
 }
 
 
 /* -----------div tips------------- */
 
 div.summary {
- padding: 1em;
- margin: 1em;
- padding-left: 50px;
- background-size: 30px;
- background-repeat: no-repeat;
- background-position: 10px 10px;
- min-height: 40px;
- font-size: 16px;
- color: #000000;
- background-color: #bed3ec;
- border: solid 5px #dfedff;
- /* background-image: url("Summary_ffffff.png"); */
+	padding: 1em;
+	margin: 1em;
+	padding-left: 50px;
+	background-size: 30px;
+	background-repeat: no-repeat;
+	background-position: 10px 10px;
+	min-height: 40px;
+	font-size: 16px;
+	color: #000000;
+	background-color: #bed3ec;
+	border: solid 5px #dfedff;
+	/* background-image: url("Summary_ffffff.png"); */
 }
 
 div.data {
- padding: 1em;
- margin: 1em;
- padding-left: 50px;
- background-size: 30px;
- background-repeat: no-repeat;
- background-position: 10px 10px;
- min-height: 40px;
- font-size: 16px;
- color: #000000;
- background-color: #FAD07D;
- border: solid 5px #FFDE9C;
- /* background-image: url("Stats graph_ffffff.png"); */
+	padding: 1em;
+	margin: 1em;
+	padding-left: 50px;
+	background-size: 30px;
+	background-repeat: no-repeat;
+	background-position: 10px 10px;
+	min-height: 40px;
+	font-size: 16px;
+	color: #000000;
+	background-color: #FAD07D;
+	border: solid 5px #FFDE9C;
+	/* background-image: url("Stats graph_ffffff.png"); */
 }
 
 
 /* ----------- code fold button ------------- */
 .showopt {
-  display:inline-block;
-  width: 120px;
-  height: 29px;
-  text-align: center;
-  font-weight:400;
-  vertical-align: middle !important;
-  float: right;
-  font-family: sans-serif;
-  border-radius: 8px;
-  cursor: pointer;
-  border-color: #adb1b8 #a2a6ac #8d9096;
-  border-style: solid;
-  box-shadow: rgba(255,255,255,.6) 0 1px 0 inset;
-  background-image:none;
+	display:inline-block;
+	width: 120px;
+	height: 29px;
+	text-align: center;
+	font-weight:400;
+	vertical-align: middle !important;
+	float: right;
+	font-family: sans-serif;
+	border-radius: 8px;
+	cursor: pointer;
+	border-color: #adb1b8 #a2a6ac #8d9096;
+	border-style: solid;
+	box-shadow: rgba(255,255,255,.6) 0 1px 0 inset;
+	background-image:none;
 }
 
 pre{
-  width:100%;
+	width:100%;
 }
 
-
-
-
-``` 
+```
 
 
 
 ```{r, setup, include=FALSE}
+## install pmtables
+# mpn <- "https://mpn.metworx.com/snapshots/stable/2025-11-24"
+# install.packages("pmtables", repos = mpn)
+
 knitr::opts_chunk$set(echo = TRUE,
                       warning = FALSE,
                       tidy = FALSE,
@@ -149,10 +150,10 @@ knitr::opts_chunk$set(echo = TRUE,
                       )
 
 knitr::opts_hooks$set(function(options) {
-  if (is.null(options$fig.alt) && !is.null(options$fig.cap)) {
-    options$fig.alt <- options$fig.cap
-  }
-  options
+    if (is.null(options$fig.alt) && !is.null(options$fig.cap)) {
+        options$fig.alt <- options$fig.cap
+    }
+    options
 })
 
 options(knitr.table.format = "html") 
@@ -162,6 +163,11 @@ library(knitr)
 library(kableExtra)
 library(NMdata)
 library(NMsim)
+
+library(devtools)
+load_all("~/wdirs/NMdata")
+load_all("~/wdirs/NMwork")
+
 
 ## Get the setup ready for NMsim
 path.candidates <- c(## metworx
@@ -174,11 +180,12 @@ path.candidates <- c(## metworx
 NMdataConf(path.nonmem = NMsim:::prioritizePaths(path.candidates)) ## path to whichever NONM
 
 NMdataConf(##path.nonmem = "/opt/NONMEM/nm75/run/nmfe75"
-           ## path.nonmem = "/opt/nonmem/nm751/run/nmfe75"
-          ## ,dir.sims="~/NMsim_vignette/simtmp/simtmp-intro"
-          dir.sims="simtmp-intro"
-          ,dir.res="simres-intro"
-           )
+    ## path.nonmem = "/opt/nonmem/nm751/run/nmfe75"
+    ## ,dir.sims="~/NMsim_vignette/simtmp/simtmp-intro"
+    dir.sims="simtmp-intro"
+   ,dir.res="simres-intro"
+   ,as.fun="data.table"
+)
 
 library(ggplot2)
 ## theme_set(theme_bw()+theme(legend.position="bottom",strip.background =element_rect(fill="white")))
@@ -191,7 +198,6 @@ set.seed(11112024)
 
 reuse.results <- TRUE
 ```
-
 
 # Objectives
 
@@ -227,22 +233,20 @@ generation of annotated parameter tables.
 
 
 Let's break the generation of parameter tables into four steps. 
-
+	
 1. Annotation of control streams (down to the user)
 
-2. Compilation of annotations, parameter estimates and precision, if present (Tools available in NMdata)
+2. Compilation of annotations, parameter estimates and precision, if present (tools available in `NMdata`)
 
-3. Formatting of parameter table information (NMwork::createParameterTable)
+3. Formatting of parameter table information (`NMwork::createParameterTable`)
 
-4. Printing of parameter table information (NMwork::printParameterTable)
+4. Printing of parameter table information (`NMwork::printParameterTable`)
 
 
 Provided that step 1. is done informatively, step 2 is fully wrapped into step 3. This means, you can end up with as simple a workflow as this
 
 
 ```{r,eval=FALSE,results="asis",include=FALSE}
-load_all("~/wdirs/NMdata")
-load_all("~/wdirs/NMwork")
 
 file.mod <- system.file("nonmem/xgxr134.mod",package="NMwork")
 partab <- createParameterTable(file.mod)
@@ -267,12 +271,35 @@ can get it to work, and how you can fill in the information if this
 was not done during model development (the annotation in step 1
 above).
 
+
 While `createParameterTable()` and `printParameterTable()` are offered
 by `NMwork`, the underlying functionality is largely provided by
 `NMdata`. For the best experience, make sure to keep NMdata up to date
 from CRAN.
 
+## When to Use This
+The methods shwon in this document are intended to automate generation of publication-ready parameter estimate tables. Because of the informative value of such tables and because they are easy to generate (especially with a few simple habits of how to document parameter interpretation in control streams), the recommendation is to use them during model development as well as for reporting. 
+
 # Creating the Parameter Table (`createParameterTable()`)
+
+## Formatting Features
+
+`createParameterTable()` uses the following columns to format the parameter
+table. Hence, large parts of this document describes techniques to fill in the
+columns of interest to `createParameterTable()`. These are:
+
+- `symbol`: 
+- `label`:
+- `unit`:
+- `trans`:
+-`panel`:
+
+`createParameterTable()` will attempt to use for formatting. Sensible default
+values are being used where possible. 
+
+
+
+
 
 ## Example 1: Annotation of Control Stream Parameter Sections
 This approach is the simplest to show because it is what we already
@@ -284,31 +311,176 @@ Take a look at the parameter sections of the control stream of the model we just
 <!-- show how the annotation is done in the control stream -->
 
 ```{r,echo=FALSE,comment=""}
-all.lines <- as.NMctl(file.mod)
-c(all.lines[grepl("format:",all.lines)],
-NMdata::as.NMctl(
-    NMreadSection(file.mod,section="THETA"),
-    lines=TRUE
-    ),
+printParSections <- function(file.mod){
+    all.lines <- as.NMctl(file.mod)
+    c(all.lines[grepl("format:",all.lines)],
+      NMdata::as.NMctl(
+                  NMreadSection(file.mod,section="THETA"),
+                  lines=TRUE
+              ),
 
-all.lines[grepl("format\\.omega:",all.lines)],
-NMdata::as.NMctl(
-    NMreadSection(file.mod,section="OMEGA"),
-    lines=TRUE
-    ),
+      all.lines[grepl("format\\.omega:",all.lines)],
+      NMdata::as.NMctl(
+                  NMreadSection(file.mod,section="OMEGA"),
+                  lines=TRUE
+              ),
 
-##all.lines[grepl("format\\.sigma:",all.lines)],
-NMdata::as.NMctl(
-    NMreadSection(file.mod,section="SIGMA"),
-    lines=TRUE
-    )
+      ##all.lines[grepl("format\\.sigma:",all.lines)],
+      NMdata::as.NMctl(
+                  NMreadSection(file.mod,section="SIGMA"),
+                  lines=TRUE
+              )
 
 
-) |> cat(sep="\n")
+      ) |> cat(sep="\n")
+    return(invisible(NULL))
+}
 
+printParSections(file.mod)
 ```
 
-Each parameter definition is annotated with descriptive information such as labels
+Each `$THETA`  definition is annotated with descriptive information such as the
+variable "symbol" (TVKA), label (Absorption rate), unit (1/h), and
+transformation (log). I know I skipped the `idx` column too, but that is
+intentional. While such a counter can be very useful during model development,
+`NMcreateTable()` does not need it. 
+
+Notice a few things about the format
+- The format of the annotations is up to the user as long as it is
+consistent within parmeter types (i.e. all `$THETA`s annotations
+must be consistent).
+- Delimiters can vary. between idx and symbol, a colon (:) is used,
+between symbol and label it a semicolon, and the unit is in
+brackets. The latter acrually means the at the delimitor between
+label and unit is a left bracket ([), while the delimitor between
+unit and trans is a composite of a right bracket and a semicolon
+(];). Spaces surrounding delimiters are dropped, so "] ;", "] ;" and
+"];" all mean the same. By the way, tabulator characters are treated
+like spaces.
+- As a note of how the parameters have been documented, the modeler
+has left a comment string starting with "format:" where the column
+names in the desired table have been labeled with %-signs. In fact,
+that's what `NMcreateTable()` used to learn how to generate the
+table. 
+- The `$OMEGA` annotations only contain `idx` and `symbol`. In this
+case all the `ETA`s are used for log-normal distributed
+between-subject variability so a diligent annotation of these
+parameters are redundant. Since the formatting of `idx` and `symbol`
+(and of course the delimiter between them) are consistent with the
+`$THETA` annotations. The missing fields, `label`, `unit` and
+`trans` will be filled with `NA`s.
+- The `$SIGMA` parameters are annotated differently. The annotation columns are `symbol`, `label`, and `trans`, but the delimiters are different, and `unit` is not included. 
+- The annotation scheme used for `$SIGMA`s is documented in a comment
+starting with `format.sigma:`. `createParameterTable()` finds this
+automatically.
+
+## Example: Specify Formats
+If you have a control stream with consistent annotation but without
+the "`format`" lines to document the annotation format in the control
+stream, you can include that format in `createParameterTables()` using
+the `args.ParsText` argument.
+
+```{r args.ParsText,eval=FALSE}
+createParameterTable(file.lst=file.mod,args.ParsText=list(format="%idx - %symbol - %unit",format.omega="%idx-%symbol"))
+```
+
+The reason for the argument name `args.ParsText` is that that all you
+provide will be passed to `NMdata::NMreadParsText()` which is what
+`createParameterTable()` uses to process the control stream. If
+formats are passed here, they overrule what may be defined in the
+control stream.
+
+
+## Example: Specify Selected Annotation Values
+What we have seen so far relies on the modeler to diligently annotate all
+parameters, and all text in the parameter table is coming directly from the
+control stream. However, it may be desired to edit some of the
+information. `createParameterTable()` has the arguments `df.repair` and
+`by.repair` to do this. `createParameterTable()` uses `NMdata::mergeCoal()` to
+do this. The basic idea is that non-`NA` values in `df.repair` are inserted into
+(overwriting) the parameter table by matching the columns provided in
+`by.repair`. `by.repair` is like `by` in merges, but `mergeCoal()` prioritizes
+`df.repair` over the parameter annotations in the control stream.
+
+
+```{r df.repair}
+df.repair <- data.frame(symbol="WEIGHTCL",label="Bodyweight effect on clearance")
+partab <- createParameterTable(file.mod,df.repair=df.repair,by.repair="symbol") |>
+    printParameterTable(format="html")
+```
+
+`by.repair` can be a character vector of any length. But the main limitation of
+this approach is that you can only use one `by.repair` vector. This means you
+need one variable (say `symbol`) to be consistently read from the control
+stream. You could merge by `parameter` (like `THETA1`, `OMEGA(1,1)` etc.) but
+that breaks the benefit of linking parameters to variables in the control
+stream.
+
+## Example: Construct Annotations First 
+Sometimes you may need to edit the table in more detail that what `df.repair`
+and `by.repair` allow for. `createParameterTable()` offers the argument
+`df.labs` for the user to completely format the labels prior to the table
+generation. This allows for say multiple steps of `mergeCoal` or other manual
+editing, or whatever automated techniques the user may have.
+
+```{r manual-steps}
+dt.labs <- NMreadParsText(file.mod)
+df.repair <- data.frame(symbol="WEIGHTCL",label="Bodyweight effect on clearance")
+dt.labs <- mergeCoal(dt.labs,df.repair,by="symbol",as.fun="data.table")
+dt.labs[par.type=="OMEGA",label:=paste("IIV:",label)]
+createParameterTable(file.mod,df.labs=dt.labs) |>
+    printParameterTable(format="html")
+```
+
+A function to consider for automated detection of relationship between
+parameters and Nonmem variables (like what is called `symbol` above) is
+`NMdata::NMrelate()`.
+
+```{r NMrelate}
+NMrelate(file.mod)
+```
+
+`NMrelate()` looks at the control stream to identify variable assignments, shown
+in the `code` column. The `label` column is an attempt to identify the name of
+the variable the parameter is associated with. This works very well with some
+limitations. For instance, `THETA`s will normally not work with \mu referencing because a `MU`
+will be defined based on the parameter, which is no more informative than the
+parameter name itself. Also, the control stream does not need to create named variables
+at all and could use parameters like `THETA` and `ETA` directly in `$DES`. On
+the other hand, by always creating named variables, you could automate this step
+using `NMrelate()`.
+
+For example, if the `$OMEGA`'s are not annotated, we can use `NMrelate` to fill
+these in. The parameter sections in this model look like this:
+
+```{r,echo=FALSE,comment=""}
+file.mod.b <- system.file("nonmem/xgxr134b.mod",package="NMwork")
+printParSections(file.mod.b)
+```
+
+```{r use-NMrelate-etas}
+df.labs.b <- NMreadParsText(file.mod.b)[par.type!="OMEGA"] |>
+    rbind(setnames(NMrelate(file.mod.b)[par.type=="OMEGA"],"label","symbol"),fill=TRUE)
+```
+
+Now we filled in the `symbol` column for the `$OMEGA` parameters so
+`createParameterTable()` can label the parameters.
+```{r df.labs-NMrelate}
+df.labs.b[,.(par.type,par.name,symbol,label,unit,trans)]
+```
+
+And the parameter table becomes
+```{r print-tab-NMrelate}
+createParameterTable(file.lst=file.mod.b,df.labs=df.labs.b) |>
+    printParameterTable(format="html")
+```
+
+
+
+
 
 
 # Printing the Parameter Table
+
+
+## Footnote generation
