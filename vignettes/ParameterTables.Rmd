@@ -2,7 +2,7 @@
 title: "NMwork - Create Nonmem Parameter Tables"
 author: 
   - name: "Philip Delff"
-date: '`r format(Sys.Date(), "%B %d, %Y")` using NMsim `r packageVersion("NMwork")`'
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
 toctitle: "Contents"
 output:
     html_document:
@@ -137,8 +137,8 @@ pre{
 
 ```{r, setup, include=FALSE}
 ## install pmtables
-# mpn <- "https://mpn.metworx.com/snapshots/stable/2025-11-24"
-# install.packages("pmtables", repos = mpn)
+                                        # mpn <- "https://mpn.metworx.com/snapshots/stable/2025-11-24"
+                                        # install.packages("pmtables", repos = mpn)
 
 knitr::opts_chunk$set(echo = TRUE,
                       warning = FALSE,
@@ -165,7 +165,7 @@ library(NMdata)
 library(NMsim)
 
 library(devtools)
-load_all("~/wdirs/NMdata")
+## load_all("~/wdirs/NMdata")
 load_all("~/wdirs/NMwork")
 
 
@@ -233,7 +233,7 @@ generation of annotated parameter tables.
 
 
 Let's break the generation of parameter tables into four steps. 
-	
+
 1. Annotation of control streams (down to the user)
 
 2. Compilation of annotations, parameter estimates and precision, if present (tools available in `NMdata`)
@@ -247,7 +247,6 @@ Provided that step 1. is done informatively, step 2 is fully wrapped into step 3
 
 
 ```{r,eval=FALSE,results="asis",include=FALSE}
-
 file.mod <- system.file("nonmem/xgxr134.mod",package="NMwork")
 partab <- createParameterTable(file.mod)
 printParameterTable(partab,format="R")
@@ -260,7 +259,17 @@ library(knitr)
 include_graphics("partab1.png")
 ```
 
-```{r}
+<!-- Because of bug in NMdata 0.2.2 we need to supply formats here -->
+```{r,eval=TRUE,echo=FALSE}
+file.mod <- system.file("nonmem/xgxr134.mod",package="NMwork")
+partab <- createParameterTable(file.mod,args.ParsText=list(format.sigma="%symbol - %label ; %trans"))
+printParameterTable(partab,format="html") 
+```
+
+
+```{r,eval=FALSE,echo=TRUE}
+file.mod <- system.file("nonmem/xgxr134.mod",package="NMwork")
+partab <- createParameterTable(file.mod)
 printParameterTable(partab,format="html") 
 ```
 
@@ -286,18 +295,20 @@ The methods shwon in this document are intended to automate generation of public
 
 `createParameterTable()` uses the following columns to format the parameter
 table. Hence, large parts of this document describes techniques to fill in the
-columns of interest to `createParameterTable()`. These are:
+columns of interest to `createParameterTable()`. These are (all characters):
 
-- `symbol`: 
-- `label`:
-- `unit`:
-- `trans`:
--`panel`:
+- `symbol`: Typically, the variable name associated with the parameter, e.g. "CL".
+- `label`: The parameter label, e.g. "Clearance".
+- `trans`: Parameter transformation (character strings). 
+- `unit`: The parameter unit, e.g. "L/h".
+- `panel`: Grouping variable. Can be an intermediary short-hand code like
+"struct" or "iiv". 
 
-`createParameterTable()` will attempt to use for formatting. Sensible default
-values are being used where possible. 
-
-
+`createParameterTable()` will use those columns for formatting, if
+available. Sensible default values are being used where possible. If no `symbol`
+column is available, the parameter name (i.e. `THETA(1)`) will be used. The
+default parameter description is "label, symbol (unit)" (unit) If `label` and/or
+`unit` are missing, the resulting parameter description will just omit them.
 
 
 
@@ -343,7 +354,7 @@ Each `$THETA`  definition is annotated with descriptive information such as the
 variable "symbol" (TVKA), label (Absorption rate), unit (1/h), and
 transformation (log). I know I skipped the `idx` column too, but that is
 intentional. While such a counter can be very useful during model development,
-`NMcreateTable()` does not need it. 
+`createParameterTable()` does not need it. 
 
 Notice a few things about the format
 - The format of the annotations is up to the user as long as it is
@@ -360,7 +371,7 @@ like spaces.
 - As a note of how the parameters have been documented, the modeler
 has left a comment string starting with "format:" where the column
 names in the desired table have been labeled with %-signs. In fact,
-that's what `NMcreateTable()` used to learn how to generate the
+that's what `createParameterTable()` used to learn how to generate the
 table. 
 - The `$OMEGA` annotations only contain `idx` and `symbol`. In this
 case all the `ETA`s are used for log-normal distributed
@@ -373,6 +384,13 @@ parameters are redundant. Since the formatting of `idx` and `symbol`
 - The annotation scheme used for `$SIGMA`s is documented in a comment
 starting with `format.sigma:`. `createParameterTable()` finds this
 automatically.
+
+`createParameterTable()` collects 
+
+```{r createParTab-res}
+head(partab,2)
+```
+
 
 ## Example: Specify Formats
 If you have a control stream with consistent annotation but without
@@ -476,11 +494,75 @@ createParameterTable(file.lst=file.mod.b,df.labs=df.labs.b) |>
 ```
 
 
+# Printing the Parameter Table (`printParameterTable()`)
+`printParameterTable()` prints the output from `createParameterTable()` using
+predefined templates. Currently, it has two templates, of which the first is
+designed for display in the R console, i.e. intended for interactive use. The
+other is intended for reporting with all information explicitly expressed. 
+
+`printParameterTable()` supports use of three "engines" to write tables:
+`kable`, `pmtables`, and `flextable`. Switch between those using the `engine`
+argument. The `format` argument specifies whether pdf, html
+
+
+```{r print-formats,echo=FALSE}
+dt <- rbind(data.table(engine="kable, pmtables",
+                       format=cc(latex,file.pdf,pdf),
+                       Description=c("latex code. Use in .tex/.Rmd or similar files.",
+                                     "A path to a standalone pdf file to be generated. Absolute paths may not be supported with pmtables engine.",
+                                     "A standalone pdf file in a temporary location, intended for interactive use.")),
+
+            data.table(engine="kable",
+                       format=cc(R,html),
+                       Description=c("A simplified format printed in the R console. For interactive use.",
+                                     "html code. To be used in html documents")),
+            data.table(engine="flextable"
+                       ##,format=cc(pptx,docx,html,png)
+                       ),
+            fill=TRUE
+            )
+
+kable(dt)
+
+```
+
+Currently, the `flextable` returns a flextable object which the user can save to
+png, docx, pptx, etc. 
+
+## Example: Include in Rmd report
+If `createParameterTables()` has not already been called during the analysis,
+the code could be this simple. Notice, here we choose `engine="pmtables"` to use
+pmtables. This is because pmtables works with footnotes even for large tables
+spanning multiple pages.  Use `engine="kable"` to get kable in stead (or of
+course `engine="flextable"` can be used too.
+
+```{r include-rmd,eval=FALSE}
+createParameterTable(file.mod) |> 
+    printParameterTable(partab,format="latex", engine="pmtables") 
+```
+
+Depending on the model and the (missing) annotations of parameter definitions,
+running `createParameterTable()` may take a little customization, as discussed
+above. Therefore, it may be desired to load the result of that step, and then
+run `printParameterTable()`. In that case
+
+### If Paths Have Changed
+`file.mod`
+
+## Subsetting Parameters to Print
+Notice not all parameters are printed above. The argument `include.fix` controls
+whether to include fixed parameters. The options are  "notZero (default,
+inclde only fixed variables different from zero), `TRUE` (include fixed
+parameters) and `FALSE` (omit all fixed parameters). Also, see additional
+arguments to control what parameters to include: `include`, `include.pattern`,
+`drop`, `drop.pattern` in the manual.
 
 
 
+## Title and Footnote Generation
+`printParameterTable()` by default inserts a title with the model name. This can
+be modified through the `caption` argument. Footnotes are also included.
 
-# Printing the Parameter Table
 
-
-## Footnote generation
+## meta data
+`script`

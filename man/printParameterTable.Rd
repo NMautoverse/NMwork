@@ -15,7 +15,8 @@ printParameterTable(
   include.pattern,
   drop,
   drop.pattern,
-  include.fix
+  include.fix,
+  caption
 )
 }
 \arguments{
