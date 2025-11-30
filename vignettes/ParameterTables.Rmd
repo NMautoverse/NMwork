@@ -166,7 +166,7 @@ library(NMsim)
 
 # library(devtools)
 # load_all("~/wdirs/NMwork")
-
+library(NMwork)
 
 ## Get the setup ready for NMsim
 path.candidates <- c(## metworx
