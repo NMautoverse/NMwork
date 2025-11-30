@@ -164,9 +164,8 @@ library(kableExtra)
 library(NMdata)
 library(NMsim)
 
-library(devtools)
-## load_all("~/wdirs/NMdata")
-load_all("~/wdirs/NMwork")
+# library(devtools)
+# load_all("~/wdirs/NMwork")
 
 
 ## Get the setup ready for NMsim
