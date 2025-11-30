@@ -3,7 +3,6 @@ template:
   bootstrap: 5
   params:
   includes:
-    in_header: "pkgdown/in-header.html"
     after_body: |-
       <script data-goatcounter="https://nmwork.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
