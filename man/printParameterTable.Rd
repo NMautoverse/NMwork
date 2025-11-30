@@ -30,7 +30,7 @@ printParameterTable(
 
 \item{drop.pattern}{A regular expression run on the `symbol` column. What matches will be dropped.}
 
-\item{include.fix}{Either a logical or "ifNotZero". `TRUE` means fixed parameters are not filtered out, `FALSE` means they are filtered out, "ifNotZero" means they are only kept if not equal to zero.}
+\item{include.fix}{Either a logical or "NotZero". `TRUE` means fixed parameters are not filtered out, `FALSE` means they are filtered out, "NotZero" means they are only kept if not equal to zero.}
 }
 \description{
 Print parameter table to console, flextable, latex, or (latex) pdf file

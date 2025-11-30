@@ -53,7 +53,8 @@ Suggests:
   tracee
 Enhances:
   GGally,
-  ggpubr
+  ggpubr,
+  pmtables
 Remotes: 
   NMautoverse/NMdata
 Encoding: UTF-8

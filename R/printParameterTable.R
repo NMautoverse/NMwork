@@ -9,7 +9,6 @@
 ##' @import flextable
 ##' @import ftExtra
 ##' @import kableExtra
-##' @import pmtables
 ##' @importFrom dplyr group_by
 ##' @examples
 ##' file.mod <- system.file("nonmem/xgxr134.mod",package="NMwork")
@@ -250,7 +249,12 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
 
 
     if(engine=="pmtables"){
-        ## formats: latex, pdf, latex-pdf?
+                ## formats: latex, pdf, latex-pdf?
+
+    loadres <- requireNamespace("pmtables",quietly=TRUE)
+        if(!loadres) {
+            stop("to use the pmtables format, pmtables must be installed. Find it on MPN.")
+        }
 
         ##### TODO sorting should be handled independently of engine
         
