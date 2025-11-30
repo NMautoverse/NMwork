@@ -1,0 +1,86 @@
+# Package index
+
+## All functions
+
+- [`EtaPairsLowerTriangle()`](https://nmautoverse.github.io/NMwork/reference/EtaPairsLowerTriangle.md)
+  : Gets pairwise data between all columns of data, then provide
+  organizing columns to allow the data to be plotted in a pairwise way
+  in a matrix plot. This function returns the dataset in a format that
+  will be directly used to plot the scatterplot in the lower triangle of
+  the pairs plot. . The output of this function gets sent to
+  NMwork:::EtaPairsScatMat.R (slightly modified version of
+  GGally::scatmat), and then to NMwork::PlotEtaPairs(). Taken with
+  minimal modifications from GGally:::lowertriangle().
+- [`EtaPairsScatMat()`](https://nmautoverse.github.io/NMwork/reference/EtaPairsScatMat.md)
+  : Eta pairs scatterplot matrix lower triangle and diagonal elements.
+  This function takes (1) the time-constant etas dataset, and (2) the
+  output of NMwork:::EtaPairsLowerTriangle() to create the lower
+  triangle and diagonal of the eta pairs plot. The output of this
+  function gets sent to NMwork::PlotEtaPairs(). Taken with minimal
+  modifications from GGally::scatmat().
+- [`EtaPairsUpperTriangle()`](https://nmautoverse.github.io/NMwork/reference/EtaPairsUpperTriangle.md)
+  : Gets pairwise data between all columns of data, then calculates
+  correlation and p value of correlation to plot in upper triangle of
+  eta pairs plot.. This function returns the dataset in a format that
+  will be directly used to plot the correlation statistics in the upper
+  triangle of the pairs plot. The output of this function gets sent to
+  NMwork::PlotEtaPairs(). This function is taken with minimal
+  modifications from GGally:::uppertriangle().
+- [`NMplotBSV()`](https://nmautoverse.github.io/NMwork/reference/NMplotBSV.md)
+  : Generate distribution plots of between-occasion variability terms
+  from Nonmem
+- [`NMscript()`](https://nmautoverse.github.io/NMwork/reference/NMscript.md)
+  : Run script on models using Rscript, optionally using sge
+- [`PlotEtaPairs()`](https://nmautoverse.github.io/NMwork/reference/PlotEtaPairs.md)
+  : Plots Eta pairs scatterplot matrix with lower triangle being a
+  scatterplot, diagonal being a density plot, and upper triangle being
+  text of the correlation and p-value. This function takes (1) the
+  time-constant etas dataset, and (2) the output of
+  NMwork:::EtaPairsUpperTriangle(), (3) the output of
+  NMwork:::EtaPairsScatMat() (and NMwork::EtaPairsLowerTriangle), to
+  plot a full eta pairs matrix plot. Taken with minimal modifications
+  from GGally::ggscatmat().
+- [`createParameterTable()`](https://nmautoverse.github.io/NMwork/reference/createParameterTable.md)
+  : Create parameter table data.frame using \`NMreadExt()\` and
+  \`NMreadParsText()\`
+- [`findModels()`](https://nmautoverse.github.io/NMwork/reference/findModels.md)
+  : find model paths winin a directory
+- [`formatParameterTable()`](https://nmautoverse.github.io/NMwork/reference/formatParameterTable.md)
+  : Deprecated: Quickly format a parameter table into flextable objects
+- [`getSource()`](https://nmautoverse.github.io/NMwork/reference/getSource.md)
+  : Get and source an R script.
+- [`mergeLabel()`](https://nmautoverse.github.io/NMwork/reference/mergeLabel.md)
+  : Add parameter labels from a parameter table
+- [`modelPaths()`](https://nmautoverse.github.io/NMwork/reference/modelPaths.md)
+  : Create a convenient set of file paths and other info related to a
+  model.
+- [`newModel()`](https://nmautoverse.github.io/NMwork/reference/newModel.md)
+  : Create new control stream based on an existing model
+- [`plotCorrelationHeatmap()`](https://nmautoverse.github.io/NMwork/reference/plotCorrelationHeatmap.md)
+  : Plot correlation matrix heatmap from completed NONMEM run This
+  function differs from \`plotEstCorr\` in that it will plot a full
+  matrix with diagonals representing standard error (rather than half
+  matrix with no diagonals). Requires successful covariance step in
+  NONMEM.
+- [`plotDVpredIpred()`](https://nmautoverse.github.io/NMwork/reference/plotDVpredIpred.md)
+  : Plot DV vs PRED or IPRED
+- [`plotEstCor()`](https://nmautoverse.github.io/NMwork/reference/plotEstCor.md)
+  : Plot correlation matrix heatmap from completed NONMEM run
+- [`plotIndivProfilesDvPredIpred()`](https://nmautoverse.github.io/NMwork/reference/plotIndivProfilesDvPredIpred.md)
+  : Plot Inidividual profiles observed (DV) and predicted (PRED and
+  IPRED)
+- [`plotResPred()`](https://nmautoverse.github.io/NMwork/reference/plotResPred.md)
+  : Plot CWRES/IWRES vs population predictions (PRED)
+- [`plotResTime()`](https://nmautoverse.github.io/NMwork/reference/plotResTime.md)
+  : Plot CWRES/IWRES vs time (after dose, after first dose)
+- [`plotTrace()`](https://nmautoverse.github.io/NMwork/reference/plotTrace.md)
+  : Plot parameter estimation iterations
+- [`plot_vpc()`](https://nmautoverse.github.io/NMwork/reference/plot_vpc.md)
+  : Plot VPC data generated by tidyvpc using custom function
+- [`printParameterTable()`](https://nmautoverse.github.io/NMwork/reference/printParameterTable.md)
+  : Print parameter table to console, flextable, latex, or (latex) pdf
+  file
+- [`scriptPaths()`](https://nmautoverse.github.io/NMwork/reference/scriptPaths.md)
+  : Create list of script paths and other info related to a script
+- [`wrapTextToLength()`](https://nmautoverse.github.io/NMwork/reference/wrapTextToLength.md)
+  : Does a script fit on a single page?
