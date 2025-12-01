@@ -58,8 +58,8 @@ Enhances:
 Remotes: 
   NMautoverse/NMdata
 Encoding: UTF-8
-BugReports: https://github.com/NMautoverse/NMwork/issues
+BugReports: https://github.com/nmautoverse/NMwork/issues
 Language: en-US
-URL: https://NMautoverse.github.io/NMwork/
+URL: https://nmautoverse.github.io/NMwork/
 Config/testthat/edition: 3
 VignetteBuilder: knitr
