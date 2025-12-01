@@ -7,9 +7,5 @@ navbar:
   structure:
     left: [home, articles, reference, news]
 
-home:
-  title: NMwork
-  desc: Workflows with R/Nonmem
-  href: index.html
 
 
