@@ -40,7 +40,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
     info.source <- NMinfo(paramtbl)
     model <- NULL
 
-    ### only one format at a time supported
+### only one format at a time supported
     
     if(missing(format)) format <- NULL
 
@@ -66,13 +66,13 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
     file.pdf <- NULL
 
     if(tolower(NMdata:::cleanSpaces(format)=="pdf") ){
-        ### this is currently not supported for kable 
+### this is currently not supported for kable 
         file.pdf <- NULL
         format <- "latex"
         compile.pdf <- TRUE
     }
 
-    ### this must happen before any modification of format to not edit a file name    
+### this must happen before any modification of format to not edit a file name    
     if(tolower(fnExtension(format)=="pdf") ){
         file.pdf <- format
         format <- "latex"
@@ -83,9 +83,9 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
     format <- NMdata:::cleanSpaces(format)
 
     if(length(format)>1) stop("Only one format can be specified.")
-    # if(!format %in% c("r","html","flextable","latex","rmd-pdf","pdf","kable-rmd","kable-rmd-pdf")) {
-    #     stop("format must be one of R, flextable, rmd, or a path to a file with extension .pdf.")
-    # }
+                                        # if(!format %in% c("r","html","flextable","latex","rmd-pdf","pdf","kable-rmd","kable-rmd-pdf")) {
+                                        #     stop("format must be one of R, flextable, rmd, or a path to a file with extension .pdf.")
+                                        # }
 
     fixUnder <- ifelse(format%in%c("latex"),
                        function(x)gsub("\\_","\\\\_",x),
@@ -97,8 +97,8 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         model <- modelPaths(info.source$dataCreate$model)
     }
 
-    ### this is a header
-        string.caption <- paste("Model: ",fixUnder(model$run))
+### this is a header
+    string.caption <- paste("Model: ",fixUnder(model$run))
     if(!missing(caption)){
         string.caption <- paste(paste(caption,collapse=" ")
                                ,string.caption,
@@ -118,7 +118,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
     }
 
 
-    ##### subset parameters
+##### subset parameters
     if("symbol" %in% colnames(paramtbl)){
         if( !is.null(drop) ){
             paramtbl <- paramtbl[!symbol%in%drop]
@@ -147,7 +147,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
 
 
     if(engine=="kable"){
-        ### not sure what formats are supported. At least latex, and html.
+### not sure what formats are supported. At least latex, and html.
 
         if(format=="r"){
             paramtbl <- paramtbl[,.(
@@ -175,7 +175,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
             "95\\% Confidence Interval"=CI)]
 
         
-        #### configure column justification and sizes. The widths are not automated.
+#### configure column justification and sizes. The widths are not automated.
         paramtbl2 <-
             paramtbl2 |>
             knitr::kable(
@@ -185,7 +185,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
                        caption = string.caption,
                        ## longtable=T,
                        booktabs=T, escape=F) |>
-            #col.names = gsub("Description", " ", names(paramtbl))) |>
+                                        #col.names = gsub("Description", " ", names(paramtbl))) |>
             kable_styling(full_width = T,
                           font_size = 7.5,  latex_options = "HOLD_position") |>
             column_spec(1, width="4em")|>
@@ -199,7 +199,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
                 nmbrows[I,pack_rows(paramtbl2,panel.label, start, end)]
         }
 
-        ### Footnotes
+### Footnotes
         pars.ltx <- paramtbl2 |>
             add_footnote(label=footnotes,notation="none",escape=FALSE)
 
@@ -249,14 +249,14 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
 
 
     if(engine=="pmtables"){
-                ## formats: latex, pdf, latex-pdf?
+        ## formats: latex, pdf, latex-pdf?
 
-    loadres <- requireNamespace("pmtables",quietly=TRUE)
+        loadres <- requireNamespace("pmtables",quietly=TRUE)
         if(!loadres) {
             stop("to use the pmtables format, pmtables must be installed. Find it on MPN.")
         }
 
-        ##### TODO sorting should be handled independently of engine
+##### TODO sorting should be handled independently of engine
         
         paramtbl2 <-
             paramtbl %>%
