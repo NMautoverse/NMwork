@@ -1,4 +1,5 @@
 url: https://nmautoverse.github.io/NMwork/
 template:
   bootstrap: 5
+mode: release
 
