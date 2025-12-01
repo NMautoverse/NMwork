@@ -443,7 +443,7 @@ editing, or whatever automated techniques the user may have.
 ```{r manual-steps}
 dt.labs <- NMreadParsText(file.mod)
 df.repair <- data.frame(symbol="WEIGHTCL",label="Bodyweight effect on clearance")
-dt.labs <- mergeCoal(dt.labs,df.repair,by="symbol",as.fun="data.table")
+dt.labs <- NMwork:::mergeCoal(dt.labs,df.repair,by="symbol",as.fun="data.table")
 dt.labs[par.type=="OMEGA",label:=paste("IIV:",label)]
 createParameterTable(file.mod,df.labs=dt.labs) |>
     printParameterTable(format="html")

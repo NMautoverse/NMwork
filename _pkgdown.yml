@@ -2,18 +2,14 @@ url: https://nmautoverse.github.io/NMwork/
 template:
   bootstrap: 5
 mode: release
+
 navbar:
   structure:
-    left: [home, examples, reference, news]
-  components:
-   home:
-    title: NMwork
-    desc: Workflows with R/Nonmem
-    icon: fas fa-home fa-lg
-    href: index.html
-   examples:
-      text: "Examples"
-      href: articles/ParameterTables.html
-   news:
-      text: News
-      href: news/index.html
+    left: [home, articles, reference, news]
+
+home:
+  title: NMwork
+  desc: Workflows with R/Nonmem
+  href: index.html
+
+
