@@ -40,7 +40,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
     info.source <- NMinfo(paramtbl)
     model <- NULL
 
-### only one format at a time supported
+    ### only one format at a time supported
     
     if(missing(format)) format <- NULL
 
@@ -66,13 +66,13 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
     file.pdf <- NULL
 
     if(tolower(NMdata:::cleanSpaces(format)=="pdf") ){
-### this is currently not supported for kable 
+        ### this is currently not supported for kable 
         file.pdf <- NULL
         format <- "latex"
         compile.pdf <- TRUE
     }
 
-### this must happen before any modification of format to not edit a file name    
+    ### this must happen before any modification of format to not edit a file name    
     if(tolower(fnExtension(format)=="pdf") ){
         file.pdf <- format
         format <- "latex"
@@ -83,9 +83,9 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
     format <- NMdata:::cleanSpaces(format)
 
     if(length(format)>1) stop("Only one format can be specified.")
-                                        # if(!format %in% c("r","html","flextable","latex","rmd-pdf","pdf","kable-rmd","kable-rmd-pdf")) {
-                                        #     stop("format must be one of R, flextable, rmd, or a path to a file with extension .pdf.")
-                                        # }
+    # if(!format %in% c("r","html","flextable","latex","rmd-pdf","pdf","kable-rmd","kable-rmd-pdf")) {
+    #     stop("format must be one of R, flextable, rmd, or a path to a file with extension .pdf.")
+    # }
 
     fixUnder <- ifelse(format%in%c("latex"),
                        function(x)gsub("\\_","\\\\_",x),
@@ -97,7 +97,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         model <- modelPaths(info.source$dataCreate$model)
     }
 
-### this is a header
+    ### this is a header
     string.caption <- paste("Model: ",fixUnder(model$run))
     if(!missing(caption)){
         string.caption <- paste(paste(caption,collapse=" ")
@@ -106,19 +106,8 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
                                 )
     }
 
-    footnotes <- c(footnotes,
-                   "* parameter was estimated in the log domain and back-transformed for clarity.",
-                   "RSE: Relative Standard Error on the scale where the parameter was estimated.")
 
-    if(!is.null(script)){
-        footnotes <- c(footnotes,sprintf("Source: %s",fixUnder(script)))
-    }
-    if(!is.null(model)){
-        footnotes <- c(footnotes,sprintf("Model: %s",fixUnder(model$label)))
-    }
-
-
-##### subset parameters
+    ##### subset parameters
     if("symbol" %in% colnames(paramtbl)){
         if( !is.null(drop) ){
             paramtbl <- paramtbl[!symbol%in%drop]
@@ -144,10 +133,44 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         }
     }
 
+    
+    chars.fnotes <-
+        sapply(1:10,function(x)paste(rep(x="*",x),collapse=""))
+    pars[par.type=="THETA"&trans%in%c("log","logit"),trans.fnchar:=chars.fnotes[.GRP]]
+    ## pars[par.type=="THETA"&trans%in%c("log"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\*\\$",parameter.ltx)]
+    # pars[par.type=="THETA"&trans%in%c("log"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\*\\$",parameter.ltx)]
+    pars[,row:=.I]
+pars[par.type=="THETA"&trans%in%c("log","logit"),
+         parameter.ltx:=sub("\\$ *$",paste0("\\{\\}\\^\\{",trans.fnchar,"\\}\\$"),parameter.ltx),by=row]
+    pars[par.type=="THETA"&trans%in%c("log","logit"),
+         parameter:=paste0(parameter,trans.fnchar)]
+    pars[par.type=="THETA"&trans%in%c("log","logit"),
+         par.name:=paste0(par.name,trans.fnchar)]
+    
+
+    footnotes.trans <- unique(paramtbl[!is.na(trans.fnchar)],by="trans")[,
+                                                                         sprintf("%s parameter was estimated in the %s domain and back-transformed for clarity.",trans.fnchar,trans)]
+    
+    footnotes <- c(footnotes,
+                    ## "* parameter was estimated in the log domain and back-transformed for clarity.",
+                   footnotes.trans,
+                   "RSE: Relative Standard Error on the scale where the parameter was estimated.")
+
+    if(!is.null(script)){
+        footnotes <- c(footnotes,sprintf("Source: %s",fixUnder(script)))
+    }
+    if(!is.null(model)){
+        footnotes <- c(footnotes,sprintf("Model: %s",fixUnder(model$label)))
+    }
 
 
+
+    
+
+
+    
     if(engine=="kable"){
-### not sure what formats are supported. At least latex, and html.
+        ### not sure what formats are supported. At least latex, and html.
 
         if(format=="r"){
             paramtbl <- paramtbl[,.(
@@ -175,7 +198,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
             "95\\% Confidence Interval"=CI)]
 
         
-#### configure column justification and sizes. The widths are not automated.
+        #### configure column justification and sizes. The widths are not automated.
         paramtbl2 <-
             paramtbl2 |>
             knitr::kable(
@@ -185,7 +208,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
                        caption = string.caption,
                        ## longtable=T,
                        booktabs=T, escape=F) |>
-                                        #col.names = gsub("Description", " ", names(paramtbl))) |>
+            #col.names = gsub("Description", " ", names(paramtbl))) |>
             kable_styling(full_width = T,
                           font_size = 7.5,  latex_options = "HOLD_position") |>
             column_spec(1, width="4em")|>
@@ -199,7 +222,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
                 nmbrows[I,pack_rows(paramtbl2,panel.label, start, end)]
         }
 
-### Footnotes
+        ### Footnotes
         pars.ltx <- paramtbl2 |>
             add_footnote(label=footnotes,notation="none",escape=FALSE)
 
@@ -256,7 +279,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
             stop("to use the pmtables format, pmtables must be installed. Find it on MPN.")
         }
 
-##### TODO sorting should be handled independently of engine
+        ##### TODO sorting should be handled independently of engine
         
         paramtbl2 <-
             paramtbl %>%

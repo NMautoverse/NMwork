@@ -422,9 +422,9 @@ resvar,Residual Error")
     pars[par.type=="SIGMA",parameter.ltx:=paste0("$\\sigma_{",i,",",j,"}$")]
 
 ### Include * at log-transformed variables
-    pars[par.type=="THETA"&trans%in%c("log"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\*\\$",parameter.ltx)]
+    ## pars[par.type=="THETA"&trans%in%c("log"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\*\\$",parameter.ltx)]
 ### Include * at logit-transformed variables
-    pars[par.type=="THETA"&trans%in%c("logit"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\{\\*\\*\\}\\$",parameter.ltx)]
+    ## pars[par.type=="THETA"&trans%in%c("logit"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\{\\*\\*\\}\\$",parameter.ltx)]
 
     
     if(!is.null(drop.symbol)){
