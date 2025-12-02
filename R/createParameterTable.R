@@ -195,10 +195,11 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,df.repair=NULL,by.r
        ,
         labs[,!(c("i","j","par.type"))]
        ,by=intersect(intersect(colnames(pars0),colnames(labs)),cc(parameter)),
-        all.x=T,quiet=T,
+        all.x=T,
         ## common.cols="merge.by"
         common.cols="drop.y"
        ,as.fun="data.table"
+       ,quiet=TRUE
     )
     
 ##### group parameters
@@ -261,7 +262,8 @@ resvar,Residual Error")
         setnames(pars,"panel",col.pold)
         ## setnames(pars,"panel",col.pold)
         pars <- mergeCheck(pars,df.panels[,.(panellow=tolower(panel),panel)],
-                           by.x=col.pl,by.y="panellow",all.x=TRUE)
+                           by.x=col.pl,by.y="panellow",all.x=TRUE,
+                           quiet=TRUE)
         pars[,panel:=fcoalesce(panel,get(col.pold))]
         pars[,(col.pold):=NULL]
         pars[,(col.pl):=NULL]
@@ -305,7 +307,7 @@ resvar,Residual Error")
         Sigma <- dt2mat(pars[par.type=="OMEGA"])
         ## Sigma <- NMdata::dt2mat(pars[par.type=="OMEGA"])
         ## Sigma[is.na(Sigma),Sigma:=0]
-        mat.cor <- cov2cor(Sigma)
+        mat.cor <- suppressWarnings(cov2cor(Sigma))
         dt.cor <- as.data.table(mat.cor)
         dt.cor[,i:=.I]
         dt.cor <- melt(dt.cor,id.vars="i",variable.name="j")

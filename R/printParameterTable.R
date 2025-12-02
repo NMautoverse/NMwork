@@ -36,7 +36,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
     if(missing(include.pattern)) include.pattern <- NULL
     
     ##paramtbl <- readRDS(file.rds)
-    paramtbl <- pars
+    paramtbl <- copy(pars)
     info.source <- NMinfo(paramtbl)
     model <- NULL
 
@@ -136,26 +136,27 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
     
     chars.fnotes <-
         sapply(1:10,function(x)paste(rep(x="*",x),collapse=""))
-    pars[par.type=="THETA"&trans%in%c("log","logit"),trans.fnchar:=chars.fnotes[.GRP]]
-    ## pars[par.type=="THETA"&trans%in%c("log"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\*\\$",parameter.ltx)]
-    # pars[par.type=="THETA"&trans%in%c("log"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\*\\$",parameter.ltx)]
-    pars[,row:=.I]
-pars[par.type=="THETA"&trans%in%c("log","logit"),
+    paramtbl[par.type=="THETA"&trans%in%c("log","logit"),trans.fnchar:=chars.fnotes[.GRP],by=trans]
+    ## paramtbl[par.type=="THETA"&trans%in%c("log"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\*\\$",parameter.ltx)]
+    # paramtbl[par.type=="THETA"&trans%in%c("log"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\*\\$",parameter.ltx)]
+    paramtbl[,row:=.I]
+    paramtbl[par.type=="THETA"&trans%in%c("log","logit"),
          parameter.ltx:=sub("\\$ *$",paste0("\\{\\}\\^\\{",trans.fnchar,"\\}\\$"),parameter.ltx),by=row]
-    pars[par.type=="THETA"&trans%in%c("log","logit"),
+    paramtbl[par.type=="THETA"&trans%in%c("log","logit"),
          parameter:=paste0(parameter,trans.fnchar)]
-    pars[par.type=="THETA"&trans%in%c("log","logit"),
+    paramtbl[par.type=="THETA"&trans%in%c("log","logit"),
          par.name:=paste0(par.name,trans.fnchar)]
     
 
     footnotes.trans <- unique(paramtbl[!is.na(trans.fnchar)],by="trans")[,
-                                                                         sprintf("%s parameter was estimated in the %s domain and back-transformed for clarity.",trans.fnchar,trans)]
+                                                                         sprintf("%s Parameter was estimated in the %s domain. Estimate and CI presented on physiological scale.",trans.fnchar,trans)]
     
     footnotes <- c(footnotes,
-                    ## "* parameter was estimated in the log domain and back-transformed for clarity.",
                    footnotes.trans,
+                   "CI: Confidence Interval based on Nonmem Covariance step.",
+                   "CV: Coefficient of Variation for log-normal distributed random effects.",
+                   "Corr: Correlation;",
                    "RSE: Relative Standard Error on the scale where the parameter was estimated.")
-
     if(!is.null(script)){
         footnotes <- c(footnotes,sprintf("Source: %s",fixUnder(script)))
     }
