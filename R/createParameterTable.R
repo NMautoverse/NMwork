@@ -145,7 +145,7 @@
 ### should also take arg to include fixed parameters. Maybe default
 ### should be estimated and non-zero?
 
-createParameterTable <- function(file.lst,args.ParsText=NULL,df.repair=NULL,by.repair="symbol",df.labs,drop.symbol,file.ext,df.panels,script=NULL){
+createParameterTable <- function(file.lst,args.ParsText=NULL,df.repair=NULL,by.repair="symbol",df.labs,drop.symbol,file.ext,df.boot,df.panels,script=NULL){
 ### If NMcalc version < 0.0.3 we need to define CVlnorm
     CVlnorm <- function(omega){
         sqrt(exp(omega)-1)
@@ -155,6 +155,7 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,df.repair=NULL,by.r
     if(missing(drop.symbol)) drop.symbol <- NULL
     if(missing(file.ext)) file.ext <- file.lst
     if(missing(df.labs)) df.labs <- NULL
+    if(missing(df.boot)) df.boot <- NULL
     
 
 ### parameters are assumed to be concistently labeled in $THETA,
@@ -171,6 +172,8 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,df.repair=NULL,by.r
     } else {
         labs <- df.labs
     }
+
+    
     
     ## dropping model from labs. Since the parameter estimates are
     ## coming from NMreadExt, it seems more accurate to carry the
@@ -253,7 +256,7 @@ resvar,Residual Error")
     ## match dt.panels.std$panel exactly to overwrite it.
     df.panels <- unique(df.panels,by="panel")
 
-    ### align case of panel column with df.panels
+### align case of panel column with df.panels
     if("panel"%in%colnames(pars)){
         
         col.pold <- tmpcol(pars,base="panelold")
@@ -294,6 +297,14 @@ resvar,Residual Error")
         pars[,CI.u:=est+1.96*se]
         pars[FIX==1,(cc(rse,CI.l,CI.u)):=NA]
     }
+
+### bootstrap-based CI
+    if(!is.null(df.boot)){
+        setDT(df.boot)
+        setnames(df.boot,c("CI.l","CI.u"),c("CI.l.boot","CI.u.boot"))
+        pars <- mergeCheck(pars,df.boot,by="parameter")
+    }
+
 
     ## est.orig is the estimate on the scale used in Nonmem
     pars[,est.orig:=est]
@@ -370,59 +381,34 @@ resvar,Residual Error")
 ### tab.lab done
 
 ####### Creating additional columns related to rse, correlation of omegas/sigmas
-    if("rse"%in%colnames(pars)){
-        pars[,tab.rse:=percent(rse,accuracy=.1)]
-        pars[FIX==1,tab.rse:="-"]
-    } else {
-        pars[,tab.rse:="-"]
-    }
 
     pars[panel=="OMEGAcorr",tab.corr:=percent(corr,accuracy=1)]
     pars[panel=="SIGMAcorr",tab.corr:=percent(corr,accuracy=1)]
 
-### transformed values for reporting
-### do not transform se or rse
-    cols.trans <- intersect(cc(est,CI.l,CI.u),colnames(pars))
-    pars[trans%in%cc(log,logTrans),(cols.trans):=lapply(.SD,exp),.SDcols=cols.trans]
-    pars[trans%in%cc(logit),(cols.trans):=lapply(.SD,invlogit),.SDcols=cols.trans]
     
-    pars[par.type=="THETA",tab.est:=sprintf("%s (%s)",signif(est,3),tab.rse)]
-    ## pars[par.type=="THETA"&FIX==1,tab.est:=sprintf("%s (fixed)",signif(est,3))]
-    pars[FIX!=0,tab.est:=sprintf("%s (fixed)",signif(est,3))]
-    pars[par.type=="OMEGA"&trans=="lognormal"&FIX==0,tab.CV:=percent(CVlnorm(est),acc=1)]
-    pars[par.type=="OMEGA"&trans=="lognormal"&FIX==0,tab.est:=sprintf("%s [%s] (%s)",signif(est,3),tab.CV,tab.rse)]
-
-    ## for this, the associated theta est has to be used to calc CV
-    ## pars[panel=="OMEGAdiag"&trans=="normal",tab.CV:=percent(sd/est,acc=1)]
-    ## pars[panel=="OMEGAdiag"&trans=="normal",tab.est:=sprintf("%s [%s] (%s)",signif(est,3),tab.CV,tab.rse)]
-    pars[par.type=="OMEGA"&trans=="normal"&FIX==0,tab.est:=sprintf("%s (%s)",signif(est,3),tab.rse)]
-    ##    pars[panel=="OMEGAdiag"&is.na(label),tab.lab:=paste("BSV",symbol)]
-
-    
-    pars[panel=="OMEGAcorr"&FIX==0,tab.est:=sprintf("%s [%s] (%s)",signif(est,3),tab.corr,tab.rse)]
+    ## Latex versions of columns for report tables
+    pars[,tab.lab.ltx:=latexify(tab.lab,doublebackslash = FALSE)]
+    pars[par.type=="THETA",parameter.ltx:=paste0("$\\theta_{",i,"}$")]
+    pars[par.type=="OMEGA",parameter.ltx:=paste0("$\\Omega_{",i,",",j,"}$")]
+    pars[par.type=="SIGMA",parameter.ltx:=paste0("$\\sigma_{",i,",",j,"}$")]
 
 
+### confidence intervals
     if(all(cc(CI.l,CI.u)%in%colnames(pars))){
         pars[,CI:=sprintf("[%s,%s]",signif(CI.l,2),signif(CI.u,2))]
         pars[FIX==1,CI:="-"]
     } else {
         pars[,CI:="-"]
     }
-    ## residual error terms
-    pars[par.type=="THETA"&trans=="addErr",tab.est:=sprintf("%s (%s)",signif(est,3),tab.rse)]
-    pars[par.type=="THETA"&trans=="propErr",tab.est:=sprintf("%s (%s)",percent(est,acc=1.1),tab.rse)]
-    
-    pars[par.type=="SIGMA"&FIX==0,tab.est:=sprintf("%s (%s)",signif(est,3),tab.rse)]
-    pars[par.type=="SIGMA"&trans=="propErr"&FIX==0,
-         tab.est:=sprintf("%s [%s] (%s)",est,percent(sqrt(est),acc=1.1),tab.rse)]
-    
-    ## Latex versions of columns for report tables
-    pars[,tab.est.ltx:=latexify(tab.est,doublebackslash = FALSE)]
-    pars[,tab.lab.ltx:=latexify(tab.lab,doublebackslash = FALSE)]
-    pars[par.type=="THETA",parameter.ltx:=paste0("$\\theta_{",i,"}$")]
-    pars[par.type=="OMEGA",parameter.ltx:=paste0("$\\Omega_{",i,",",j,"}$")]
-    pars[par.type=="SIGMA",parameter.ltx:=paste0("$\\sigma_{",i,",",j,"}$")]
 
+    if(all(cc(CI.l.boot,CI.u.boot)%in%colnames(pars))){
+        pars[,CI.boot:=sprintf("[%s,%s]",signif(CI.l.boot,2),signif(CI.u.boot,2))]
+        pars[FIX==1,CI.boot:="-"]
+    } else {
+        pars[,CI.boot:="-"]
+    }
+
+##### labeling of transformed parameters is handled in print function
 ### Include * at log-transformed variables
     ## pars[par.type=="THETA"&trans%in%c("log"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\*\\$",parameter.ltx)]
 ### Include * at logit-transformed variables
