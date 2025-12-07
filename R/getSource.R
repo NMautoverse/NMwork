@@ -43,62 +43,81 @@ getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.dir
     dt.files <- data.table(file=file)[
        ,org := file.path(dir.central,file)][
        ,dest := file.path(dir.local,file)][
-       ,row:=.I]
+       ,row:=.I][
+       ,do.source:="dest"]
 
     
-    dt.files[,org.exists:=file.exists(org)]
+    dt.files[
+       ,org.exists:=file.exists(org)][
+       ,dest.exists:=file.exists(dest)]
+    
 
-### without dt.files
-    org <- file.path(dir.central,file)
-    dest <- file.path(dir.local,file)
 
     if(source.directly){
         ##source(org)
-        dt.files[org.exists==FALSE,{
+        dt.files[org.exists==FALSE,do.source:={
             if(.N>0) message("Source files not found and will be ignored:",paste(file,collapse=", "))
+            ""
         }]
 
-        dt.files[org.exists==TRUE,{
-            source(org,echo=FALSE)
-            NULL
+        dt.files[org.exists==TRUE,do.source:={
+                                        # source(org,echo=FALSE)
+            "org"
         },by=row]
 
         
         message("Central file(s) was/were sourced directly. Only allowed for debugging. Switch off and run once with overwrite=TRUE if you want to update. Use this option for debugging only.")
-        return(invisible())
-    }
+        dt.files[do.source=="org",if(.N>0) {
+                                      source(org,echo=FALSE)
+                                      NULL
+                                  },by=row]
 
-### from here, dt.files not implemented    
+        return(invisible(dt.files))
+    }
     
-    ## do necessary files and dirs exist?
-    if (!dir.exists(dir.central) || !file.exists(org)){
-        if(file.exists(file.path(dir.local,file))){
-            ## File exists locally, but not external. Load local
-            source(file.path(dest),echo=FALSE)
-            message("File not found at dir.central. Local version sourced.")
-            return(invisible())
-        } else {
-            if (silent == FALSE){message("No local version have been found.\n")}
-            stopifnot(file.exists(dir.central))
-            stopifnot(file.exists(org))
+
+    dt.files[ !org.exists==TRUE & dest.exists==TRUE,do.source:={
+        ## File exists locally, but not external. Load local
+        ##source(file.path(dest),echo=FALSE)
+        message("File not found at dir.central. Local version sourced.")
+        "dest"
+    },by=row]
+
+    
+    dt.files[ !org.exists==TRUE & !file.exists(dest),do.source:={
+        if (.N>0 & silent == FALSE){
+            message("No original and no local version have been found. Skipping",file)
         }
-    }
-    ## Checking whether there is a local version and if it missing, it is copied
-    if( overwrite || !(dir.exists(dir.local) && file.exists(dest))){
-        ## Copying the latest version of the file
-        if (silent == FALSE){message("Copying ",file)}
-        dir.create(dir.local,recursive=TRUE,showWarnings=FALSE)
-        file.copy(from=org,
-                  to=dest,overwrite=TRUE)
-        lines.script <- readLines(org,warn=FALSE)
-        lines.script <- c(sprintf("## Copied from %s",org),
-                          sprintf("## on %s using NMwork::getSource().",Sys.Date()),
-                          "",lines.script)
-        NMsim:::writeTextFile(lines=lines.script,file=dest)
-    }
-    ## Sourcing the file
-    ## source(dest,echo=FALSE)
-    ## lapply(dest,source,echo=FALSE)
-    for(d in dest) source(d,echo=FALSE)
+        ""
+    },by=row]
+
+
+    dt.files[ file.exists(org) &
+              (overwrite | !file.exists(dest)),do.source:={
+                  ## Copying the latest version of the file
+                  if (silent == FALSE){message("Copying ",file)}
+                  dir.create(dir.local,recursive=TRUE,showWarnings=FALSE)
+                  file.copy(from=org,
+                            to=dest,overwrite=TRUE)
+                  lines.script <- readLines(org,warn=FALSE)
+                  lines.script <- c(sprintf("## Copied from %s",org),
+                                    sprintf("## on %s using NMwork::getSource().",Sys.Date()),
+                                    "",lines.script)
+                  NMsim:::writeTextFile(lines=lines.script,file=dest)
+                  "dest"
+              },by=row]
+
+    ## source
+    
+    dt.files[do.source=="org",if(.N>0) {
+                                  source(org,echo=FALSE)
+                                  NULL
+                              },by=row]
+    dt.files[do.source=="dest",if(.N>0) {
+                                   source(dest,echo=FALSE)
+                                   NULL}
+            ,by=row]
+
+    invisible(dt.files)
 }
 
