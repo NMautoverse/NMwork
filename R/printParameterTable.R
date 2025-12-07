@@ -20,14 +20,19 @@
 ##' @export
 ##'
 
-## todo
-
-### for rmd and rmd-latex: can't get longtable to work with
+### kable: for rmd and rmd-latex: can't get longtable to work with
 ### footnotes. Currently not using footnotes.
 
-### no current way to generate rmd-pdf using kable, now defaults to using pmtables
 
-printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script=NULL,file.mod,include,include.pattern,drop,drop.pattern,include.fix,caption,ci.boot,ci.cov,rse.cov=TRUE){
+### TODO This selection can be done once independently of engine. Column names can be translated using latexify as needed.
+
+## TODO make selection dependent on boot/cov
+
+## TODO column names dependent on rse.cov
+
+## TODO sorting should be handled independently of engine
+
+printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script=NULL,file.mod,include,include.pattern,drop,drop.pattern,include.fix,caption,ci.boot,ci="cov",rse.cov=TRUE){
 
     if(missing(drop)) drop <- NULL
     if(missing(drop.pattern)) drop.pattern <- NULL
@@ -155,7 +160,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
                    footnotes.trans,
                    "CI: Confidence Interval based on Nonmem Covariance step.",
                    "CV: Coefficient of Variation for log-normal distributed random effects.",
-                   "Corr: Correlation;",
+                   "Corr: Correlation.",
                    "RSE: Relative Standard Error on the scale where the parameter was estimated.")
     if(!is.null(script)){
         footnotes <- c(footnotes,sprintf("Source: %s",fixUnder(script)))
@@ -166,6 +171,10 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
 
 ### add columns for reporting
     paramtbl <- addEstFormat(pars=paramtbl,rse.cov=rse.cov)
+    paramtbl[,CI:=switch(ci,
+                         cov=tab.CI,
+                         boot=tab.CI.boot,
+                         none="")]
 
     if(engine=="kable"){
 ### not sure what formats are supported. At least latex, and html.
@@ -188,11 +197,6 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         nmbrows[,start:=cumsum(shift(N,1,fill=0))+1]
         nmbrows[,end:=cumsum(N)]
 
-### TODO This selection can be done once independently of engine. Column names can be translated using latexify as needed.
-
-        ## TODO make selection dependent on boot/cov
-
-        ## TODO column names dependent on rse.cov
         paramtbl2 <- paramtbl[,.(
             "  "=if(format=="latex") parameter.ltx else par.name,
             " "=if(format=="latex") tab.lab.ltx else tab.lab ,
@@ -282,33 +286,35 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
             stop("to use the pmtables format, pmtables must be installed. Find it on MPN.")
         }
 
-##### TODO sorting should be handled independently of engine
         
         paramtbl2 <-
-            paramtbl %>%
-            dplyr::select(par.type, panel.label, i, j, parameter.ltx, tab.lab.ltx, tab.est.ltx, CI) %>%
-            dplyr::arrange(panel.label, i, j) %>%
-            dplyr::transmute(panel.label, parameter.ltx, tab.lab.ltx, tab.est.ltx, CI) %>%
-            dplyr::mutate(rows.group = 1:dplyr::n(),.by=tab.lab.ltx) %>%
-            dplyr::filter(rows.group==1) %>%
+            paramtbl |>
+            dplyr::select(par.type, panel.label, i, j, parameter.ltx, tab.lab.ltx, tab.est.ltx, CI) |>
+            dplyr::arrange(panel.label, i, j) |>
+            dplyr::transmute(panel.label, parameter.ltx, tab.lab.ltx, tab.est.ltx, CI) |>
+            dplyr::mutate(rows.group = 1:dplyr::n(),.by=tab.lab.ltx) |>
+            dplyr::filter(rows.group==1) |>
             dplyr::select(-rows.group)
 
         pars.ltx = 
-            paramtbl2 %>%
-            st_new() %>%
-            st_panel("panel.label") %>%
-            st_center(tab.lab.ltx = col_ragged(6.5)) %>%
-            st_blank("parameter.ltx","tab.lab.ltx") %>%
+            paramtbl2 |>
+            st_new() |>
+            st_panel("panel.label") |>
+            st_center(tab.lab.ltx = col_ragged(6.5)) |>
+            st_blank("parameter.ltx","tab.lab.ltx") |>
             st_rename("Estimate (RSE\\%)...[CV\\% or Corr\\%]" = "tab.est.ltx",
-                      "95\\% Confidence Interval" = "CI") %>%
-            st_notes("$^*$Parameter was estimated in the log-domain and back-transformed for clarity") %>%
-            st_notes("Abbreviations: RSE = relative standard error (on the scale where the parameter was estimated)") %>%
-            st_notes(paste0("Model: ", model$mod)) %>%
-            st_noteconf(type = "minipage", width = 1) 
+                      "95\\% Confidence Interval" = "CI") 
+        if(!is.null(footnotes)){
+            for(fn in footnotes) pars.ltx <- st_notes(pars.ltx,fn)
+        }
+        ## st_notes("$^*$Parameter was estimated in the log-domain and back-transformed for clarity") |>
+        ##             st_notes("Abbreviations: RSE = relative standard error (on the scale where the parameter was estimated)") |>
+        ##             st_notes(paste0("Model: ", model$mod)) |>
+        pars.ltx <- pars.ltx |> st_noteconf(type = "minipage", width = 1) 
 
         if( format=="latex" && !compile.pdf ) {
             ## create latex code. Don't compile.
-            res <- pars.ltx %>% 
+            res <- pars.ltx |> 
                 st_make(long=TRUE)
             return(res)
         }

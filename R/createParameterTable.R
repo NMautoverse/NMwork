@@ -302,7 +302,8 @@ resvar,Residual Error")
     if(!is.null(df.boot)){
         setDT(df.boot)
         setnames(df.boot,c("CI.l","CI.u"),c("CI.l.boot","CI.u.boot"))
-        pars <- mergeCheck(pars,df.boot,by="parameter")
+        pars <- mergeCheck(pars,df.boot,by="parameter",
+                           quiet=TRUE)
     }
 
 
@@ -393,20 +394,6 @@ resvar,Residual Error")
     pars[par.type=="SIGMA",parameter.ltx:=paste0("$\\sigma_{",i,",",j,"}$")]
 
 
-### confidence intervals
-    if(all(cc(CI.l,CI.u)%in%colnames(pars))){
-        pars[,CI:=sprintf("[%s,%s]",signif(CI.l,2),signif(CI.u,2))]
-        pars[FIX==1,CI:="-"]
-    } else {
-        pars[,CI:="-"]
-    }
-
-    if(all(cc(CI.l.boot,CI.u.boot)%in%colnames(pars))){
-        pars[,CI.boot:=sprintf("[%s,%s]",signif(CI.l.boot,2),signif(CI.u.boot,2))]
-        pars[FIX==1,CI.boot:="-"]
-    } else {
-        pars[,CI.boot:="-"]
-    }
 
 ##### labeling of transformed parameters is handled in print function
 ### Include * at log-transformed variables

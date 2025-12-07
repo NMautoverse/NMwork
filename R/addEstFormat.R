@@ -1,4 +1,10 @@
-addEstFormat <- function(pars,rse.cov){
+addEstFormat <- function(pars,rse.cov,source.ci="cov"){
+
+    CVlnorm <- function(omega){
+        sqrt(exp(omega)-1)
+    }
+    invlogit <- function(x) 1/(1+exp(-x))
+
 
 ### transformed values for reporting
 ### do not transform se or rse
@@ -6,6 +12,7 @@ addEstFormat <- function(pars,rse.cov){
     pars[trans%in%cc(log,logTrans),(cols.trans):=lapply(.SD,exp),.SDcols=cols.trans]
     pars[trans%in%cc(logit),(cols.trans):=lapply(.SD,invlogit),.SDcols=cols.trans]
 
+    
     if(rse.cov){
         if("rse"%in%colnames(pars)){
             pars[,tab.rse:=percent(rse,accuracy=.1)]
@@ -35,8 +42,8 @@ addEstFormat <- function(pars,rse.cov){
     ##    pars[panel=="OMEGAdiag"&is.na(label),tab.lab:=paste("BSV",symbol)]
 
     
-   ## pars[panel=="OMEGAcorr"&FIX==0,tab.est:=sprintf("%s [%s] (%s)",signif(est,3),tab.corr,tab.rse)]
- pars[panel=="OMEGAcorr"&FIX==0,tab.est:=sprintf("%s [%s]",signif(est,3),tab.corr)]
+    ## pars[panel=="OMEGAcorr"&FIX==0,tab.est:=sprintf("%s [%s] (%s)",signif(est,3),tab.corr,tab.rse)]
+    pars[panel=="OMEGAcorr"&FIX==0,tab.est:=sprintf("%s [%s]",signif(est,3),tab.corr)]
     if(rse.cov) pars[panel=="OMEGAcorr"&FIX==0,tab.est:=sprintf("%s (%s)",tab.est,tab.rse)]
 
 
@@ -49,12 +56,28 @@ addEstFormat <- function(pars,rse.cov){
     pars[par.type=="SIGMA"&FIX==0,tab.est:=sprintf("%s",signif(est,3))]
     if(rse.cov) pars[par.type=="SIGMA"&FIX==0,tab.est:=sprintf("%s (%s)",tab.est,tab.rse)]
 
-    # pars[par.type=="SIGMA"&trans=="propErr"&FIX==0,
-    #      tab.est:=sprintf("%s [%s] (%s)",est,percent(sqrt(est),acc=1.1),tab.rse)]
+                                        # pars[par.type=="SIGMA"&trans=="propErr"&FIX==0,
+                                        #      tab.est:=sprintf("%s [%s] (%s)",est,percent(sqrt(est),acc=1.1),tab.rse)]
     pars[par.type=="SIGMA"&trans=="propErr"&FIX==0,
          tab.est:=sprintf("%s [%s]",est,percent(sqrt(est),acc=1.1))]
     if(rse.cov) pars[par.type=="SIGMA"&trans=="propErr"&FIX==0,
-         tab.est:=sprintf("%s (%s)",tab.est,tab.rse)]
+                     tab.est:=sprintf("%s (%s)",tab.est,tab.rse)]
+
+
+### confidence intervals
+    if(all(cc(CI.l,CI.u)%in%colnames(pars))){
+        pars[,tab.CI:=sprintf("[%s,%s]",signif(CI.l,2),signif(CI.u,2))]
+        pars[FIX==1,tab.CI:="-"]
+    } else {
+        pars[,tab.CI:="-"]
+    }
+
+    if(all(cc(CI.l.boot,CI.u.boot)%in%colnames(pars))){
+        pars[,tab.CI.boot:=sprintf("[%s,%s]",signif(CI.l.boot,2),signif(CI.u.boot,2))]
+        pars[FIX==1,tab.CI.boot:="-"]
+    } else {
+        pars[,tab.CI.boot:="-"]
+    }
 
 
     ## Latex versions of columns for report tables
