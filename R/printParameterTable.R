@@ -32,7 +32,7 @@
 
 ## TODO sorting should be handled independently of engine
 
-printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script=NULL,file.mod,include,include.pattern,drop,drop.pattern,include.fix,caption,ci.boot,ci="cov",rse.cov=TRUE){
+printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script=NULL,file.mod,include,include.pattern,drop,drop.pattern,include.fix,caption,ci.boot,ci="cov",rse.cov=TRUE,label.pmtables){
 
     if(missing(drop)) drop <- NULL
     if(missing(drop.pattern)) drop.pattern <- NULL
@@ -315,15 +315,15 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         if( format=="latex" && !compile.pdf ) {
             ## create latex code. Don't compile.
             res <- pars.ltx |> 
-                st_make(long=TRUE)
+                st_make(long=TRUE,.cat=TRUE)
             return(res)
         }
         
         if( format=="latex" && compile.pdf && is.null(file.pdf) ){
             ## Creating pdf in tmp location. 
             pars.ltx |>
-                stable_long() |>
-                st2report()
+                stable_long(lt_cap_text=string.caption,lt_cap_label = pmtables.label) |>
+                st2report() 
             ## what to return in this case?
             return(invisible(NULL))
         }
@@ -334,7 +334,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
 
             ## What is being returned?
             res <- pars.ltx |>
-                stable_long() |>
+                  stable_long(lt_cap_text=string.caption,lt_cap_label = pmtables.label) |>
                 st2pdf(dir = dirname(file.pdf), stem = fnExtension(basename(file.pdf), "")) 
             return(res)
         }
