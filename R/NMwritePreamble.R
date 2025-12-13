@@ -25,7 +25,7 @@ NMwritePreamble <- function(file.mod,lines,description=NULL,based.on=NULL,author
     text.new <- NULL
     contents.updated <- NULL
     include <- NULL
-
+    
 ## for this line in a control stream:    
 ##;; 1. Based on:  0274_doseimpute
     ## name="Based on"

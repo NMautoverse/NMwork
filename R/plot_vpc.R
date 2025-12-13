@@ -11,72 +11,78 @@
 ##' @param .y_axis_lab y-axis label
 
 plot_vpc <- function(
-  .vpcdata = vpc.predcorr.all,
-  .predcorr = FALSE,
-  .pointsize = 0.6,
-  .subset = list(Study = "XXX-XXX-XXX"),
-  .x_axis_lab = "Time after first dose (h)",
-  .y_axis_lab = "Percentiles and associated 95% CI\nprediction-corrected concentration (ng/mL)"
-) {
-  .vpcdata = .vpcdata[]
-  
-  
-  # .vpcdata$
-  ggplot() +
-    # observed points
-    {
-      if (.predcorr) geom_point(data = .vpcdata$obs, aes(x = x, y = ypc), size = .pointsize, alpha = 0.4)
-    } +
-    {
-      if (!.predcorr) geom_point(data = .vpcdata$obs, aes(x = x, y = y), size = .pointsize, alpha = 0.4)
-    } +
-    # prediction interval
-    geom_ribbon(data = .vpcdata$stats, aes(x = xbin, ymin = lo, ymax = hi, fill = qname), alpha = 0.5) +
-    # median of prediction interval
-    geom_line(data = .vpcdata$stats, aes(x = xbin, y = md, color = qname)) +
-    # observed median by bin
-    geom_line(data = .vpcdata$stats, aes(x = xbin, y = y, linetype = qname), color = "black") +
-    # bin lines on top of plot
-    geom_rug(data = tidyvpc:::bininfo.tidyvpcobj(o = .vpcdata, by.strata = T)[, .(x = sort(unique(c(xleft, xright)))), by = names(.vpcdata$strat)], aes(x = x), inherit.aes = FALSE, sides = "t") +
-    theme_bw() +
-    # stratify/facet on plot object after creating the base plot.
-    # facet_wrap(STUDY~PARENT+POP, scales = "free") +
-    scale_fill_manual(values = c("gray50", "steelblue", "gray50")) +
-    scale_color_manual(
-      name = "Simulated Percentiles\nMedian (lines) 95% CI (areas)",
-      breaks = c("q0.05", "q0.5", "q0.95"),
-      values = c("gray50", "steelblue3", "gray50"),
-      labels = c("5%", "50%", "95%")
-    ) +
-    scale_fill_manual(
-      name = "Simulated Percentiles\nMedian (lines) 95% CI (areas)",
-      breaks = c("q0.05", "q0.5", "q0.95"),
-      values = c("gray50", "steelblue3", "gray50"),
-      labels = c("5%", "50%", "95%")
-    ) +
-    scale_linetype_manual(
-      name = "Observed Percentiles\n(black lines)",
-      breaks = c("q0.05", "q0.5", "q0.95"),
-      values = c("dashed", "solid", "dashed"),
-      labels = c("5%", "50%", "95%")
-    ) +
-    guides(
-      fill = guide_legend(order = 2),
-      colour = guide_legend(order = 2),
-      linetype = guide_legend(order = 1)
-    ) +
-    labs(
-      x = .x_axis_lab,
-      y = .y_axis_lab
-    ) +
-    theme(
-      axis.text = element_text(size = 6.5),
-      axis.title = element_text(size = 8.5),
-      strip.text = element_text(size = 6.5, margin = margin(0.04,0,0.04,0, unit="cm")),
-      legend.key.size = unit(0.5, "cm"),
-      legend.text = element_text(size = 6.5),
-      legend.title = element_text(size = 6.5),
-      ## legend.position = "right"
-      legend.position = "bottom"
-    )
+                     .vpcdata = vpc.predcorr.all,
+                     .predcorr = FALSE,
+                     .pointsize = 0.6,
+                     .subset = list(Study = "XXX-XXX-XXX"),
+                     .x_axis_lab = "Time after first dose (h)",
+                     .y_axis_lab = "Percentiles and associated 95% CI\nprediction-corrected concentration (ng/mL)"
+                     ) {
+    .vpcdata = .vpcdata[]
+    
+    ## ## avoid tidyvpc requirement for function/packge
+    ## loadres <- requireNamespace("tidyvpc",quietly=TRUE)
+    ## if(!loadres) {
+    ##     message("tidyvpc not found. Please install tidyvpc to use plot_vpc(). Exiting.")
+    ##     return(NULL)
+    ## }
+    
+    # .vpcdata$
+    ggplot() +
+        # observed points
+        {
+            if (.predcorr) geom_point(data = .vpcdata$obs, aes(x = x, y = ypc), size = .pointsize, alpha = 0.4)
+        } +
+        {
+            if (!.predcorr) geom_point(data = .vpcdata$obs, aes(x = x, y = y), size = .pointsize, alpha = 0.4)
+        } +
+        # prediction interval
+        geom_ribbon(data = .vpcdata$stats, aes(x = xbin, ymin = lo, ymax = hi, fill = qname), alpha = 0.5) +
+        # median of prediction interval
+        geom_line(data = .vpcdata$stats, aes(x = xbin, y = md, color = qname)) +
+        # observed median by bin
+        geom_line(data = .vpcdata$stats, aes(x = xbin, y = y, linetype = qname), color = "black") +
+        # bin lines on top of plot
+        geom_rug(data = tidyvpc:::bininfo.tidyvpcobj(o = .vpcdata, by.strata = T)[, .(x = sort(unique(c(xleft, xright)))), by = names(.vpcdata$strat)], aes(x = x), inherit.aes = FALSE, sides = "t") +
+        theme_bw() +
+        # stratify/facet on plot object after creating the base plot.
+        # facet_wrap(STUDY~PARENT+POP, scales = "free") +
+        scale_fill_manual(values = c("gray50", "steelblue", "gray50")) +
+        scale_color_manual(
+            name = "Simulated Percentiles\nMedian (lines) 95% CI (areas)",
+            breaks = c("q0.05", "q0.5", "q0.95"),
+            values = c("gray50", "steelblue3", "gray50"),
+            labels = c("5%", "50%", "95%")
+        ) +
+        scale_fill_manual(
+            name = "Simulated Percentiles\nMedian (lines) 95% CI (areas)",
+            breaks = c("q0.05", "q0.5", "q0.95"),
+            values = c("gray50", "steelblue3", "gray50"),
+            labels = c("5%", "50%", "95%")
+        ) +
+        scale_linetype_manual(
+            name = "Observed Percentiles\n(black lines)",
+            breaks = c("q0.05", "q0.5", "q0.95"),
+            values = c("dashed", "solid", "dashed"),
+            labels = c("5%", "50%", "95%")
+        ) +
+        guides(
+            fill = guide_legend(order = 2),
+            colour = guide_legend(order = 2),
+            linetype = guide_legend(order = 1)
+        ) +
+        labs(
+            x = .x_axis_lab,
+            y = .y_axis_lab
+        ) +
+        theme(
+            axis.text = element_text(size = 6.5),
+            axis.title = element_text(size = 8.5),
+            strip.text = element_text(size = 6.5, margin = margin(0.04,0,0.04,0, unit="cm")),
+            legend.key.size = unit(0.5, "cm"),
+            legend.text = element_text(size = 6.5),
+            legend.title = element_text(size = 6.5),
+            ## legend.position = "right"
+            legend.position = "bottom"
+        )
 }
