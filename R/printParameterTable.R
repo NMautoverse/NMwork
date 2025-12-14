@@ -334,23 +334,24 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
 
         pars.ltx = 
             paramtbl2 |>
-            st_new() |>
-            st_panel("panel.label") |>
-            st_center(tab.lab.ltx = col_ragged(6.5)) |>
-            st_blank("parameter.ltx","tab.lab.ltx") |>
-            st_rename("Estimate (RSE\\%)...[CV\\% or Corr\\%]" = "tab.est.ltx",
-                      "95\\% Confidence Interval" = "CI") 
+            pmtables::st_new() |>
+            pmtables::st_panel("panel.label") |>
+            pmtables::st_center(tab.lab.ltx = pmtables::col_ragged(6.5)) |>
+            pmtables::st_blank("parameter.ltx","tab.lab.ltx") |>
+            pmtables::st_rename("Estimate (RSE\\%)...[CV\\% or Corr\\%]" = "tab.est.ltx",
+                                        "95\\% Confidence Interval" = "CI") 
+        ##setnames(old=c("tab.est.ltx","CI"),c("Estimate (RSE\\%)...[CV\\% or Corr\\%]","95\\% Confidence Interval"))
         if(!is.null(footnotes)){
-            for(fn in footnotes) pars.ltx <- st_notes(pars.ltx,fn)
+            for(fn in footnotes) pars.ltx <- pmtables::st_notes(pars.ltx,fn)
         }
         ## st_notes("$^*$Parameter was estimated in the log-domain and back-transformed for clarity") |>
         ##             st_notes("Abbreviations: RSE = relative standard error (on the scale where the parameter was estimated)") |>
         ##             st_notes(paste0("Model: ", model$mod)) |>
-        pars.ltx <- pars.ltx |> st_noteconf(type = "minipage", width = 1) 
+        pars.ltx <- pars.ltx |> pmtables::st_noteconf(type = "minipage", width = 1) 
 
         pars.ltx <- 
             pars.ltx |>
-            stable_long(lt_cap_text=string.caption,lt_cap_label = label.pmtables) 
+            pmtables::stable_long(lt_cap_text=string.caption,lt_cap_label = label.pmtables) 
         
         if( format=="latex" && !compile.pdf ) {
             ## create latex code. Don't compile.
@@ -371,7 +372,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         if( format=="latex" && compile.pdf && is.null(file.pdf) ){
             ## Creating pdf in tmp location. 
             pars.ltx |>
-                st2report() 
+                pmtables::st2report() 
             ## what to return in this case?
             return(invisible(NULL))
         }
@@ -382,7 +383,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
 
             ## What is being returned?
             res <- pars.ltx |>
-                st2pdf(dir = dirname(file.pdf), stem = fnExtension(basename(file.pdf), ""))
+                pmtables::st2pdf(dir = dirname(file.pdf), stem = fnExtension(basename(file.pdf), ""))
             return(res)
         }
 
