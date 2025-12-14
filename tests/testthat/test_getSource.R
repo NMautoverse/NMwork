@@ -1,4 +1,4 @@
-context("getSource")
+# context("getSource")
 
 test_that("Basic",{
 
@@ -11,6 +11,7 @@ test_that("Basic",{
 
     res <- readLines(outfile)
 
-    expect_equal_to_reference(res,fileRef)
+    # expect_equal_to_reference(res,fileRef)
+    expect_snapshot_value(res,style="serialize")
 
 })

@@ -6,8 +6,9 @@ test_that("Basic",{
 
     res <- scriptPaths("myscript.R")
 
-    expect_equal_to_reference(res,fileRef)
+    # expect_equal_to_reference(res,fileRef)
+    expect_snapshot_value(res,style="serialize")
 
-})
+   })
 
 

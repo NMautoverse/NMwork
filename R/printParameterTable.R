@@ -82,10 +82,10 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
 
     compile.pdf <- FALSE
     file.pdf <- NULL
+    file.tex <- NULL
 
     if(tolower(NMdata:::cleanSpaces(format))%in%c("tex","latex")) {
 ### this is currently not supported for kable 
-        file.tex <- NULL
         format <- "latex"
         compile.pdf <- FALSE
     }
