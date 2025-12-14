@@ -1,4 +1,8 @@
-# load_all()
+context("Parameter tables")
+
+
+## load_all()
+test_that("basic",{
 ## options(warn=0)
 ## test footnotes at log and logit transformations
 file.mod <- "testData/nonmem/xgxr134.mod"
@@ -22,3 +26,4 @@ pars[,trans:="none"]
 pars[par.name=="THETA(1)",trans]
 pars[,.N,by=.(par.type,trans)]
 printParameterTable(pars)
+})

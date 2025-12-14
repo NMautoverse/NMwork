@@ -83,6 +83,19 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
     compile.pdf <- FALSE
     file.pdf <- NULL
 
+    if(tolower(NMdata:::cleanSpaces(format))%in%c("tex","latex")) {
+### this is currently not supported for kable 
+        file.tex <- NULL
+        format <- "latex"
+        compile.pdf <- FALSE
+    }
+### this must happen before any modification of format to not edit a file name    
+    if(tolower(fnExtension(format)=="tex") ){
+        file.tex <- format
+        format <- "latex"
+        compile.pdf <- FALSE
+    }
+    
     if(tolower(NMdata:::cleanSpaces(format)=="pdf") ){
 ### this is currently not supported for kable 
         file.pdf <- NULL
@@ -201,8 +214,10 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
                 Panel=panel
             )]
             
-            lapply(footnotes,message)
-            return(kable(paramtbl,format="pipe"))
+            silent <- lapply(footnotes,message)
+            return(
+                kable(paramtbl,format="pipe")
+            )
         }
 
         ##
@@ -246,7 +261,16 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         pars.ltx <- paramtbl2 |>
             add_footnote(label=footnotes,notation="none",escape=FALSE)
 
-        if(!compile.pdf) return(pars.ltx)
+        if(!compile.pdf) {
+            if(is.null(file.tex)){
+                return(pars.ltx)
+            } else {
+                NMsim:::writeTextFile(pars.ltx,file=file.tex)
+                return(invisible(file.tex))
+            }
+
+
+        }
 
         if(compile.pdf){
             if(is.null(file.pdf)) file.pdf <- tempfile(fileext=".pdf")
@@ -290,9 +314,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
 
 
 
-
     if(engine=="pmtables"){
-
         ## formats: latex, pdf, latex-pdf?
 
         loadres <- requireNamespace("pmtables",quietly=TRUE)
@@ -332,12 +354,18 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         
         if( format=="latex" && !compile.pdf ) {
             ## create latex code. Don't compile.
-            ## res <- pars.ltx |> 
-            ##     st_make(long=TRUE,.cat=TRUE)
-            res <- pars.ltx |>
-                paste(collapse="\n") |>
-                cat()
-            return(invisible())
+
+            if(is.null(file.tex)){
+                res <- pars.ltx |>
+                    paste(collapse="\n") |>
+                    cat()
+            } else {
+                res <- pars.ltx |>
+                    paste(collapse="\n") |>
+                    NMsim:::writeTextFile(file=file.tex)
+            }
+
+            return(invisible(file.tex))
         }
         
         if( format=="latex" && compile.pdf && is.null(file.pdf) ){
