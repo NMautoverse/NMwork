@@ -54,7 +54,7 @@ this
 
 [TABLE]
 
-Model: xgxr134
+Model: xgxr134.
 
 ``` r
 file.mod <- system.file("nonmem/xgxr134.mod",package="NMwork")
@@ -76,12 +76,19 @@ up to date from CRAN.
 
 ### When to Use This
 
-The methods shwon in this document are intended to automate generation
+The methods shown in this document are intended to automate generation
 of publication-ready parameter estimate tables. Because of the
 informative value of such tables and because they are easy to generate
 (especially with a few simple habits of how to document parameter
 interpretation in control streams), the recommendation is to use them
-during model development as well as for reporting.
+during model development as well as for reporting. However, the
+solutions provided by `createParameterTables()` and
+`printParameterTables()` are not very flexible in terms of the final
+output. While the underlying functions provided in `NMdata` to retrieve
+and compile the data are intended to work as generally as possible,
+`NMwork` includes many decisions related to formatting etc. The user may
+not agree with all this, and in that case they may need to edit the code
+to get their prefered behavior.
 
 ## Creating the Parameter Table (`createParameterTable()`)
 
@@ -253,7 +260,7 @@ createParameterTable(file.mod,df.labs=dt.labs) |>
 
 [TABLE]
 
-Model: xgxr134
+Model: xgxr134.
 
 A function to consider for automated detection of relationship between
 parameters and Nonmem variables (like what is called `symbol` above) is
@@ -355,7 +362,7 @@ createParameterTable(file.lst=file.mod.b,df.labs=df.labs.b) |>
 
 [TABLE]
 
-Model: xgxr134b
+Model: xgxr134b.
 
 ## Printing the Parameter Table (`printParameterTable()`)
 

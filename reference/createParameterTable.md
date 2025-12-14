@@ -14,6 +14,7 @@ createParameterTable(
   df.labs,
   drop.symbol,
   file.ext,
+  df.boot,
   df.panels,
   script = NULL
 )

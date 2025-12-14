@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">NMwork</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.907</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.908</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,7 +57,7 @@
                         <h4 data-toc-skip class="author">Philip
 Delff</h4>
                         
-            <h4 data-toc-skip class="date">December 01, 2025</h4>
+            <h4 data-toc-skip class="date">December 14, 2025</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nmautoverse/NMwork/blob/main/vignettes/ParameterTables.Rmd" class="external-link"><code>vignettes/ParameterTables.Rmd</code></a></small>
       <div class="d-none name"><code>ParameterTables.Rmd</code></div>
@@ -231,7 +231,7 @@ this</p>
 <!-- Because of bug in NMdata 0.2.2 we need to supply formats here -->
 <table class="table table" style="font-size: 7.5px; margin-left: auto; margin-right: auto;">
 <caption style="font-size: initial !important;">
-Model: xgxr134
+Model: xgxr134.
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -253,7 +253,7 @@ Estimate (RSE%)
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(1)
+THETA(1)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Absorption rate, TVKA (1/h)
@@ -267,7 +267,7 @@ Absorption rate, TVKA (1/h)
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(2)
+THETA(2)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Central volume, TVV2 (L)
@@ -281,7 +281,7 @@ Central volume, TVV2 (L)
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(3)
+THETA(3)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Clearance, TVCL (L/h)
@@ -295,7 +295,7 @@ Clearance, TVCL (L/h)
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(4)
+THETA(4)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Peripheral volume, TVV3 (L)
@@ -309,7 +309,7 @@ Peripheral volume, TVV3 (L)
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(5)
+THETA(5)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Intercomparmental clearance, TVQ (L/h)
@@ -323,7 +323,7 @@ Intercomparmental clearance, TVQ (L/h)
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(6)
+THETA(6)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Age effect on clearance, AGECL
@@ -337,7 +337,7 @@ Age effect on clearance, AGECL
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(7)
+THETA(7)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Body-weight effect on clearance, WEIGHTCL
@@ -351,7 +351,7 @@ Body-weight effect on clearance, WEIGHTCL
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(8)
+THETA(8)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Male effect on clearance, MALECL
@@ -475,8 +475,24 @@ Add err
 <tfoot>
 <tr>
 <td style="padding: 0; border:0;" colspan="100%">
-<sup></sup> * parameter was estimated in the log domain and
-back-transformed for clarity.
+<sup></sup> * Parameter was estimated in the log domain. Estimate and CI
+presented on physiological scale.
+</td>
+</tr>
+<tr>
+<td style="padding: 0; border:0;" colspan="100%">
+<sup></sup> CI: Confidence Interval based on Nonmem Covariance step.
+</td>
+</tr>
+<tr>
+<td style="padding: 0; border:0;" colspan="100%">
+<sup></sup> CV: Coefficient of Variation for log-normal distributed
+random effects.
+</td>
+</tr>
+<tr>
+<td style="padding: 0; border:0;" colspan="100%">
+<sup></sup> Corr: Correlation.
 </td>
 </tr>
 <tr>
@@ -508,12 +524,20 @@ CRAN.</p>
 <div class="section level3">
 <h3 id="when-to-use-this">When to Use This<a class="anchor" aria-label="anchor" href="#when-to-use-this"></a>
 </h3>
-<p>The methods shwon in this document are intended to automate
+<p>The methods shown in this document are intended to automate
 generation of publication-ready parameter estimate tables. Because of
 the informative value of such tables and because they are easy to
 generate (especially with a few simple habits of how to document
 parameter interpretation in control streams), the recommendation is to
-use them during model development as well as for reporting.</p>
+use them during model development as well as for reporting. However, the
+solutions provided by <code>createParameterTables()</code> and
+<code>printParameterTables()</code> are not very flexible in terms of
+the final output. While the underlying functions provided in
+<code>NMdata</code> to retrieve and compile the data are intended to
+work as generally as possible, <code>NMwork</code> includes many
+decisions related to formatting etc. The user may not agree with all
+this, and in that case they may need to edit the code to get their
+prefered behavior.</p>
 </div>
 </div>
 <div class="section level2">
@@ -725,22 +749,7 @@ corr
 tab.lab
 </th>
 <th style="text-align:left;">
-tab.rse
-</th>
-<th style="text-align:left;">
 tab.corr
-</th>
-<th style="text-align:left;">
-tab.est
-</th>
-<th style="text-align:left;">
-tab.CV
-</th>
-<th style="text-align:left;">
-CI
-</th>
-<th style="text-align:left;">
-tab.est.ltx
 </th>
 <th style="text-align:left;">
 tab.lab.ltx
@@ -806,7 +815,7 @@ NA
 0
 </td>
 <td style="text-align:right;">
-2.215622
+0.795533
 </td>
 <td style="text-align:right;">
 NA
@@ -842,10 +851,10 @@ Fixed Effects
 0.0804007
 </td>
 <td style="text-align:right;">
-1.954567
+0.6701687
 </td>
 <td style="text-align:right;">
-2.511543
+0.9208973
 </td>
 <td style="text-align:right;">
 0.795533
@@ -857,28 +866,13 @@ NA
 Absorption rate, TVKA (1/h)
 </td>
 <td style="text-align:left;">
-8.0%
-</td>
-<td style="text-align:left;">
 NA
-</td>
-<td style="text-align:left;">
-2.22 (8.0%)
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-[2,2.5]
-</td>
-<td style="text-align:left;">
-2.22 (8.0%)
 </td>
 <td style="text-align:left;">
 Absorption rate, TVKA (1h)
 </td>
 <td style="text-align:left;">
-<span class="math inline">\(\theta_{1}{}^*\)</span>
+<span class="math inline">\(\theta_{1}\)</span>
 </td>
 </tr>
 <tr>
@@ -937,7 +931,7 @@ NA
 0
 </td>
 <td style="text-align:right;">
-74.576094
+4.311820
 </td>
 <td style="text-align:right;">
 NA
@@ -973,10 +967,10 @@ Fixed Effects
 0.0136327
 </td>
 <td style="text-align:right;">
-66.460492
+4.1966077
 </td>
 <td style="text-align:right;">
-83.682705
+4.4270323
 </td>
 <td style="text-align:right;">
 4.311820
@@ -988,28 +982,13 @@ NA
 Central volume, TVV2 (L)
 </td>
 <td style="text-align:left;">
-1.4%
-</td>
-<td style="text-align:left;">
 NA
-</td>
-<td style="text-align:left;">
-74.6 (1.4%)
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-[66,84]
-</td>
-<td style="text-align:left;">
-74.6 (1.4%)
 </td>
 <td style="text-align:left;">
 Central volume, TVV2 (L)
 </td>
 <td style="text-align:left;">
-<span class="math inline">\(\theta_{2}{}^*\)</span>
+<span class="math inline">\(\theta_{2}\)</span>
 </td>
 </tr>
 </tbody>
@@ -1080,7 +1059,7 @@ techniques the user may have.</p>
 <span>    <span class="fu"><a href="../reference/printParameterTable.html">printParameterTable</a></span><span class="op">(</span>format<span class="op">=</span><span class="st">"html"</span><span class="op">)</span></span></code></pre></div>
 <table class="table table" style="font-size: 7.5px; margin-left: auto; margin-right: auto;">
 <caption style="font-size: initial !important;">
-Model: xgxr134
+Model: xgxr134.
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -1102,7 +1081,7 @@ Estimate (RSE%)
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(1)
+THETA(1)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Absorption rate, TVKA (1/h)
@@ -1116,7 +1095,7 @@ Absorption rate, TVKA (1/h)
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(2)
+THETA(2)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Central volume, TVV2 (L)
@@ -1130,7 +1109,7 @@ Central volume, TVV2 (L)
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(3)
+THETA(3)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Clearance, TVCL (L/h)
@@ -1144,7 +1123,7 @@ Clearance, TVCL (L/h)
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(4)
+THETA(4)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Peripheral volume, TVV3 (L)
@@ -1158,7 +1137,7 @@ Peripheral volume, TVV3 (L)
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(5)
+THETA(5)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Intercomparmental clearance, TVQ (L/h)
@@ -1172,7 +1151,7 @@ Intercomparmental clearance, TVQ (L/h)
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(6)
+THETA(6)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Age effect on clearance, AGECL
@@ -1186,7 +1165,7 @@ Age effect on clearance, AGECL
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(7)
+THETA(7)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Bodyweight effect on clearance, WEIGHTCL
@@ -1200,7 +1179,7 @@ Bodyweight effect on clearance, WEIGHTCL
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(8)
+THETA(8)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Male effect on clearance, MALECL
@@ -1324,8 +1303,24 @@ Add err
 <tfoot>
 <tr>
 <td style="padding: 0; border:0;" colspan="100%">
-<sup></sup> * parameter was estimated in the log domain and
-back-transformed for clarity.
+<sup></sup> * Parameter was estimated in the log domain. Estimate and CI
+presented on physiological scale.
+</td>
+</tr>
+<tr>
+<td style="padding: 0; border:0;" colspan="100%">
+<sup></sup> CI: Confidence Interval based on Nonmem Covariance step.
+</td>
+</tr>
+<tr>
+<td style="padding: 0; border:0;" colspan="100%">
+<sup></sup> CV: Coefficient of Variation for log-normal distributed
+random effects.
+</td>
+</tr>
+<tr>
+<td style="padding: 0; border:0;" colspan="100%">
+<sup></sup> Corr: Correlation.
 </td>
 </tr>
 <tr>
@@ -2352,7 +2347,7 @@ NA
 <span>    <span class="fu"><a href="../reference/printParameterTable.html">printParameterTable</a></span><span class="op">(</span>format<span class="op">=</span><span class="st">"html"</span><span class="op">)</span></span></code></pre></div>
 <table class="table table" style="font-size: 7.5px; margin-left: auto; margin-right: auto;">
 <caption style="font-size: initial !important;">
-Model: xgxr134b
+Model: xgxr134b.
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -2374,7 +2369,7 @@ Estimate (RSE%)
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(1)
+THETA(1)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Absorption rate, TVKA (1/h)
@@ -2388,7 +2383,7 @@ Absorption rate, TVKA (1/h)
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(2)
+THETA(2)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Central volume, TVV2 (L)
@@ -2402,7 +2397,7 @@ Central volume, TVV2 (L)
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(3)
+THETA(3)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Clearance, TVCL (L/h)
@@ -2416,7 +2411,7 @@ Clearance, TVCL (L/h)
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(4)
+THETA(4)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Peripheral volume, TVV3 (L)
@@ -2430,7 +2425,7 @@ Peripheral volume, TVV3 (L)
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(5)
+THETA(5)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Intercomparmental clearance, TVQ (L/h)
@@ -2444,7 +2439,7 @@ Intercomparmental clearance, TVQ (L/h)
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(6)
+THETA(6)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Age effect on clearance, AGECL
@@ -2458,7 +2453,7 @@ Age effect on clearance, AGECL
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(7)
+THETA(7)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Body-weight effect on clearance, WEIGHTCL
@@ -2472,7 +2467,7 @@ Body-weight effect on clearance, WEIGHTCL
 </tr>
 <tr>
 <td style="text-align:left;width: 4em; padding-left: 2em;" indentlevel="1">
-THETA(8)
+THETA(8)*
 </td>
 <td style="text-align:left;width: 26em; ">
 Male effect on clearance, MALECL
@@ -2596,8 +2591,24 @@ Add err
 <tfoot>
 <tr>
 <td style="padding: 0; border:0;" colspan="100%">
-<sup></sup> * parameter was estimated in the log domain and
-back-transformed for clarity.
+<sup></sup> * Parameter was estimated in the log domain. Estimate and CI
+presented on physiological scale.
+</td>
+</tr>
+<tr>
+<td style="padding: 0; border:0;" colspan="100%">
+<sup></sup> CI: Confidence Interval based on Nonmem Covariance step.
+</td>
+</tr>
+<tr>
+<td style="padding: 0; border:0;" colspan="100%">
+<sup></sup> CV: Coefficient of Variation for log-normal distributed
+random effects.
+</td>
+</tr>
+<tr>
+<td style="padding: 0; border:0;" colspan="100%">
+<sup></sup> Corr: Correlation.
 </td>
 </tr>
 <tr>
