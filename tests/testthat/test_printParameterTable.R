@@ -9,11 +9,12 @@ test_that("kable",{
     res1
 
     res2 <- printParameterTable(pars,engine="kable",format="testOutput/myfile.tex")
-res2
+    res2
 
 })
 
 test_that("pmtables",{
+
 
     file.mod <- "testData/nonmem/xgxr134.mod"
     pars <- createParameterTable(file.mod)
@@ -23,7 +24,11 @@ test_that("pmtables",{
 
     
     res2 <- printParameterTable(pars,engine="pmtables",format="testOutput/myfile_pmtables.tex",label.pmtables="tab:test")
-res2
+
+    res2
+
+    res2 <- printParameterTable(pars,engine="pmtables",format="pdf",label.pmtables="tab:test")
+
 
 
 })

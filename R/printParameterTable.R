@@ -55,7 +55,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
     info.source <- NMinfo(paramtbl)
     model <- NULL
 
-### only one format at a time supported
+    ### only one format at a time supported
     
     if(missing(format)) format <- NULL
 
@@ -85,11 +85,11 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
     file.tex <- NULL
 
     if(tolower(NMdata:::cleanSpaces(format))%in%c("tex","latex")) {
-### this is currently not supported for kable 
+        ### this is currently not supported for kable 
         format <- "latex"
         compile.pdf <- FALSE
     }
-### this must happen before any modification of format to not edit a file name    
+    ### this must happen before any modification of format to not edit a file name    
     if(tolower(fnExtension(format)=="tex") ){
         file.tex <- format
         format <- "latex"
@@ -97,26 +97,26 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
     }
     
     if(tolower(NMdata:::cleanSpaces(format)=="pdf") ){
-### this is currently not supported for kable 
-        file.pdf <- NULL
+        file.pdf <- tempfile(fileext=".pdf")
         format <- "latex"
         compile.pdf <- TRUE
     }
-
-### this must happen before any modification of format to not edit a file name    
+    
+    ### this must happen before any modification of format to not edit a file name    
     if(tolower(fnExtension(format)=="pdf") ){
         file.pdf <- format
         format <- "latex"
         compile.pdf <- TRUE
     }
 
+
     format <- tolower(format)
     format <- NMdata:::cleanSpaces(format)
 
     if(length(format)>1) stop("Only one format can be specified.")
-                                        # if(!format %in% c("r","html","flextable","latex","rmd-pdf","pdf","kable-rmd","kable-rmd-pdf")) {
-                                        #     stop("format must be one of R, flextable, rmd, or a path to a file with extension .pdf.")
-                                        # }
+    # if(!format %in% c("r","html","flextable","latex","rmd-pdf","pdf","kable-rmd","kable-rmd-pdf")) {
+    #     stop("format must be one of R, flextable, rmd, or a path to a file with extension .pdf.")
+    # }
 
     fixUnder <- ifelse(format%in%c("latex"),
                        function(x)gsub("\\_","\\\\_",x),
@@ -128,7 +128,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         model <- modelPaths(info.source$dataCreate$model)
     }
 
-### this is a header
+    ### this is a header
     string.caption <- paste0("Model: ",fixUnder(model$run),".")
     if(!missing(caption)){
         string.caption <- paste(paste(caption,collapse=" ")
@@ -138,7 +138,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
     }
 
 
-##### subset parameters
+    ##### subset parameters
     if("symbol" %in% colnames(paramtbl)){
         if( !is.null(drop) ){
             paramtbl <- paramtbl[!symbol%in%drop]
@@ -169,7 +169,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         sapply(1:10,function(x)paste(rep(x="*",x),collapse=""))
     paramtbl[par.type=="THETA"&trans%in%c("log","logit"),trans.fnchar:=chars.fnotes[.GRP],by=trans]
     ## paramtbl[par.type=="THETA"&trans%in%c("log"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\*\\$",parameter.ltx)]
-                                        # paramtbl[par.type=="THETA"&trans%in%c("log"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\*\\$",parameter.ltx)]
+    # paramtbl[par.type=="THETA"&trans%in%c("log"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\*\\$",parameter.ltx)]
     paramtbl[,row:=.I]
     paramtbl[par.type=="THETA"&trans%in%c("log","logit"),
              parameter.ltx:=sub("\\$ *$",paste0("\\{\\}\\^\\{",trans.fnchar,"\\}\\$"),parameter.ltx),by=row]
@@ -195,45 +195,77 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         footnotes <- c(footnotes,sprintf("Model: %s",fixUnder(model$label)))
     }
 
-### add columns for reporting
+    ### add columns for reporting
     paramtbl <- addEstFormat(pars=paramtbl,rse.cov=rse.cov)
     paramtbl[,CI:=switch(ci,
                          cov=tab.CI,
                          boot=tab.CI.boot,
                          none="")]
 
+    ## sorting must be done on paramtbl from which nmbrows is generated.
+    setorder(paramtbl,panel,i,j)
+
+    if(engine=="kable"&&format=="r"){
+        paramtbl2 <- paramtbl[,.(
+            "Parameter"=par.name,
+            "Label"=tab.lab,
+            "Est [CV% or Corr%] (RSE%)"=tab.est,
+            "95% CI"=CI,
+            Panel=panel
+        )]
+
+    } else {
+        
+        paramtbl2 <- paramtbl[,.(
+            "  "=if(format=="latex") parameter.ltx else par.name,
+            " "=if(format=="latex") tab.lab.ltx else tab.lab ,
+            "Estimate (RSE%)\\newline[CV% or Corr%]"=
+                if(format=="latex") tab.est.ltx else tab.est ,
+            "95% Confidence Interval"=CI,
+            panel.label)]
+
+        if(format=="latex"){
+            # colnames(paramtbl2) <- latexify(colnames(paramtbl2))
+cnames <- copy(colnames(paramtbl2))
+            cnames[grepl("^ *$",cnames)] <- latexify(cnames[grepl("^ *$",cnames)])
+            colnames(paramtbl2) <- cnames
+        }
+    }
+    
+
     if(engine=="kable"){
-### not sure what formats are supported. At least latex, and html.
+        ### not sure what formats are supported. At least latex, and html.
 
         if(format=="r"){
-            paramtbl <- paramtbl[,.(
-                "Parameter"=par.name,
-                "Label"=tab.lab,
-                "Est [CV% or Corr%] (RSE%)"=tab.est,
-                "95% CI"=CI,
-                Panel=panel
-            )]
+            # paramtbl2 <- paramtbl[,.(
+            #     "Parameter"=par.name,
+            #     "Label"=tab.lab,
+            #     "Est [CV% or Corr%] (RSE%)"=tab.est,
+            #     "95% CI"=CI,
+            #     Panel=panel
+            # )]
             
             silent <- lapply(footnotes,message)
             return(
-                kable(paramtbl,format="pipe")
+                kable(paramtbl2,format="pipe")
             )
         }
 
         ##
-        nmbrows <- paramtbl[,.N,keyby=.(panel.label)]
+        nmbrows <- paramtbl2[,.N,keyby=.(panel.label)]
         nmbrows[,start:=cumsum(shift(N,1,fill=0))+1]
         nmbrows[,end:=cumsum(N)]
+        paramtbl2 <- select(paramtbl2,-panel.label)
 
-        paramtbl2 <- paramtbl[,.(
-            "  "=if(format=="latex") parameter.ltx else par.name,
-            " "=if(format=="latex") tab.lab.ltx else tab.lab ,
-            "Estimate (RSE\\%)\\newline[CV\\% or Corr\\%]"=
-                if(format=="latex") tab.est.ltx else tab.est ,
-            "95\\% Confidence Interval"=CI)]
+        # paramtbl2 <- paramtbl[,.(
+        #     "  "=if(format=="latex") parameter.ltx else par.name,
+        #     " "=if(format=="latex") tab.lab.ltx else tab.lab ,
+        #     "Estimate (RSE\\%)\\newline[CV\\% or Corr\\%]"=
+        #         if(format=="latex") tab.est.ltx else tab.est ,
+        #     "95\\% Confidence Interval"=CI)]
 
         
-#### configure column justification and sizes. The widths are not automated.
+        #### configure column justification and sizes. The widths are not automated.
         paramtbl2 <-
             paramtbl2 |>
             knitr::kable(
@@ -243,7 +275,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
                        caption = string.caption,
                        ## longtable=T,
                        booktabs=T, escape=F) |>
-                                        #col.names = gsub("Description", " ", names(paramtbl))) |>
+            #col.names = gsub("Description", " ", names(paramtbl))) |>
             kable_styling(full_width = T,
                           font_size = 7.5,  latex_options = "HOLD_position") |>
             column_spec(1, width="4em")|>
@@ -257,7 +289,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
                 nmbrows[I,pack_rows(paramtbl2,panel.label, start, end)]
         }
 
-### Footnotes
+        ### Footnotes
         pars.ltx <- paramtbl2 |>
             add_footnote(label=footnotes,notation="none",escape=FALSE)
 
@@ -273,7 +305,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         }
 
         if(compile.pdf){
-            if(is.null(file.pdf)) file.pdf <- tempfile(fileext=".pdf")
+            # if(is.null(file.pdf)) file.pdf <- tempfile(fileext=".pdf")
             ## "\\usepackage[margin=1in]{geometry}",
             latexStandAlone(pars.ltx,file.pdf=file.pdf,
                             usepackage=cc("geometry:margin=1in",
@@ -286,18 +318,18 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
 
     if(engine=="flextable"){
 
-        paramtbl <- paramtbl[,.(
-            "  "=par.name,
-            " "=tab.lab,
-            "Estimate (RSE%) [CV% or Corr%]"=tab.est,
-            "95% Confidence Interval"=CI,
-            panel.label)]
+        # paramtbl2 <- paramtbl[,.(
+        #     "  "=par.name,
+        #     " "=tab.lab,
+        #     "Estimate (RSE%) [CV% or Corr%]"=tab.est,
+        #     "95% Confidence Interval"=CI,
+        #     panel.label)]
 
-        paramtbl2 <- paramtbl |>
+        paramtbl2 <- paramtbl2 |>
             dplyr::group_by(panel.label) ## |>
         ## slice(1, 2) |>
         ## select(-panel.label)
-
+        
         ##as_flextable(hide_grouplabel = TRUE)
         ft <- as_flextable(paramtbl2,hide_grouplabel = TRUE) ##|> autofit()
 
@@ -313,7 +345,6 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
     }
 
 
-
     if(engine=="pmtables"){
         ## formats: latex, pdf, latex-pdf?
 
@@ -323,23 +354,24 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         }
 
         
-        paramtbl2 <-
-            paramtbl |>
-            dplyr::select(par.type, panel.label, i, j, parameter.ltx, tab.lab.ltx, tab.est.ltx, CI) |>
-            dplyr::arrange(panel.label, i, j) |>
-            dplyr::transmute(panel.label, parameter.ltx, tab.lab.ltx, tab.est.ltx, CI) |>
-            dplyr::mutate(rows.group = 1:dplyr::n(),.by=tab.lab.ltx) |>
-            dplyr::filter(rows.group==1) |>
-            dplyr::select(-rows.group)
-
+        # paramtbl2 <-
+        #     paramtbl |>
+        #     dplyr::select(par.type, panel.label, i, j, parameter.ltx, tab.lab.ltx, tab.est.ltx, CI) |>
+        #     dplyr::arrange(panel.label, i, j) |>
+        #     dplyr::transmute(panel.label, parameter.ltx, tab.lab.ltx, tab.est.ltx, CI) |>
+        #     dplyr::mutate(rows.group = 1:dplyr::n(),.by=tab.lab.ltx) |>
+        #     dplyr::filter(rows.group==1) |>
+        #     dplyr::select(-rows.group)
+        
         pars.ltx = 
             paramtbl2 |>
             pmtables::st_new() |>
             pmtables::st_panel("panel.label") |>
-            pmtables::st_center(tab.lab.ltx = pmtables::col_ragged(6.5)) |>
-            pmtables::st_blank("parameter.ltx","tab.lab.ltx") |>
-            pmtables::st_rename("Estimate (RSE\\%)...[CV\\% or Corr\\%]" = "tab.est.ltx",
-                                        "95\\% Confidence Interval" = "CI") 
+            ## tab.lab.ltx is " "
+            pmtables::st_center(" "= pmtables::col_ragged(6.5)) 
+        # pmtables::st_blank("parameter.ltx","tab.lab.ltx") |>
+        # pmtables::st_rename("Estimate (RSE\\%)...[CV\\% or Corr\\%]" = "tab.est.ltx",
+        #                     "95\\% Confidence Interval" = "CI") 
         ##setnames(old=c("tab.est.ltx","CI"),c("Estimate (RSE\\%)...[CV\\% or Corr\\%]","95\\% Confidence Interval"))
         if(!is.null(footnotes)){
             for(fn in footnotes) pars.ltx <- pmtables::st_notes(pars.ltx,fn)
@@ -351,28 +383,29 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
 
         pars.ltx <- 
             pars.ltx |>
-            pmtables::stable_long(lt_cap_text=string.caption,lt_cap_label = label.pmtables) 
+            pmtables::stable_long(lt_cap_text=string.caption,lt_cap_label = label.pmtables)
         
         if( format=="latex" && !compile.pdf ) {
             ## create latex code. Don't compile.
 
             if(is.null(file.tex)){
-                res <- pars.ltx |>
-                    paste(collapse="\n") |>
-                    cat()
+                res <- pars.ltx # |>
+                    # paste(collapse="\n") |>
+                    # cat()
             } else {
                 res <- pars.ltx |>
                     paste(collapse="\n") |>
                     NMsim:::writeTextFile(file=file.tex)
             }
 
-            return(invisible(file.tex))
+            return(invisible(res))
         }
         
         if( format=="latex" && compile.pdf && is.null(file.pdf) ){
-            ## Creating pdf in tmp location. 
+            
+## Creating pdf in tmp location. 
             pars.ltx |>
-                pmtables::st2report() 
+                pmtables::st2report()
             ## what to return in this case?
             return(invisible(NULL))
         }
