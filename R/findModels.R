@@ -38,7 +38,7 @@ findModels <- function(dir,pattern=".*.lst$",methods=c("main","bbr"),recursive=F
         bbr <- data.table(mod.main=list.files(
                               path=dir,pattern=pattern.bbr,
                               recursive=recursive,full.names=TRUE))
-## dropping findings of .mod files in main with no associated bbr dir.
+        ## dropping findings of .mod files in main with no associated bbr dir.
         bbr[,dir:=fnExtension(mod.main,"")]
         bbr <- bbr[dir.exists(dir)]
         
