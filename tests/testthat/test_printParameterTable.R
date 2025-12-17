@@ -27,7 +27,9 @@ test_that("pmtables",{
 
     res2
 
-    res2 <- printParameterTable(pars,engine="pmtables",format="pdf",label.pmtables="tab:test")
+    res3 <- printParameterTable(pars,engine="pmtables",format="pdf",label.pmtables="tab:test")
+
+    res4 <- printParameterTable(pars,engine="pmtables",format="testOutput/pmtables_01.pdf",label.pmtables="tab:test")
 
 
 

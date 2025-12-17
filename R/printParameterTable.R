@@ -400,8 +400,10 @@ cnames <- copy(colnames(paramtbl2))
 
             return(invisible(res))
         }
-        
+
+        ### with own setting of temp file.pdf, this should never happen
         if( format=="latex" && compile.pdf && is.null(file.pdf) ){
+            warning("with internal setting of temp file.pdf, this should never happen")
             
 ## Creating pdf in tmp location. 
             pars.ltx |>
@@ -413,10 +415,10 @@ cnames <- copy(colnames(paramtbl2))
         if( format=="latex" && compile.pdf && !is.null(file.pdf) ){
             ## Creating pdf in named location. 
             ## This used to be format=="rmd-pdf"
-
+            
             ## What is being returned?
-            res <- pars.ltx |>
-                pmtables::st2pdf(dir = dirname(file.pdf), stem = fnExtension(basename(file.pdf), ""))
+            res <-
+                pmtables::st2pdf(x=pars.ltx,dir = dirname(file.pdf), stem = fnExtension(basename(file.pdf), ""))
             return(res)
         }
 
