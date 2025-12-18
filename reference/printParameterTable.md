@@ -80,23 +80,23 @@ printParameterTable(pars=pars,format="R")
 #> Model: /home/runner/work/_temp/Library/NMwork/nonmem/xgxr134.lst
 #> 
 #> 
-#> |Parameter  |Label                                   |Est [CV% or Corr%] (RSE%) |95% CI       |Panel    |
-#> |:----------|:---------------------------------------|:-------------------------|:------------|:--------|
-#> |THETA(1)   |log, Absorption rate [1/h]              |0.796 (8.0%)              |[0.67,0.92]  |FixedEff |
-#> |THETA(2)   |log, Central volume [L]                 |4.31 (1.4%)               |[4.2,4.4]    |FixedEff |
-#> |THETA(3)   |log, Clearance [L/h]                    |1.48 (7.9%)               |[1.3,1.7]    |FixedEff |
-#> |THETA(4)   |log, Peripheral volume [L]              |5.07 (4.8%)               |[4.6,5.6]    |FixedEff |
-#> |THETA(5)   |log, Intercomparmental clearance [L/h]  |2.13 (2.9%)               |[2,2.3]      |FixedEff |
-#> |THETA(6)   |log, Age effect on clearance []         |0.341 (42.2%)             |[0.059,0.62] |FixedEff |
-#> |THETA(7)   |log, Body-weight effect on clearance [] |0.188 (191.6%)            |[-0.52,0.9]  |FixedEff |
-#> |THETA(8)   |log, Male effect on clearance []        |1.17 (10.4%)              |[0.93,1.4]   |FixedEff |
-#> |OMEGA(1,1) |                                        |0 (fixed)                 |-            |IIV      |
-#> |OMEGA(2,2) |                                        |0.178 [44%] (17.8%)       |[0.12,0.24]  |IIV      |
-#> |OMEGA(3,3) |                                        |0.24 [52%] (18.5%)        |[0.15,0.33]  |IIV      |
-#> |OMEGA(4,4) |                                        |0 (fixed)                 |-            |IIV      |
-#> |OMEGA(5,5) |                                        |0 (fixed)                 |-            |IIV      |
-#> |SIGMA(1,1) |Prop err                                |0.081 (6.7%)              |[0.07,0.092] |resvar   |
-#> |SIGMA(2,2) |Add err                                 |0 (fixed)                 |-            |resvar   |
+#> |Parameter  |Label                                   |Est [CV% or Corr%] (RSE%) |95% CI        |Panel    |
+#> |:----------|:---------------------------------------|:-------------------------|:-------------|:--------|
+#> |THETA(1)   |log, Absorption rate [1/h]              |0.796 (8.0%)              |[0.67, 0.92]  |FixedEff |
+#> |THETA(2)   |log, Central volume [L]                 |4.31 (1.4%)               |[4.2, 4.4]    |FixedEff |
+#> |THETA(3)   |log, Clearance [L/h]                    |1.48 (7.9%)               |[1.3, 1.7]    |FixedEff |
+#> |THETA(4)   |log, Peripheral volume [L]              |5.07 (4.8%)               |[4.6, 5.6]    |FixedEff |
+#> |THETA(5)   |log, Intercomparmental clearance [L/h]  |2.13 (2.9%)               |[2, 2.3]      |FixedEff |
+#> |THETA(6)   |log, Age effect on clearance []         |0.341 (42.2%)             |[0.059, 0.62] |FixedEff |
+#> |THETA(7)   |log, Body-weight effect on clearance [] |0.188 (191.6%)            |[-0.52, 0.9]  |FixedEff |
+#> |THETA(8)   |log, Male effect on clearance []        |1.17 (10.4%)              |[0.93, 1.4]   |FixedEff |
+#> |OMEGA(1,1) |                                        |0 (fixed)                 |-             |IIV      |
+#> |OMEGA(2,2) |                                        |0.178 [44%] (17.8%)       |[0.12, 0.24]  |IIV      |
+#> |OMEGA(3,3) |                                        |0.24 [52%] (18.5%)        |[0.15, 0.33]  |IIV      |
+#> |OMEGA(4,4) |                                        |0 (fixed)                 |-             |IIV      |
+#> |OMEGA(5,5) |                                        |0 (fixed)                 |-             |IIV      |
+#> |SIGMA(1,1) |Prop err                                |0.081 (6.7%)              |[0.07, 0.092] |resvar   |
+#> |SIGMA(2,2) |Add err                                 |0 (fixed)                 |-             |resvar   |
 printParameterTable(pars=pars,format="rmd")
-#> Error in kable_rmd(x = structure(c("THETA(1)", "THETA(2)", "THETA(3)", "THETA(4)", "THETA(5)", "THETA(6)", "THETA(7)", "THETA(8)", "OMEGA(1,1)", "OMEGA(2,2)", "OMEGA(3,3)", "OMEGA(4,4)", "OMEGA(5,5)", "SIGMA(1,1)", "SIGMA(2,2)", "log, Absorption rate [1/h]", "log, Central volume [L]", "log, Clearance [L/h]", "log, Peripheral volume [L]", "log, Intercomparmental clearance [L/h]", "log, Age effect on clearance []", "log, Body-weight effect on clearance []", "log, Male effect on clearance []", "", "", "", "", "", "Prop err", "Add err", "0.796 (8.0%)", "4.31 (1.4%)", "1.48 (7.9%)", "5.07 (4.8%)", "2.13 (2.9%)", "0.341 (42.2%)", "0.188 (191.6%)", "1.17 (10.4%)", "0 (fixed)", "0.178 [44%] (17.8%)", "0.24 [52%] (18.5%)", "0 (fixed)", "0 (fixed)", "0.081 (6.7%)", "0 (fixed)", "[0.67,0.92]", "[4.2,4.4]", "[1.3,1.7]", "[4.6,5.6]", "[2,2.3]", "[0.059,0.62]", "[-0.52,0.9]", "[0.93,1.4]", "-", "[0.12,0.24]", "[0.15,0.33]", "-", "-", "[0.07,0.092]", "-"), dim = c(15L, 4L), dimnames = list(NULL, c("  ", " ", "Estimate (RSE\\%)\\newline[CV\\% or Corr\\%]", "95\\% Confidence Interval")), align = c("l", "l", "c", "c")),     caption = "Model: xgxr134.", escape = FALSE, booktabs = TRUE): could not find function "kable_rmd"
+#> Error in kable_rmd(x = structure(c("THETA(1)", "THETA(2)", "THETA(3)", "THETA(4)", "THETA(5)", "THETA(6)", "THETA(7)", "THETA(8)", "OMEGA(1,1)", "OMEGA(2,2)", "OMEGA(3,3)", "OMEGA(4,4)", "OMEGA(5,5)", "SIGMA(1,1)", "SIGMA(2,2)", "log, Absorption rate [1/h]", "log, Central volume [L]", "log, Clearance [L/h]", "log, Peripheral volume [L]", "log, Intercomparmental clearance [L/h]", "log, Age effect on clearance []", "log, Body-weight effect on clearance []", "log, Male effect on clearance []", "", "", "", "", "", "Prop err", "Add err", "0.796 (8.0%)", "4.31 (1.4%)", "1.48 (7.9%)", "5.07 (4.8%)", "2.13 (2.9%)", "0.341 (42.2%)", "0.188 (191.6%)", "1.17 (10.4%)", "0 (fixed)", "0.178 [44%] (17.8%)", "0.24 [52%] (18.5%)", "0 (fixed)", "0 (fixed)", "0.081 (6.7%)", "0 (fixed)", "[0.67, 0.92]", "[4.2, 4.4]", "[1.3, 1.7]", "[4.6, 5.6]", "[2, 2.3]", "[0.059, 0.62]", "[-0.52, 0.9]", "[0.93, 1.4]", "-", "[0.12, 0.24]", "[0.15, 0.33]", "-", "-", "[0.07, 0.092]", "-"), dim = c(15L, 4L), dimnames = list(NULL,     c("  ", " ", "Estimate (RSE%)\\newline[CV% or Corr%]", "95% Confidence Interval"    )), align = c("l", "l", "c", "c")), caption = "Model: xgxr134.",     escape = FALSE, booktabs = TRUE): could not find function "kable_rmd"
 ```

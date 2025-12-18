@@ -5,13 +5,7 @@ Create a convenient set of file paths and other info related to a model.
 ## Usage
 
 ``` r
-modelPaths(
-  file,
-  as.dt = FALSE,
-  col.name = "mod",
-  must.exist = FALSE,
-  simplify = TRUE
-)
+modelPaths(file, as.dt = TRUE, must.exist = FALSE, simplify = TRUE)
 ```
 
 ## Arguments
