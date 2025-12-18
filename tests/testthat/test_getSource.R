@@ -10,8 +10,10 @@ test_that("Basic",{
     dtr <- getSource(file=c("hello_world.R"),"testData/scripts/",dir.local="testOutput")
 
     res <- readLines(outfile)
-
+    res <- sub("on ....-..-.. using","",res)
     # expect_equal_to_reference(res,fileRef)
     expect_snapshot_value(res,style="serialize")
-
+    ## testthat::test_file()
+    ##    snapshot_accept(res)
+    ##snapshot_accept('getSource')
 })
