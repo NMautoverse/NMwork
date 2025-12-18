@@ -5,13 +5,7 @@
 \title{Create a convenient set of file paths and other info related to a
 model.}
 \usage{
-modelPaths(
-  file,
-  as.dt = FALSE,
-  col.name = "mod",
-  must.exist = FALSE,
-  simplify = TRUE
-)
+modelPaths(file, as.dt = TRUE, must.exist = FALSE, simplify = TRUE)
 }
 \arguments{
 \item{file}{path to control stream, or almost any other model file}

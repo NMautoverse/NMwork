@@ -21,7 +21,6 @@
 mergeCoal <- function(x,y,by,cols.coal,as.fun){
 
     NMdataDecideOption <- NMdata:::NMdataDecideOption
-    dcastSe <- NMdata:::dcastSe
     
     if(missing(as.fun)) as.fun <- NULL
     as.fun <- NMdataDecideOption("as.fun",as.fun)

@@ -76,10 +76,11 @@ modelPaths <- function(file,as.dt=TRUE,must.exist=FALSE,simplify=TRUE){
        ,label := sub(" */data/","",lst) ][
        ,runno := as.numeric(gsub("[^0-9]+","",run))]
     ## used in function cals
-    lines.mod <- readLines(mod,warn=FALSE)
+    ## lines.mod <- readLines(mod,warn=FALSE)
     ### I think this is just description. I don't understand why it's been called name.
     ### add name from Description field in .mod
-    funName <- function(mod,lines.mod){
+    funName <- function(mod){
+        lines.mod <- readLines(mod,warn=FALSE)
         line.desc <- lines.mod[grepl("^;+ *2. *Description:",lines.mod)]
         line.desc <- sub("^;+ *2. *Description: *","",line.desc)
         ## TODO test. Is assignment forgotten?
@@ -92,6 +93,7 @@ modelPaths <- function(file,as.dt=TRUE,must.exist=FALSE,simplify=TRUE){
     
     
     refName <- function(mod){
+        lines.mod <- readLines(mod,warn=FALSE)
         line.desc <- lines.mod[grepl("^;+ *1. *Based on *:",lines.mod)]
         line.desc <- sub("^;+ *1. *Based on *: *","",line.desc)
         line.desc <- sub(":.*$","",line.desc)
