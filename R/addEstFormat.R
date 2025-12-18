@@ -67,14 +67,14 @@ addEstFormat <- function(pars,rse.cov,source.ci="cov"){
 
 ### confidence intervals
     if(all(cc(CI.l,CI.u)%in%colnames(pars))){
-        pars[,tab.CI:=sprintf("[%s,%s]",signif(CI.l,2),signif(CI.u,2))]
+        pars[,tab.CI:=sprintf("[%s, %s]",signif(CI.l,2),signif(CI.u,2))]
         pars[FIX==1,tab.CI:="-"]
     } else {
         pars[,tab.CI:="-"]
     }
 
     if(all(cc(CI.l.boot,CI.u.boot)%in%colnames(pars))){
-        pars[,tab.CI.boot:=sprintf("[%s,%s]",signif(CI.l.boot,2),signif(CI.u.boot,2))]
+        pars[,tab.CI.boot:=sprintf("[%s, %s]",signif(CI.l.boot,2),signif(CI.u.boot,2))]
         pars[FIX==1,tab.CI.boot:="-"]
     } else {
         pars[,tab.CI.boot:="-"]

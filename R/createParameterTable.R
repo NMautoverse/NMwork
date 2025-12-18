@@ -155,6 +155,7 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,df.repair=NULL,by.r
     if(missing(drop.symbol)) drop.symbol <- NULL
     if(missing(df.labs)) df.labs <- NULL
     if(missing(df.boot)) df.boot <- NULL
+    if(is.character(script)) script <- scriptPaths(script)
 
     if(!is.null(file.lst)){
         if(length(file.lst)>1) {
