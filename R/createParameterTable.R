@@ -153,10 +153,25 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,df.repair=NULL,by.r
     invlogit <- function(x) 1/(1+exp(-x))
 
     if(missing(drop.symbol)) drop.symbol <- NULL
-    if(missing(file.ext)) file.ext <- file.lst
     if(missing(df.labs)) df.labs <- NULL
     if(missing(df.boot)) df.boot <- NULL
-    
+
+    if(!is.null(file.lst)){
+        if(length(file.lst)>1) {
+            args <- NMdata:::getArgs(sys.call(),parent.frame())
+            res <- dtapply(file.lst,function(f){
+                args2 <- args
+                args2$file.lst <- f
+                do.call(createParameterTable,args2)
+            },element.name='file.lst',fill=TRUE,as.fun="data.table")
+            return(res)
+        } else {
+            lines <- readLines(file.lst,warn=FALSE)
+        }
+        
+    }
+   
+    if(missing(file.ext)) file.ext <- file.lst    
 
 ### parameters are assumed to be concistently labeled in $THETA,
 ### $OMEGA and $SIGMA sections
