@@ -71,15 +71,15 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
                          flextable="ft")
     }
 
-    
+    ## avoid pmtables requirement for function/packge    
     if(engine=="pmtables"){
-        ## avoid pmtables requirement for function/packge
         loadres <- requireNamespace("pmtables",quietly=TRUE)
         if(!loadres) {
             message("pmtables not found. Please install pmtables from MPN to use engine=\"pmtables\". Switching to engine=\"kable\".")
             engine <- "kable"
         }
     }
+
 
     compile.pdf <- FALSE
     file.pdf <- NULL
@@ -271,13 +271,6 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         nmbrows[,end:=cumsum(N)]
         paramtbl2 <- select(paramtbl2,-panel.label)
 
-                                        # paramtbl2 <- paramtbl[,.(
-                                        #     "  "=if(format=="latex") parameter.ltx else par.name,
-                                        #     " "=if(format=="latex") tab.lab.ltx else tab.lab ,
-                                        #     "Estimate (RSE\\%)\\newline[CV\\% or Corr\\%]"=
-                                        #         if(format=="latex") tab.est.ltx else tab.est ,
-                                        #     "95\\% Confidence Interval"=CI)]
-
         
 #### configure column justification and sizes. The widths are not automated.
         paramtbl2 <-
@@ -333,27 +326,30 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
 
     if(engine=="flextable"){
 
-                                        # paramtbl2 <- paramtbl[,.(
-                                        #     "  "=par.name,
-                                        #     " "=tab.lab,
-                                        #     "Estimate (RSE%) [CV% or Corr%]"=tab.est,
-                                        #     "95% Confidence Interval"=CI,
-                                        #     panel.label)]
-
         paramtbl2 <- paramtbl2 |>
             dplyr::group_by(panel.label) ## |>
         ## slice(1, 2) |>
         ## select(-panel.label)
         
         ##as_flextable(hide_grouplabel = TRUE)
-        ft <- as_flextable(paramtbl2,hide_grouplabel = TRUE) ##|> autofit()
-
+        ft <- as_flextable(paramtbl2,hide_grouplabel = TRUE) 
         ft <- theme_vanilla(ft)
         ft <- add_footer_lines(ft, footnotes)
         ft <- color(ft, part = "footer", color = "#666666")
         ft <- fontsize(ft, part = "footer", size=10)
         ft <- align(ft, part="footer", align = "left")
         ft <- line_spacing(ft, space = 1, part = "footer")
+        ft <- autofit(ft)
+
+        ## if(format=="docx"){
+        ##     save_as_docx(path=file.out)
+        ## }
+        
+
+        ## flextable::save_as_pptx
+        ## flextable::save_as_html
+        ## flextable::save_as_image
+        
         
         return(ft)
         
@@ -452,3 +448,4 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
 
     }
 }
+
