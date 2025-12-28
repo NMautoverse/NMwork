@@ -61,27 +61,69 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
     if(missing(format)) format <- NULL
 
     if(length(engine)>1) stop("Only one engine can be used at a time")
-    engine <- tolower(NMdata:::cleanSpaces(engine))
-    if (!engine %in% c("kable", "pmtables", "flextable"))
-        stop("engine must be either kable, flextable, or pmtables.")
+
+    dt.conf <- data.table(
+        engine = tolower(NMdata:::cleanSpaces(engine)))
+    if(!dt.conf$engine %in% c("kable","pmtables","flextable")) stop("engine must be either kable, flextable, or pmtables.")
 
     if(is.null(format)){
-        format <- switch(engine,
+        format <- switch(dt.conf$engine,
                          pmtables="latex",
                          kable="r",
                          flextable="ft")
     }
-
+    dt.conf$format <- format
+    rm(format)
+    
     ## avoid pmtables requirement for function/packge    
-    if(engine=="pmtables") {
+    if(dt.conf$engine=="pmtables"){
         loadres <- requireNamespace("pmtables",quietly=TRUE)
         if(!loadres) {
             message("pmtables not found. Please install pmtables from MPN to use engine=\"pmtables\". Switching to engine=\"kable\".")
-            engine <- "kable"
+            dt.conf$engine <- "kable"
         }
     }
 
+    dt.conf[
+       ,format := NMdata:::cleanSpaces(format,double=FALSE)][
+       ,file.out := NA][
+       ,view := FALSE]
+    
+    dt.conf[tolower(NMdata:::cleanSpaces(format))%in%c("tex","latex"),
+            format := "tex"]
 
+    dt.conf[!grepl("\\.",NMdata:::cleanSpaces(format))
+           ,format := tolower(NMdata:::cleanSpaces(format))][
+       ,view := TRUE
+    ]
+    dt.conf[grepl("\\.",NMdata:::cleanSpaces(format)),
+            file.out := format
+            ]
+
+### todo set tempfile for pdf and maybe others.
+#### remember, latex format now called tex
+
+    ### just reuse fprmat as extension to generate file.out
+    if(tolower(NMdata:::cleanSpaces(format)=="pdf") ){
+        file.pdf <- tempfile(fileext=".pdf")
+        format <- "latex"
+        compile.pdf <- TRUE
+        preview.pdf <- TRUE
+    }
+
+### this must happen before any modification of format to not edit a file name    
+    if(tolower(fnExtension(format)=="pdf") ){
+        file.pdf <- format
+        format <- "latex"
+        compile.pdf <- TRUE
+    }
+
+
+    format <- tolower(format)
+    format <- NMdata:::cleanSpaces(format)
+
+
+###### old version, each variable independent
     compile.pdf <- FALSE
     file.pdf <- NULL
     file.tex <- NULL
@@ -98,14 +140,19 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         format <- "latex"
         compile.pdf <- FALSE
     }
+<<<<<<< HEAD
     
     if(tolower(NMdata:::cleanSpaces(format)=="pdf") ) {
+=======
+
+    if(tolower(NMdata:::cleanSpaces(format)=="pdf") ){
+>>>>>>> f2174a5ba68b52495086ecde345521d9b31a7e6b
         file.pdf <- tempfile(fileext=".pdf")
         format <- "latex"
         compile.pdf <- TRUE
         preview.pdf <- TRUE
     }
-    
+
 ### this must happen before any modification of format to not edit a file name    
     if(tolower(fnExtension(format)=="pdf") ){
         file.pdf <- format
@@ -169,7 +216,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         }
     }
 
-    
+
     chars.fnotes <-
         sapply(1:10,function(x)paste(rep(x="*",x),collapse=""))
     paramtbl[par.type=="THETA"&trans%in%c("log","logit"),trans.fnchar:=chars.fnotes[.GRP],by=trans]
@@ -182,11 +229,11 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
              parameter:=paste0(parameter,trans.fnchar)]
     paramtbl[par.type=="THETA"&trans%in%c("log","logit"),
              par.name:=paste0(par.name,trans.fnchar)]
-    
+
 
     footnotes.trans <- unique(paramtbl[!is.na(trans.fnchar)],by="trans")[,
                                                                          sprintf("%s Parameter was estimated in the %s domain. Estimate and CI presented on physiological scale.",trans.fnchar,trans)]
-    
+
     footnotes <- c(footnotes,
                    footnotes.trans,
                    "CI: Confidence Interval based on Nonmem Covariance step.",
@@ -246,7 +293,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
             colnames(paramtbl2) <- cnames
         }
     }
-    
+
 
     if(engine=="kable"){
 ### not sure what formats are supported. At least latex, and html.
