@@ -43,7 +43,7 @@
 
 ## TODO sorting should be handled independently of engine
 
-printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script=NULL,file.mod,include,include.pattern,drop,drop.pattern,include.fix,caption,ci.boot,ci="cov",rse.cov=TRUE,label.pmtables){
+printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script=NULL,file.mod,include,include.pattern,drop,drop.pattern,include.fix,caption,ci.boot,ci="cov",rse.cov=TRUE,label.pmtables) {
 
     if(missing(drop)) drop <- NULL
     if(missing(drop.pattern)) drop.pattern <- NULL
@@ -62,7 +62,8 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
 
     if(length(engine)>1) stop("Only one engine can be used at a time")
     engine <- tolower(NMdata:::cleanSpaces(engine))
-    if(!engine %in% c("kable","pmtables","flextable")) stop("engine must be either kable, flextable, or pmtables.")
+    if (!engine %in% c("kable", "pmtables", "flextable"))
+        stop("engine must be either kable, flextable, or pmtables.")
 
     if(is.null(format)){
         format <- switch(engine,
@@ -72,7 +73,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
     }
 
     ## avoid pmtables requirement for function/packge    
-    if(engine=="pmtables"){
+    if(engine=="pmtables") {
         loadres <- requireNamespace("pmtables",quietly=TRUE)
         if(!loadres) {
             message("pmtables not found. Please install pmtables from MPN to use engine=\"pmtables\". Switching to engine=\"kable\".")
@@ -92,13 +93,13 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         compile.pdf <- FALSE
     }
 ### this must happen before any modification of format to not edit a file name    
-    if(tolower(fnExtension(format)=="tex") ){
+    if(tolower(fnExtension(format)=="tex") ) {
         file.tex <- format
         format <- "latex"
         compile.pdf <- FALSE
     }
     
-    if(tolower(NMdata:::cleanSpaces(format)=="pdf") ){
+    if(tolower(NMdata:::cleanSpaces(format)=="pdf") ) {
         file.pdf <- tempfile(fileext=".pdf")
         format <- "latex"
         compile.pdf <- TRUE
