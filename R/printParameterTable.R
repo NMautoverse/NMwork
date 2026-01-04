@@ -84,99 +84,50 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         }
     }
 
+    
     dt.conf[
        ,format := NMdata:::cleanSpaces(format,double=FALSE)][
-       ,file.out := NA][
+       ,file.out := NA_character_][
        ,view := FALSE]
-    
-    dt.conf[tolower(NMdata:::cleanSpaces(format))%in%c("tex","latex"),
-            format := "tex"]
 
+    
+    
     dt.conf[!grepl("\\.",NMdata:::cleanSpaces(format))
-           ,format := tolower(NMdata:::cleanSpaces(format))][
-       ,view := TRUE
-    ]
+           ,`:=`(format = tolower(NMdata:::cleanSpaces(format)),
+                 view = TRUE)
+            ]
     dt.conf[grepl("\\.",NMdata:::cleanSpaces(format)),
-            file.out := format
+            `:=`(file.out = format,
+                 format=fnExtension(format)
+                 )
             ]
 
-### todo set tempfile for pdf and maybe others.
-#### remember, latex format now called tex
 
-    ### just reuse fprmat as extension to generate file.out
-    if(tolower(NMdata:::cleanSpaces(format)=="pdf") ){
-        file.pdf <- tempfile(fileext=".pdf")
-        format <- "latex"
-        compile.pdf <- TRUE
-        preview.pdf <- TRUE
-    }
+### format :=  code format. For a pdf, it's tex
+### format.out :=  output file format. For a pdf, it's pdf
+    dt.conf[,format.out := format]
+    dt.conf[format=="pdf",format := "tex"]
 
-### this must happen before any modification of format to not edit a file name    
-    if(tolower(fnExtension(format)=="pdf") ){
-        file.pdf <- format
-        format <- "latex"
-        compile.pdf <- TRUE
-    }
+    dt.conf[tolower(NMdata:::cleanSpaces(format))%in%c("tex","latex"),
+            format := "latex"]
+
+    dt.conf[tolower(NMdata:::cleanSpaces(format.out))%in%c("tex","latex"),
+            format.out := "tex"]
+
+### set tempfile for pdf and maybe others.
+    dt.conf[view==TRUE&format.out!="tex",file.out := tempfile(fileext=sprintf(".%s",format.out))]
 
 
-    format <- tolower(format)
-    format <- NMdata:::cleanSpaces(format)
+### from here, only one format and only one file.mod supported
+    if(length(dt.conf$format)>1) stop("Only one format can be specified.")
 
-
-###### old version, each variable independent
-    compile.pdf <- FALSE
-    file.pdf <- NULL
-    file.tex <- NULL
-    preview.pdf <- FALSE
-
-    if(tolower(NMdata:::cleanSpaces(format))%in%c("tex","latex")) {
-### this is currently not supported for kable 
-        format <- "latex"
-        compile.pdf <- FALSE
-    }
-### this must happen before any modification of format to not edit a file name    
-    if(tolower(fnExtension(format)=="tex") ) {
-        file.tex <- format
-        format <- "latex"
-        compile.pdf <- FALSE
-    }
-<<<<<<< HEAD
-    
-    if(tolower(NMdata:::cleanSpaces(format)=="pdf") ) {
-=======
-
-    if(tolower(NMdata:::cleanSpaces(format)=="pdf") ){
->>>>>>> f2174a5ba68b52495086ecde345521d9b31a7e6b
-        file.pdf <- tempfile(fileext=".pdf")
-        format <- "latex"
-        compile.pdf <- TRUE
-        preview.pdf <- TRUE
-    }
-
-### this must happen before any modification of format to not edit a file name    
-    if(tolower(fnExtension(format)=="pdf") ){
-        file.pdf <- format
-        format <- "latex"
-        compile.pdf <- TRUE
-    }
-
-
-    format <- tolower(format)
-    format <- NMdata:::cleanSpaces(format)
-
-    if(length(format)>1) stop("Only one format can be specified.")
-                                        # if(!format %in% c("r","html","flextable","latex","rmd-pdf","pdf","kable-rmd","kable-rmd-pdf")) {
-                                        #     stop("format must be one of R, flextable, rmd, or a path to a file with extension .pdf.")
-                                        # }
-
-    fixUnder <- ifelse(format%in%c("latex"),
+    fixUnder <- ifelse(dt.conf$format%in%c("latex"),
                        function(x)gsub("\\_","\\\\_",x),
                        identity)
 
     if( !missing(file.mod) && !is.null(file.mod) ){
         model <- modelPaths(file.mod)
     } else if(!is.null(info.source$dataCreate$model)){
-        
         model <- modelPaths(info.source$dataCreate$model)
     }
 
@@ -216,12 +167,11 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         }
     }
 
-
+    ## footnote characters are *, **, *** etc
     chars.fnotes <-
         sapply(1:10,function(x)paste(rep(x="*",x),collapse=""))
     paramtbl[par.type=="THETA"&trans%in%c("log","logit"),trans.fnchar:=chars.fnotes[.GRP],by=trans]
-    ## paramtbl[par.type=="THETA"&trans%in%c("log"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\*\\$",parameter.ltx)]
-                                        # paramtbl[par.type=="THETA"&trans%in%c("log"),parameter.ltx:=sub("\\$ *$","\\{\\}\\^\\*\\$",parameter.ltx)]
+
     paramtbl[,row:=.I]
     paramtbl[par.type=="THETA"&trans%in%c("log","logit"),
              parameter.ltx:=sub("\\$ *$",paste0("\\{\\}\\^\\{",trans.fnchar,"\\}\\$"),parameter.ltx),by=row]
@@ -256,8 +206,8 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
 
     ## sorting must be done on paramtbl from which nmbrows is generated.
     setorder(paramtbl,panel,i,j)
-
-    if(engine=="kable"&&format=="r"){
+    
+    if(dt.conf$engine=="kable"&& dt.conf$format=="r"){
         paramtbl2 <- paramtbl[,.(
             "Parameter"=par.name,
             "Label"=tab.lab,
@@ -279,26 +229,26 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
             panel.label)]
         
         paramtbl2 <- paramtbl[,.(
-            "  "=if(format=="latex") parameter.ltx else par.name,
-            " "=if(format=="latex") tab.lab.ltx else tab.lab ,
+            "  "=if(dt.conf$format=="latex") parameter.ltx else par.name,
+            " "=if(dt.conf$format=="latex") tab.lab.ltx else tab.lab ,
             "Estimate (RSE%)\\newline[CV% or Corr%]"=
-                if(format=="latex") tab.est.ltx else tab.est ,
+                if(dt.conf$format=="latex") tab.est.ltx else tab.est ,
             "95% Confidence Interval"=CI,
             panel.label)]
 
-        if(format=="latex"){
+        if(dt.conf$format=="latex"){
             ## colnames(paramtbl2) <- latexify(colnames(paramtbl2))
             cnames <- copy(colnames(paramtbl2))
-            cnames[grepl("^ *$",cnames)] <- latexify(cnames[grepl("^ *$",cnames)])
+            cnames[!grepl("^ *$",cnames)] <- latexify(cnames[!grepl("^ *$",cnames)])
             colnames(paramtbl2) <- cnames
         }
     }
 
 
-    if(engine=="kable"){
+    if(dt.conf$engine=="kable"){
 ### not sure what formats are supported. At least latex, and html.
 
-        if(format=="r"){
+        if (dt.conf$format=="r"){
                                         # paramtbl2 <- paramtbl[,.(
                                         #     "Parameter"=par.name,
                                         #     "Label"=tab.lab,
@@ -311,8 +261,9 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
             return(
                 kable(paramtbl2,format="pipe")
             )
+            
         }
-
+        
         ##
         nmbrows <- paramtbl2[,.N,keyby=.(panel.label)]
         nmbrows[,start:=cumsum(shift(N,1,fill=0))+1]
@@ -325,7 +276,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
             paramtbl2 |>
             knitr::kable(
                        ## format = "latex",
-                       format = format,
+                       format = dt.conf$format, 
                        align = paste0("ll",paste(rep("c",times=(ncol(paramtbl2)-2)),collapse = "")),
                        caption = string.caption,
                        ## longtable=T,
@@ -348,32 +299,32 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         pars.ltx <- paramtbl2 |>
             add_footnote(label=footnotes,notation="none",escape=FALSE)
 
-        if(!compile.pdf) {
-            if(is.null(file.tex)){
+        
+### this is for format==latex
+        if(dt.conf$format.out=="tex"){
+            if(is.na(dt.conf$file.out)) {
                 return(pars.ltx)
             } else {
-                NMsim:::writeTextFile(pars.ltx,file=file.tex)
-                return(invisible(file.tex))
+                NMsim:::writeTextFile(pars.ltx,file=dt.conf$file.out)
+                return(invisible(dt.conf$file.out))
             }
-
-
         }
 
-        if(compile.pdf){
+        if(dt.conf$format.out=="pdf"){
                                         # if(is.null(file.pdf)) file.pdf <- tempfile(fileext=".pdf")
             ## "\\usepackage[margin=1in]{geometry}",
-            latexStandAlone(pars.ltx,file.pdf=file.pdf,
+            latexStandAlone(pars.ltx,file.pdf=dt.conf$file.out,
                             usepackage=cc("geometry:margin=1in",
                                           booktabs,float,tabu,longtable
                                           ))
-            if(preview.pdf) file_show(file.pdf)
+            if(dt.conf$view) file_show(dt.conf$file.out)
             ## return path to output?
-            return(file.pdf)
+            return(dt.conf$file.out)
         }
     }
 
-    if(engine=="flextable"){
-
+    if(dt.conf$engine=="flextable"){
+        
         paramtbl2 <- paramtbl2 |>
             dplyr::group_by(panel.label) ## |>
         ## slice(1, 2) |>
@@ -389,50 +340,52 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         ft <- line_spacing(ft, space = 1, part = "footer")
         ft <- autofit(ft)
 
-        ## if(format=="docx"){
-        ##     save_as_docx(path=file.out)
+        
+
+        ## if(dt.conf$format=="docx"){
+        ##     save_as_docx(path=dt.conf$file.out)
         ## }
         
+        ## if(dt.conf$format=="png"){
+        ##     save_as_docx(path=dt.conf$file.out)
+        ## }
+        
+        if(!is.na(dt.conf$file.out)){
+            res <- switch(dt.conf$format,
+                          docx=save_as_docx(ft,path=dt.conf$file.out),
+                          html=save_as_html(ft,path=dt.conf$file.out),
+                          png=save_as_image(ft,path=dt.conf$file.out),
+                          pptx=save_as_pptx(ft,path=dt.conf$file.out)
+                          )
+            
+        }
+
+        if(dt.conf$view){
+            print(ft)
+        } else {
+            return(dt.conf$file.out)
+        }  
 
         ## flextable::save_as_pptx
         ## flextable::save_as_html
         ## flextable::save_as_image
         
         
-        return(ft)
+
+
+        return(invisible(ft))
         
     }
 
 
-    if(engine=="pmtables"){
+    if(dt.conf$engine=="pmtables"){
         ## formats: latex, pdf, latex-pdf?
 
         loadres <- requireNamespace("pmtables",quietly=TRUE)
         if(!loadres) {
             stop("to use the pmtables format, pmtables must be installed. Find it on MPN.")
         }
-
         
-                                        # paramtbl2 <-
-                                        #     paramtbl |>
-                                        #     dplyr::select(par.type, panel.label, i, j, parameter.ltx, tab.lab.ltx, tab.est.ltx, CI) |>
-                                        #     dplyr::arrange(panel.label, i, j) |>
-                                        #     dplyr::transmute(panel.label, parameter.ltx, tab.lab.ltx, tab.est.ltx, CI) |>
-                                        #     dplyr::mutate(rows.group = 1:dplyr::n(),.by=tab.lab.ltx) |>
-                                        #     dplyr::filter(rows.group==1) |>
-                                        #     dplyr::select(-rows.group)
-        
-        ## pars.ltx = 
-        ##     paramtbl2 |>
-        ##     pmtables::st_new() |>
-        ##     pmtables::st_panel("panel.label") |>
-        ##     ## tab.lab.ltx is " "
-        ##     pmtables::st_center(" "= pmtables::col_ragged(6.5)) 
-                                        # pmtables::st_blank("parameter.ltx","tab.lab.ltx") |>
-                                        # pmtables::st_rename("Estimate (RSE\\%)...[CV\\% or Corr\\%]" = "tab.est.ltx",
-                                        #                     "95\\% Confidence Interval" = "CI") 
-        ##setnames(old=c("tab.est.ltx","CI"),c("Estimate (RSE\\%)...[CV\\% or Corr\\%]","95\\% Confidence Interval"))
-
         pars.ltx = 
             paramtbl1 |>
             pmtables::st_new() |>
@@ -456,41 +409,31 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
             pars.ltx |>
             pmtables::stable_long(lt_cap_text=string.caption,lt_cap_label = label.pmtables)
         
-        if( format=="latex" && !compile.pdf ) {
+        if( dt.conf$format.out=="tex") {
             ## create latex code. Don't compile.
-
-            if(is.null(file.tex)){
+            
+            if(is.na(dt.conf$file.out)){
                 res <- pars.ltx # |>
                                         # paste(collapse="\n") |>
                                         # cat()
             } else {
                 res <- pars.ltx |>
                     paste(collapse="\n") |>
-                    NMsim:::writeTextFile(file=file.tex)
+                    NMsim:::writeTextFile(file=dt.conf$file.out)
             }
 
             return(invisible(res))
         }
 
-### with own setting of temp file.pdf, this should never happen
-        if( format=="latex" && compile.pdf && is.null(file.pdf) ){
-            warning("with internal setting of temp file.pdf, this should never happen")
-            
-            ## Creating pdf in tmp location. 
-            pars.ltx |>
-                pmtables::st2report()
-            ## what to return in this case?
-            return(invisible(NULL))
-        }
 
-        if( format=="latex" && compile.pdf && !is.null(file.pdf) ){
+        if( dt.conf$format.out=="pdf" ){
             ## Creating pdf in named location. 
             ## This used to be format=="rmd-pdf"
             
             ## What is being returned?
             res <-
-                pmtables::st2pdf(x=pars.ltx,dir = dirname(file.pdf), stem = fnExtension(basename(file.pdf), ""))
-            if(preview.pdf) file_show(file.pdf)
+                pmtables::st2pdf(x=pars.ltx,dir = dirname(dt.conf$file.out), stem = fnExtension(basename(dt.conf$file.out), ""))
+            if(dt.conf$view) file_show(dt.conf$file.out)
             return(res)
         }
 

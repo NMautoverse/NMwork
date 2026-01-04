@@ -3,7 +3,8 @@ test_that("kable",{
     file.mod <- "testData/nonmem/xgxr134.mod"
     pars <- createParameterTable(file.mod)
 
-    
+    printParameterTable(pars,engine="kable")
+
     res1 <- printParameterTable(pars,engine="kable",format="tex")
 
     res1
@@ -11,10 +12,19 @@ test_that("kable",{
     res2 <- printParameterTable(pars,engine="kable",format="testOutput/myfile.tex")
     res2
 
+    ## view. Path returned.
+    res3 <- printParameterTable(pars,engine="kable",format="pdf")
+    res3
+
+    ## for pdf or .pdf, rewrite format to tex
+    res4 <- printParameterTable(pars,engine="kable",format="testOutput/myfile.pdf")
+    res4
+
 })
 
-test_that("pmtables",{
+## todo test script? Or does test_createParameterTable do that?
 
+test_that("pmtables",{
 
     file.mod <- "testData/nonmem/xgxr134.mod"
     pars <- createParameterTable(file.mod,script="/data/home/philipde/wdirs/NMwork/tests/testthat/test_printParameterTable.R")
@@ -31,9 +41,6 @@ test_that("pmtables",{
     res3
     fs::file_show(res3)
 
-    printParameterTable(pars,engine="pmtables",format="pdf",label.pmtables="tab:test")
-    
-
     res4 <- printParameterTable(pars,engine="pmtables",format="testOutput/pmtables_01.pdf",label.pmtables="tab:test")
     res4
     file_show(res4)
@@ -41,4 +48,21 @@ test_that("pmtables",{
 
     res5 <- printParameterTable(pars,engine="pmtables",format="testOutput/pmtables_01.pdf",label.pmtables="tab:test",script="myscript.R")
     file_show(res5)
+})
+
+
+####### flextable
+test_that("pmtables",{
+
+    file.mod <- "testData/nonmem/xgxr134.mod"
+    pars <- createParameterTable(file.mod,script="/data/home/philipde/wdirs/NMwork/tests/testthat/test_printParameterTable.R")
+
+    
+        res0 <- printParameterTable(pars,engine="flextable")
+        res0
+        
+
+res1 <- printParameterTable(pars,engine="flextable",format="testOutput/flextable_01.png")
+    res1
+
 })
