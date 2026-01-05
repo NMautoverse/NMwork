@@ -52,17 +52,27 @@ test_that("pmtables",{
 
 
 ####### flextable
-test_that("pmtables",{
+test_that("flextable",{
 
     file.mod <- "testData/nonmem/xgxr134.mod"
     pars <- createParameterTable(file.mod,script="/data/home/philipde/wdirs/NMwork/tests/testthat/test_printParameterTable.R")
 
+#### todo: \newline should not be included in flextable
+    res0 <- printParameterTable(pars,engine="flextable")
+    res0
     
-        res0 <- printParameterTable(pars,engine="flextable")
-        res0
-        
 
-res1 <- printParameterTable(pars,engine="flextable",format="testOutput/flextable_01.png")
+    res1 <- printParameterTable(pars,engine="flextable",format="testOutput/flextable_01.png")
     res1
+
+    res2 <- printParameterTable(pars,engine="flextable",format="testOutput/flextable_01.docx")
+    res2
+
+    res3 <- printParameterTable(pars,engine="flextable",format="testOutput/flextable_01.pptx")
+    res3
+
+    res4 <- printParameterTable(pars,engine="flextable",format="testOutput/flextable_01.html")
+    res4
+
 
 })
