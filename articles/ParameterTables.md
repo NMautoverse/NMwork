@@ -52,10 +52,6 @@ Provided that step 1. is done informatively, step 2 is fully wrapped
 into step 3. This means, you can end up with as simple a workflow as
 this
 
-[TABLE]
-
-Model: xgxr134.
-
 ``` r
 file.mod <- system.file("nonmem/xgxr134.mod",package="NMwork")
 partab <- createParameterTable(file.mod)
@@ -258,10 +254,6 @@ createParameterTable(file.mod,df.labs=dt.labs) |>
     printParameterTable(format="html")
 ```
 
-[TABLE]
-
-Model: xgxr134.
-
 A function to consider for automated detection of relationship between
 parameters and Nonmem variables (like what is called `symbol` above) is
 [`NMdata::NMrelate()`](https://nmautoverse.github.io/NMdata/reference/NMrelate.html).
@@ -359,10 +351,6 @@ And the parameter table becomes
 createParameterTable(file.lst=file.mod.b,df.labs=df.labs.b) |>
     printParameterTable(format="html")
 ```
-
-[TABLE]
-
-Model: xgxr134b.
 
 ## Printing the Parameter Table (`printParameterTable()`)
 

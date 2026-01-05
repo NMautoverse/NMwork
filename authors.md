@@ -11,13 +11,13 @@
 Source:
 [`DESCRIPTION`](https://github.com/nmautoverse/NMwork/blob/main/DESCRIPTION)
 
-Delff P (2025). *NMwork: Seamless 'Nonmem' Simulation Platform*. R
-package version 0.0.0.908, <https://nmautoverse.github.io/NMwork/>.
+Delff P (2026). *NMwork: Seamless 'Nonmem' Simulation Platform*. R
+package version 0.0.0.911, <https://nmautoverse.github.io/NMwork/>.
 
     @Manual{,
       title = {NMwork: Seamless 'Nonmem' Simulation Platform},
       author = {Philip Delff},
-      year = {2025},
-      note = {R package version 0.0.0.908},
+      year = {2026},
+      note = {R package version 0.0.0.911},
       url = {https://nmautoverse.github.io/NMwork/},
     }
