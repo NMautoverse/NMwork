@@ -45,7 +45,8 @@ plotCorrelationHeatmap <- function(
   # tableno = "max"
 
   # can only plot one matrix/table at a time, so if returned more than one, take the first element of the list
-  cormat = read_cor_mat(file.lst = file.lst, tableno = tableno)
+  # cormat = read_cor_mat(file.lst = file.lst, tableno = tableno)
+  cormat = NMdata::NMreadCov(file = NMdata::fnExtension(file.lst, ".cor"), tableno = tableno, auto.ext=FALSE)
   ext = NMdata::NMreadExt(file.lst, return = "pars", tableno=tableno)
     # read_ext_tables(file.lst = file.lst, tableno = tableno)[[1]]
   
