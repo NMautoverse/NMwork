@@ -4,7 +4,15 @@
 ##' @param engine "kable", "pmtables" or "flextable".
 ##' @param format A format like "tex" or "pdf" for a preview or a file name for
 ##'     saving a file. What formats are available depends on `engine`.
-##' @param footnotes 
+##' @param footnotes Additional footnotes to include. Footnotes about theta
+##'     transformations, abbreviations, and source paths will automatically be
+##'     included.
+##' @param script Path to source code to include in source code.
+##' @param file.mod Path to Nonmem control stream. Normally when `pars` was
+##'     created with `createParameterTable()`, this is not needed because `pars`
+##'     will contain this information already. If so, file.mod should only be
+##'     used in cases where modifications to the original parameter table are
+##'     being performed to generate new ones.
 ##' @param include.fix Either a logical or "NotZero". `TRUE` means fixed
 ##'     parameters are not filtered out, `FALSE` means they are filtered out,
 ##'     "NotZero" means they are only kept if not equal to zero.
@@ -16,6 +24,18 @@
 ##'     kept.
 ##' @param drop.pattern A regular expression run on the `symbol` column. What
 ##'     matches will be dropped.
+##' @param include.fix Either a logical or "NotZero". `TRUE` means fixed
+##'     parameters are not filtered out, `FALSE` means they are filtered out,
+##'     "NotZero" means they are only kept if not equal to zero.
+##' @param caption If supplied, this text will be added to a simple model naming
+##'     string, based on the `file.mod` file name.
+##' @param ci The default ("cov") is to attempt to extract parameter estimation
+##'     uncertainty from a succesful covariate step. To use a bootstrap estimate
+##'     instead,
+##' @param rse.cov Include relative standard error estimate based on covariate
+##'     step? Default is TRUE if source=="cov" and FALSE if not.
+##' @param label.pmtables If `engine=="pmtables"`, a latex label is needed. Like
+##'     label.pmtables="tab:myfirsttable".
 ##' @details kable: for rmd and rmd-latex: can't get longtable to work with
 ##'     footnotes. Currently not using footnotes.
 ##'
@@ -37,17 +57,11 @@
 ##' @importFrom dplyr group_by
 ##' @export
 
-
-
-### TODO This selection can be done once independently of engine. Column names can be translated using latexify as needed.
-
 ## TODO make selection dependent on boot/cov
 
 ## TODO column names dependent on rse.cov
 
-## TODO sorting should be handled independently of engine
-
-printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script=NULL,file.mod,include,include.pattern,drop,drop.pattern,include.fix,caption,ci.boot,ci="cov",rse.cov=TRUE,label.pmtables) {
+printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script=NULL,file.mod,include,include.pattern,drop,drop.pattern,include.fix,caption,ci="cov",rse.cov=TRUE,label.pmtables) {
 
     if(missing(drop)) drop <- NULL
     if(missing(drop.pattern)) drop.pattern <- NULL
@@ -60,7 +74,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
     info.source <- NMinfo(partab)
     model <- NULL
 
-    ### only one format at a time supported
+### only one format at a time supported
     
     if(missing(format)) format <- NULL
 
@@ -107,8 +121,8 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
             ]
 
 
-    ### format :=  code format. For a pdf, it's tex
-    ### format.out :=  output file format. For a pdf, it's pdf
+### format :=  code format. For a pdf, it's tex
+### format.out :=  output file format. For a pdf, it's pdf
     dt.conf[,format.out := format]
     dt.conf[format=="pdf",format := "tex"]
 
@@ -121,11 +135,11 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
     dt.conf[tolower(NMdata:::cleanSpaces(format.out))%in%c("ft"),
             format.out := "html"]
 
-    ### set tempfile for pdf and maybe others.
+### set tempfile for pdf and maybe others.
     dt.conf[view==TRUE&format.out!="tex",file.out := tempfile(fileext=sprintf(".%s",format.out))]
 
 
-    ### from here, only one format and only one file.mod supported
+### from here, only one format and only one file.mod supported
     if(length(dt.conf$format)>1) stop("Only one format can be specified.")
 
     fixUnder <- ifelse(dt.conf$format%in%c("latex"),
@@ -138,7 +152,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         model <- modelPaths(info.source$dataCreate$model)
     }
 
-    ### this is a header
+### this is a header
     string.caption <- paste0("Model: ",fixUnder(model$run),".")
     if(!missing(caption)){
         string.caption <- paste(paste(caption,collapse=" ")
@@ -148,7 +162,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
     }
 
 
-    ##### subset parameters
+##### subset parameters
     if("symbol" %in% colnames(partab)){
         if( !is.null(drop) ){
             partab <- partab[!symbol%in%drop]
@@ -181,15 +195,15 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
 
     partab[,row:=.I]
     partab[par.type=="THETA"&trans%in%c("log","logit"),
-             parameter.ltx:=sub("\\$ *$",paste0("\\{\\}\\^\\{",trans.fnchar,"\\}\\$"),parameter.ltx),by=row]
+           parameter.ltx:=sub("\\$ *$",paste0("\\{\\}\\^\\{",trans.fnchar,"\\}\\$"),parameter.ltx),by=row]
     partab[par.type=="THETA"&trans%in%c("log","logit"),
-             parameter:=paste0(parameter,trans.fnchar)]
+           parameter:=paste0(parameter,trans.fnchar)]
     partab[par.type=="THETA"&trans%in%c("log","logit"),
-             par.name:=paste0(par.name,trans.fnchar)]
+           par.name:=paste0(par.name,trans.fnchar)]
 
 
     footnotes.trans <- unique(partab[!is.na(trans.fnchar)],by="trans")[,
-                                                                         sprintf("%s Parameter was estimated in the %s domain. Estimate and CI presented on physiological scale.",trans.fnchar,trans)]
+                                                                       sprintf("%s Parameter was estimated in the %s domain. Estimate and CI presented on physiological scale.",trans.fnchar,trans)]
 
     footnotes <- c(footnotes,
                    footnotes.trans,
@@ -204,12 +218,12 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         footnotes <- c(footnotes,sprintf("Model: %s",fixUnder(model$label)))
     }
 
-    ### add columns for reporting
+### add columns for reporting
     partab <- addEstFormat(pars=partab,rse.cov=rse.cov)
     partab[,CI:=switch(ci,
-                         cov=tab.CI,
-                         boot=tab.CI.boot,
-                         none="")]
+                       cov=tab.CI,
+                       boot=tab.CI.boot,
+                       none="")]
 
     ## sorting must be done on partab from which nmbrows is generated.
     setorder(partab,panel,i,j)
@@ -225,8 +239,8 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
 
     } else {
 
-        ### would be better to have one column selection and namoing for kable and
-        ### pmtables. So far partab1 is for pmtables, partab2 is for kable.
+### would be better to have one column selection and namoing for kable and
+### pmtables. So far partab1 is for pmtables, partab2 is for kable.
         
         partab1 <- partab[,.(
             parameter.ltx,
@@ -261,7 +275,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
 
 
     if(dt.conf$engine=="kable"){
-        ### not sure what formats are supported. At least latex, and html.
+### not sure what formats are supported. At least latex, and html.
 
         if (dt.conf$format=="r"){
             
@@ -279,7 +293,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         partab2 <- select(partab2,-panel.label)
 
         
-        #### configure column justification and sizes. The widths are not automated.
+#### configure column justification and sizes. The widths are not automated.
         partab2 <-
             partab2 |>
             knitr::kable(
@@ -289,7 +303,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
                        caption = string.caption,
                        ## longtable=T,
                        booktabs=T, escape=F) |>
-            #col.names = gsub("Description", " ", names(partab))) |>
+                                        #col.names = gsub("Description", " ", names(partab))) |>
             kable_styling(full_width = T,
                           font_size = 7.5,  latex_options = "HOLD_position") |>
             column_spec(1, width="4em")|>
@@ -303,12 +317,12 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
                 nmbrows[I,pack_rows(partab2,panel.label, start, end)]
         }
 
-        ### Footnotes
+### Footnotes
         pars.ltx <- partab2 |>
             add_footnote(label=footnotes,notation="none",escape=FALSE)
 
         
-        ### this is for format==latex
+### this is for format==latex
         if(dt.conf$format.out=="tex"){
             if(is.na(dt.conf$file.out)) {
                 return(pars.ltx)
@@ -319,7 +333,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         }
 
         if(dt.conf$format.out=="pdf"){
-            # if(is.null(file.pdf)) file.pdf <- tempfile(fileext=".pdf")
+                                        # if(is.null(file.pdf)) file.pdf <- tempfile(fileext=".pdf")
             ## "\\usepackage[margin=1in]{geometry}",
             latexStandAlone(pars.ltx,file.pdf=dt.conf$file.out,
                             usepackage=cc("geometry:margin=1in",
@@ -333,6 +347,12 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
 
     if(dt.conf$engine=="flextable"){
         
+        loadres <- requireNamespace("ftExtra",quietly=TRUE)
+        if(!loadres) {
+            message("ftExtra not found. Flextable rows are not grouped with headers according to panel column.")
+        }
+
+
         partab.ft <- partab.ft |>
             dplyr::group_by(panel.label) ## |>
         ## slice(1, 2) |>
@@ -348,7 +368,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         ft <- line_spacing(ft, space = 1, part = "footer")
         ft <- autofit(ft)
 
-                
+        
         if(!is.na(dt.conf$file.out)){
             res <- switch(dt.conf$format.out,
                           docx=save_as_docx(ft,path=dt.conf$file.out),
@@ -363,9 +383,9 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
             print(ft)
         } # else {
         return(dt.conf$file.out)
-        #       }  
+                                        #       }  
 
-        #      return(invisible(ft))
+                                        #      return(invisible(ft))
         
     }
 
@@ -406,8 +426,8 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
             
             if(is.na(dt.conf$file.out)){
                 res <- pars.ltx # |>
-                # paste(collapse="\n") |>
-                # cat()
+                                        # paste(collapse="\n") |>
+                                        # cat()
             } else {
                 res <- pars.ltx |>
                     paste(collapse="\n") |>
