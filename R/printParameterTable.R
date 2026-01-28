@@ -51,7 +51,6 @@
 ##' printParameterTable(pars=pars,format="rmd")
 ##' @import data.table
 ##' @import flextable
-##' @import ftExtra
 ##' @import kableExtra
 ##' @importFrom fs file_show
 ##' @importFrom dplyr group_by
@@ -343,6 +342,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
             ## return path to output?
             return(dt.conf$file.out)
         }
+        return(partab2)
     }
 
     if(dt.conf$engine=="flextable"){

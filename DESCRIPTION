@@ -19,7 +19,6 @@ Imports:
   NMcalc, 
   dplyr, 
   flextable,
-  ftExtra,
   forcats, 
   ggplot2,
   kableExtra,
@@ -54,7 +53,8 @@ Suggests:
 Enhances:
   GGally,
   ggpubr,
-  pmtables
+  pmtables,
+  ftExtra
 Remotes: 
   NMautoverse/NMdata
 Encoding: UTF-8
