@@ -18,7 +18,7 @@ addEstFormat <- function(pars,source.ci="cov",rse.cov){
     if(missing(rse.cov)) rse.cov <- NULL
     if(is.null(rse.cov)) rse.cov <- source.ci=="cov"
 
-
+    
 ### transformed values for reporting
 ### do not transform se or rse
     cols.trans <- intersect(cc(est,CI.l,CI.u,CI.l.boot,CI.u.boot),colnames(pars))
