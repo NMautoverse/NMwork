@@ -131,8 +131,9 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
     dt.conf[tolower(NMdata:::cleanSpaces(format.out))%in%c("tex","latex"),
             format.out := "tex"]
 
-    dt.conf[tolower(NMdata:::cleanSpaces(format.out))%in%c("ft"),
-            format.out := "html"]
+    ## I don't remember where this is coming from. If format="ft", let's return the flextable object.
+## dt.conf[tolower(NMdata:::cleanSpaces(format.out))%in%c("ft"),
+    ##         format.out := "html"]
 
 ### set tempfile for pdf and maybe others.
     dt.conf[view==TRUE&format.out!="tex",file.out := tempfile(fileext=sprintf(".%s",format.out))]
@@ -379,13 +380,14 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
             
         }
 
-        if(dt.conf$view){
-            print(ft)
-        } # else {
-        return(dt.conf$file.out)
-                                        #       }  
 
-                                        #      return(invisible(ft))
+
+        if(dt.conf$view){
+            return(ft)
+        } # else {
+        if(dt.conf$format=="ft") return(ft)
+        return(dt.conf$file.out)
+        ##      return(invisible(ft))
         
     }
 
@@ -427,14 +429,14 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
             if(is.na(dt.conf$file.out)){
                 res <- pars.ltx # |>
                                         # paste(collapse="\n") |>
-                                        # cat()
+                ##cat(res,collapse="\n")
             } else {
                 res <- pars.ltx |>
                     paste(collapse="\n") |>
                     NMsim:::writeTextFile(file=dt.conf$file.out)
             }
 
-            return(invisible(res))
+            return(res)
         }
 
 
