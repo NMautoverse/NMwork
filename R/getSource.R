@@ -18,7 +18,7 @@
 ##' @return None. Sources the specified file into the global environment.
 ##' @export
 
-getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.directly=FALSE,quiet=F){
+getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.directly=FALSE,quiet=T){
 
     filePathSimple <- NMdata:::filePathSimple
     
