@@ -3,7 +3,9 @@
 ##'     `NMwork::createParameterTable()`.
 ##' @param engine "kable", "pmtables" or "flextable".
 ##' @param format A format like "tex" or "pdf" for a preview or a file name for
-##'     saving a file. What formats are available depends on `engine`.
+##'   saving a file. What formats are available depends on `engine`.
+##'   `format="stable"` will output a pmtables `stable` object which can be
+##'   further customized within an R script
 ##' @param footnotes Additional footnotes to include. Footnotes about theta
 ##'     transformations, abbreviations, and source paths will automatically be
 ##'     included.
@@ -417,19 +419,20 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
         ##             st_notes(paste0("Model: ", model$mod)) |>
         pars.ltx <- pars.ltx |> pmtables::st_noteconf(type = "minipage", width = 1) 
 
-        pars.ltx <- 
-            pars.ltx |>
-            pmtables::stable_long(lt_cap_text=string.caption,lt_cap_label = label.pmtables)
+        # Suggest moving this to the "format.out="tex"" section so we can output an stable object which can be further customized
+        # pars.ltx <- 
+        #     pars.ltx |>
+        #     pmtables::stable_long(lt_cap_text=string.caption,lt_cap_label = label.pmtables)
         
         if( dt.conf$format.out=="tex") {
             ## create latex code. Don't compile.
             
             if(is.na(dt.conf$file.out)){
-                res <- pars.ltx # |>
-                                        # paste(collapse="\n") |>
-                                        # cat()
+                res <- pars.ltx |>
+                    pmtables::stable_long(lt_cap_text=string.caption,lt_cap_label = label.pmtables)
             } else {
                 res <- pars.ltx |>
+                    pmtables::stable_long(lt_cap_text=string.caption,lt_cap_label = label.pmtables) |>
                     paste(collapse="\n") |>
                     NMsim:::writeTextFile(file=dt.conf$file.out)
             }
@@ -443,9 +446,17 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
             ## This used to be format=="rmd-pdf"
             
             ## What is being returned?
-            res <-
+            res <- pars.ltx |>
+                pmtables::stable_long(lt_cap_text=string.caption,lt_cap_label = label.pmtables) %>% 
                 pmtables::st2pdf(x=pars.ltx,dir = dirname(dt.conf$file.out), stem = fnExtension(basename(dt.conf$file.out), ""))
             if(dt.conf$view) file_show(dt.conf$file.out)
+            return(res)
+        }
+        
+        if( dt.conf$format.out=="stable"){
+            # this will not include the caption or label, but it outputs the stable object which can be modified to include those items
+            # this also allows the creation of non-longtables
+            res = pars.ltx
             return(res)
         }
 

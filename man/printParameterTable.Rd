@@ -29,7 +29,9 @@ printParameterTable(
 \item{engine}{"kable", "pmtables" or "flextable".}
 
 \item{format}{A format like "tex" or "pdf" for a preview or a file name for
-saving a file. What formats are available depends on `engine`.}
+saving a file. What formats are available depends on `engine`.
+`format="stable"` will output a pmtables `stable` object which can be
+further customized within an R script}
 
 \item{footnotes}{Additional footnotes to include. Footnotes about theta
 transformations, abbreviations, and source paths will automatically be
