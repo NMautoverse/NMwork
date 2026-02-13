@@ -15,7 +15,7 @@ EtaPairsUpperTriangle =
     # data = etas_time_constant
     # columns = which(colnames(etas_time_constant) %in% names(iiv.etas))
     # color=NULL
-    data <- GGally:::upgrade_scatmat_data(data)
+    data <- stringToFactor(data)
     data.choose <- data[columns]
     # why do  we need to check this again?
     dn <- data.choose[sapply(data.choose, is.numeric)]

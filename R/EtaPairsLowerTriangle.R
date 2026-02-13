@@ -17,7 +17,7 @@ EtaPairsLowerTriangle <-
     # data = etas_time_constant
     # columns = which(colnames(etas_time_constant) %in% names(iiv.etas))
     
-    data <- GGally:::upgrade_scatmat_data(data)
+    data <- stringToFactor(data)
     data.choose <- data[columns]
     dn <- data.choose[sapply(data.choose, is.numeric)]
     factor <- data[sapply(data, is.factor)]
