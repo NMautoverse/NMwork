@@ -13,12 +13,12 @@
 ##'     developing while using a function. Especially if your debugger in the
 ##'     editor is linking to a file that you will edit while debugging. It gives
 ##'     a warning because it is not recommended in final code.
-##' @param silent Disables printning. Mainly used in testing.
+##' @param quiet Disables printning. Mainly used in testing.
 ##' @family FileSystem
 ##' @return None. Sources the specified file into the global environment.
 ##' @export
 
-getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.directly=FALSE,silent=F){
+getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.directly=FALSE,quiet=T){
 
     filePathSimple <- NMdata:::filePathSimple
     
@@ -85,7 +85,7 @@ getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.dir
 
     
     dt.files[ !org.exists==TRUE & !file.exists(dest),do.source:={
-        if (.N>0 & silent == FALSE){
+        if (.N>0 & quiet == FALSE){
             message("No original and no local version have been found. Skipping",file)
         }
         ""
@@ -95,7 +95,7 @@ getSource <- function(file,dir.central=NULL,dir.local,overwrite=FALSE,source.dir
     dt.files[ file.exists(org) &
               (overwrite | !file.exists(dest)),do.source:={
                   ## Copying the latest version of the file
-                  if (silent == FALSE){message("Copying ",file)}
+                  if (quiet == FALSE){message("Copying ",file)}
                   dir.create(dir.local,recursive=TRUE,showWarnings=FALSE)
                   file.copy(from=org,
                             to=dest,overwrite=TRUE)

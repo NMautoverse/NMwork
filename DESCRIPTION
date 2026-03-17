@@ -1,7 +1,7 @@
 Package: NMwork
 Type: Package
 Title: Seamless 'Nonmem' Simulation Platform
-Version: 0.0.0.911
+Version: 0.0.0.912
 Authors@R: c(person("Philip", "Delff", email = "philip@delff.dk",role = c("aut","cre")),
   person("Brian", "Reilly", email = "reilly.brian.m@gmail.com",role = c("ctb")))
 Maintainer: Philip Delff <philip@delff.dk>
@@ -19,7 +19,6 @@ Imports:
   NMcalc, 
   dplyr, 
   flextable,
-  ftExtra,
   forcats, 
   ggplot2,
   kableExtra,
@@ -54,7 +53,8 @@ Suggests:
 Enhances:
   GGally,
   ggpubr,
-  pmtables
+  pmtables,
+  ftExtra
 Remotes: 
   NMautoverse/NMdata
 Encoding: UTF-8

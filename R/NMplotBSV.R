@@ -219,14 +219,15 @@ NMplotBSV <- function(data,regex.eta,names.eta=NULL,parameters=NULL,col.id="ID",
     names.etas.pairs <- as.character(etas.l.pairs[,unique(label)])
     etas.w <- dcast(etas.l.pairs,ID~label,value.var="value")
 
-    loadres <- requireNamespace("GGally",quietly=TRUE)
-    if(loadres) {
-        iiv.pairs <- ggpairs(etas.w,columns=names.etas.pairs,lower=list(continuous=points.and.smooth),title=title)
-        all.output[["iiv.pairs"]]  <- iiv.pairs
-    } else {
-        message("GGally not found. pairs plot not generated.")
-    }
-
+    # loadres <- requireNamespace("GGally",quietly=TRUE)
+    # if(loadres) {
+    #     iiv.pairs <- ggpairs(etas.w,columns=names.etas.pairs,lower=list(continuous=points.and.smooth),title=title)
+    #     all.output[["iiv.pairs"]]  <- iiv.pairs
+    # } else {
+    #     message("GGally not found. pairs plot not generated.")
+    # }
+    iiv.pairs <- PlotEtaPairs(data=as.data.frame(etas.w), columns= which(colnames(etas.w) %in% names.etas.pairs))
+    all.output[["iiv.pairs"]]  <- iiv.pairs
         
     
 #### this is the histograms of non-zeros and with gaussian approximations
