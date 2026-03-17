@@ -72,9 +72,11 @@ newModel <- function(newfile,file.mod,update=TRUE,values,
         
     }
     ##}
-    
+
+       
     newmod <- NMdata::as.NMctl(x=newmod,lines=TRUE)
     ## newmod <- NMsim:::readCtl.character(x=newmod,lines=TRUE)
+
     
     ## newmod is a list
     ## str(newmod)
@@ -130,7 +132,7 @@ newModel <- function(newfile,file.mod,update=TRUE,values,
         return(invisible(modelPaths(newfile)))
     }
     message("returning new control stream text")
-    return(invisible(newModel))
+    return(invisible(newmod))
 }
 
 
