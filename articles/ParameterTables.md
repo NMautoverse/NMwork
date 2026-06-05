@@ -54,9 +54,11 @@ this
 
 [TABLE]
 
-Model: xgxr134.
+Model: xgxr134. {.table .table
+style="font-size: 7.5px; margin-left: auto; margin-right: auto;"}
 
 ``` r
+
 file.mod <- system.file("nonmem/xgxr134.mod",package="NMwork")
 partab <- createParameterTable(file.mod)
 printParameterTable(partab,format="html") 
@@ -184,6 +186,7 @@ finds this automatically.
 collects
 
 ``` r
+
 head(partab,2)
 ```
 
@@ -197,6 +200,7 @@ stream, you can include that format in `createParameterTables()` using
 the `args.ParsText` argument.
 
 ``` r
+
 createParameterTable(file.lst=file.mod,args.ParsText=list(format="%idx - %symbol - %unit",format.omega="%idx-%symbol"))
 ```
 
@@ -227,6 +231,7 @@ prioritizes `df.repair` over the parameter annotations in the control
 stream.
 
 ``` r
+
 df.repair <- data.frame(symbol="WEIGHTCL",label="Bodyweight effect on clearance")
 partab <- createParameterTable(file.mod,df.repair=df.repair,by.repair="symbol") |>
     printParameterTable(format="html")
@@ -250,6 +255,7 @@ of `mergeCoal` or other manual editing, or whatever automated techniques
 the user may have.
 
 ``` r
+
 dt.labs <- NMreadParsText(file.mod)
 df.repair <- data.frame(symbol="WEIGHTCL",label="Bodyweight effect on clearance")
 dt.labs <- NMwork:::mergeCoal(dt.labs,df.repair,by="symbol",as.fun="data.table")
@@ -260,35 +266,37 @@ createParameterTable(file.mod,df.labs=dt.labs) |>
 
 [TABLE]
 
-Model: xgxr134.
+Model: xgxr134. {.table .table
+style="font-size: 7.5px; margin-left: auto; margin-right: auto;"}
 
 A function to consider for automated detection of relationship between
 parameters and Nonmem variables (like what is called `symbol` above) is
 [`NMdata::NMrelate()`](https://nmautoverse.github.io/NMdata/reference/NMrelate.html).
 
 ``` r
+
 NMrelate(file.mod)
 ```
 
-| model   | par.name   | par.type |   i |   j | nrep.LHS | nrep.par | LHS      | label          | code                 | parameter  |
-|:--------|:-----------|:---------|----:|----:|---------:|---------:|:---------|:---------------|:---------------------|:-----------|
-| xgxr134 | THETA(1)   | THETA    |   1 |  NA |        1 |        1 | LTVKA    | LTVKA          | LTVKA=THETA(1)       | THETA1     |
-| xgxr134 | THETA(2)   | THETA    |   2 |  NA |        1 |        1 | LTVV2    | LTVV2          | LTVV2=THETA(2)       | THETA2     |
-| xgxr134 | THETA(3)   | THETA    |   3 |  NA |        1 |        1 | LTVCL    | LTVCL          | LTVCL=THETA(3)       | THETA3     |
-| xgxr134 | THETA(4)   | THETA    |   4 |  NA |        1 |        1 | LTVV3    | LTVV3          | LTVV3=THETA(4)       | THETA4     |
-| xgxr134 | THETA(5)   | THETA    |   5 |  NA |        1 |        1 | LTVQ     | LTVQ           | LTVQ=THETA(5)        | THETA5     |
-| xgxr134 | THETA(6)   | THETA    |   6 |  NA |        1 |        1 | AGECL    | AGECL          | AGECL=THETA(6)       | THETA6     |
-| xgxr134 | THETA(7)   | THETA    |   7 |  NA |        1 |        1 | WEIGHTCL | WEIGHTCL       | WEIGHTCL=THETA(7)    | THETA7     |
-| xgxr134 | THETA(8)   | THETA    |   8 |  NA |        1 |        1 | MALECL   | MALECL         | MALECL=THETA(8)      | THETA8     |
-| xgxr134 | OMEGA(1,1) | OMEGA    |   1 |   1 |        1 |        1 | KA       | KA             | KA=EXP(MU_1+ETA(1))  | OMEGA(1,1) |
-| xgxr134 | OMEGA(2,2) | OMEGA    |   2 |   2 |        1 |        1 | V2       | V2             | V2=EXP(MU_2+ETA(2))  | OMEGA(2,2) |
-| xgxr134 | OMEGA(3,3) | OMEGA    |   3 |   3 |        1 |        1 | CL       | CL             | CL=EXP(MU_3+ETA(3))  | OMEGA(3,3) |
-| xgxr134 | OMEGA(4,4) | OMEGA    |   4 |   4 |        1 |        1 | V3       | V3             | V3=EXP(MU_4+ETA(4))  | OMEGA(4,4) |
-| xgxr134 | OMEGA(5,5) | OMEGA    |   5 |   5 |        1 |        1 | Q        | Q              | Q=EXP(MU_5+ETA(5))   | OMEGA(5,5) |
-| xgxr134 | SIGMA(1,1) | SIGMA    |   1 |   1 |        1 |        2 | SIGP     | SIGP           | SIGP=SIGMA(1,1)      | SIGMA(1,1) |
-| xgxr134 | SIGMA(1,1) | SIGMA    |   1 |   1 |        2 |        2 | Y        | Y - SIGMA(1,1) | Y=F+F\*ERR(1)+ERR(2) | SIGMA(1,1) |
-| xgxr134 | SIGMA(2,2) | SIGMA    |   2 |   2 |        1 |        2 | SIGA     | SIGA           | SIGA=SIGMA(2,2)      | SIGMA(2,2) |
-| xgxr134 | SIGMA(2,2) | SIGMA    |   2 |   2 |        2 |        2 | Y        | Y - SIGMA(2,2) | Y=F+F\*ERR(1)+ERR(2) | SIGMA(2,2) |
+| model | par.name | par.type | i | j | nrep.LHS | nrep.par | LHS | label | code | parameter |
+|:---|:---|:---|---:|---:|---:|---:|:---|:---|:---|:---|
+| xgxr134 | THETA(1) | THETA | 1 | NA | 1 | 1 | LTVKA | LTVKA | LTVKA=THETA(1) | THETA1 |
+| xgxr134 | THETA(2) | THETA | 2 | NA | 1 | 1 | LTVV2 | LTVV2 | LTVV2=THETA(2) | THETA2 |
+| xgxr134 | THETA(3) | THETA | 3 | NA | 1 | 1 | LTVCL | LTVCL | LTVCL=THETA(3) | THETA3 |
+| xgxr134 | THETA(4) | THETA | 4 | NA | 1 | 1 | LTVV3 | LTVV3 | LTVV3=THETA(4) | THETA4 |
+| xgxr134 | THETA(5) | THETA | 5 | NA | 1 | 1 | LTVQ | LTVQ | LTVQ=THETA(5) | THETA5 |
+| xgxr134 | THETA(6) | THETA | 6 | NA | 1 | 1 | AGECL | AGECL | AGECL=THETA(6) | THETA6 |
+| xgxr134 | THETA(7) | THETA | 7 | NA | 1 | 1 | WEIGHTCL | WEIGHTCL | WEIGHTCL=THETA(7) | THETA7 |
+| xgxr134 | THETA(8) | THETA | 8 | NA | 1 | 1 | MALECL | MALECL | MALECL=THETA(8) | THETA8 |
+| xgxr134 | OMEGA(1,1) | OMEGA | 1 | 1 | 1 | 1 | KA | KA | KA=EXP(MU_1+ETA(1)) | OMEGA(1,1) |
+| xgxr134 | OMEGA(2,2) | OMEGA | 2 | 2 | 1 | 1 | V2 | V2 | V2=EXP(MU_2+ETA(2)) | OMEGA(2,2) |
+| xgxr134 | OMEGA(3,3) | OMEGA | 3 | 3 | 1 | 1 | CL | CL | CL=EXP(MU_3+ETA(3)) | OMEGA(3,3) |
+| xgxr134 | OMEGA(4,4) | OMEGA | 4 | 4 | 1 | 1 | V3 | V3 | V3=EXP(MU_4+ETA(4)) | OMEGA(4,4) |
+| xgxr134 | OMEGA(5,5) | OMEGA | 5 | 5 | 1 | 1 | Q | Q | Q=EXP(MU_5+ETA(5)) | OMEGA(5,5) |
+| xgxr134 | SIGMA(1,1) | SIGMA | 1 | 1 | 1 | 2 | SIGP | SIGP | SIGP=SIGMA(1,1) | SIGMA(1,1) |
+| xgxr134 | SIGMA(1,1) | SIGMA | 1 | 1 | 2 | 2 | Y | Y - SIGMA(1,1) | Y=F+F\*ERR(1)+ERR(2) | SIGMA(1,1) |
+| xgxr134 | SIGMA(2,2) | SIGMA | 2 | 2 | 1 | 2 | SIGA | SIGA | SIGA=SIGMA(2,2) | SIGMA(2,2) |
+| xgxr134 | SIGMA(2,2) | SIGMA | 2 | 2 | 2 | 2 | Y | Y - SIGMA(2,2) | Y=F+F\*ERR(1)+ERR(2) | SIGMA(2,2) |
 
 `NMrelate()` looks at the control stream to identify variable
 assignments, shown in the `code` column. The `label` column is an
@@ -323,6 +331,7 @@ to fill these in. The parameter sections in this model look like this:
     $SIGMA 0 FIX  ; SigA - Add err ; addErr
 
 ``` r
+
 df.labs.b <- NMreadParsText(file.mod.b)[par.type!="OMEGA"] |>
     rbind(setnames(NMrelate(file.mod.b)[par.type=="OMEGA"],"label","symbol"),fill=TRUE)
 ```
@@ -332,6 +341,7 @@ Now we filled in the `symbol` column for the `$OMEGA` parameters so
 can label the parameters.
 
 ``` r
+
 df.labs.b[,.(par.type,par.name,symbol,label,unit,trans)]
 ```
 
@@ -356,13 +366,15 @@ df.labs.b[,.(par.type,par.name,symbol,label,unit,trans)]
 And the parameter table becomes
 
 ``` r
+
 createParameterTable(file.lst=file.mod.b,df.labs=df.labs.b) |>
     printParameterTable(format="html")
 ```
 
 [TABLE]
 
-Model: xgxr134b.
+Model: xgxr134b. {.table .table
+style="font-size: 7.5px; margin-left: auto; margin-right: auto;"}
 
 ## Printing the Parameter Table (`printParameterTable()`)
 
@@ -379,14 +391,14 @@ supports use of three “engines” to write tables: `kable`, `pmtables`,
 and `flextable`. Switch between those using the `engine` argument. The
 `format` argument specifies whether pdf, html
 
-| engine          | format   | Description                                                                                                |
-|:----------------|:---------|:-----------------------------------------------------------------------------------------------------------|
-| kable, pmtables | latex    | latex code. Use in .tex/.Rmd or similar files.                                                             |
+| engine | format | Description |
+|:---|:---|:---|
+| kable, pmtables | latex | latex code. Use in .tex/.Rmd or similar files. |
 | kable, pmtables | file.pdf | A path to a standalone pdf file to be generated. Absolute paths may not be supported with pmtables engine. |
-| kable, pmtables | pdf      | A standalone pdf file in a temporary location, intended for interactive use.                               |
-| kable           | R        | A simplified format printed in the R console. For interactive use.                                         |
-| kable           | html     | html code. To be used in html documents                                                                    |
-| flextable       | NA       | NA                                                                                                         |
+| kable, pmtables | pdf | A standalone pdf file in a temporary location, intended for interactive use. |
+| kable | R | A simplified format printed in the R console. For interactive use. |
+| kable | html | html code. To be used in html documents |
+| flextable | NA | NA |
 
 Currently, the `flextable` returns a flextable object which the user can
 save to png, docx, pptx, etc.
@@ -401,6 +413,7 @@ footnotes even for large tables spanning multiple pages. Use
 `engine="flextable"` can be used too.
 
 ``` r
+
 createParameterTable(file.mod) |> 
     printParameterTable(partab,format="latex", engine="pmtables") 
 ```
