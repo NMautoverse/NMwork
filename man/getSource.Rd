@@ -10,7 +10,7 @@ getSource(
   dir.local,
   overwrite = FALSE,
   source.directly = FALSE,
-  silent = F
+  quiet = T
 )
 }
 \arguments{
@@ -29,7 +29,7 @@ developing while using a function. Especially if your debugger in the
 editor is linking to a file that you will edit while debugging. It gives
 a warning because it is not recommended in final code.}
 
-\item{silent}{Disables printning. Mainly used in testing.}
+\item{quiet}{Disables printning. Mainly used in testing.}
 }
 \value{
 None. Sources the specified file into the global environment.

@@ -304,9 +304,9 @@ NMplotBSV <- function(data,regex.eta,names.eta=NULL,parameters=NULL,col.id="ID",
         p.iiv.covsc <- lapply(sets,function(dat){
             if(is.numeric(dat[,val.cov])) dat[,val.cov:=factor(val.cov)]
             ggplot(dat,aes(val.cov,value))+
-                geom_boxplot(outlier.shape=NA,colour="blue")+
+              geom_boxplot(outlier.shape=NA,colour="blue")+
                 geom_hline(yintercept=0,linetype=2) +
-                geom_jitter(height=0,width=.4,alpha=.5)+
+                geom_jitter(height=0,width=.4,alpha=.3)+
                 facet_wrap(~param,scales="free_y")+
                 labs(title=title,x=dat[,unique(variable)],y="Eta")+
                 aes_string(...)

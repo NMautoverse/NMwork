@@ -180,7 +180,7 @@ createParameterTable <- function(file.lst,args.ParsText=NULL,df.repair=NULL,by.r
 ### Off-diagonal elements are automatically identified by NMreadParsText().
     
     pars <- NMreadExt(file=file.ext,as.fun="data.table")
-    
+  
     if(is.null(df.labs)){
         labs <- do.call(NMreadParsText,
                         as.list(c(args.ParsText,file=file.lst,as.fun="data.table"))
@@ -385,7 +385,7 @@ resvar,Residual Error")
 
     
     pars[par.type=="OMEGA"&trans=="normal",tab.lab:=paste(tab.lab,"(additive)")]
-
+  
     ## pars[par.type=="THETA"&panel!="cov"&!is.na(label)&!is.na(symbol),tab.lab:=paste(label,symbol,sep=", ")]
     pars[par.type=="THETA"&!is.na(label)&!is.na(symbol),tab.lab:=paste(label,symbol,sep=", ")]
     pars[!is.na(unit),tab.lab:=sprintf("%s (%s)",ifelse(is.na(tab.lab),NA_character_,tab.lab),unit)]
