@@ -12,7 +12,7 @@ getSource(
   dir.local,
   overwrite = FALSE,
   source.directly = FALSE,
-  silent = F
+  quiet = T
 )
 ```
 
@@ -43,7 +43,7 @@ getSource(
   to a file that you will edit while debugging. It gives a warning
   because it is not recommended in final code.
 
-- silent:
+- quiet:
 
   Disables printning. Mainly used in testing.
 
