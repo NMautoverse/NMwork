@@ -40,6 +40,8 @@
   NMwork:::EtaPairsScatMat() (and NMwork::EtaPairsLowerTriangle), to
   plot a full eta pairs matrix plot. Taken with minimal modifications
   from GGally::ggscatmat().
+- [`addEstFormat()`](https://nmautoverse.github.io/NMwork/reference/addEstFormat.md)
+  : Add formatted columns to a paremeter table
 - [`createParameterTable()`](https://nmautoverse.github.io/NMwork/reference/createParameterTable.md)
   : Create parameter table data.frame using \`NMreadExt()\` and
   \`NMreadParsText()\`
