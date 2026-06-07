@@ -1,4 +1,4 @@
- ## if(F){
+ if(F){
 
   library(devtools)
   unloadNamespace("NMwork")
@@ -8,6 +8,7 @@
   load_all("~/wdirs/NMdata")
   load_all("~/wdirs/NMsim")
   load_all("~/wdirs/NMwork")
+ }
 
 test_that("theta init and fix",{
   
@@ -30,6 +31,8 @@ test_that("theta init and fix",{
 ## 
 
 test_that("fix=TRUE",{
+
+    fileRef <- "testReference/newModel_02.rds"
   
   res0 <- newModel(newfile="testOutput/newModel_01.mod",
                   file.mod="testData/nonmem/xgxr134.mod",
@@ -40,7 +43,24 @@ test_that("fix=TRUE",{
 
   res <- NMreadSection( lines=res0,section="theta")[1]
   
+  expect_snapshot(res,fileRef)
 })
 
-### inits using NMwriteInits() value arg
-values=list( "theta(2)"=list(init=1),FIX=1)
+### 
+## 
+
+test_that("inits using NMwriteInits() values arg",{
+
+    fileRef <- "testReference/newModel_03.rds"
+  
+  res0 <- newModel(newfile="testOutput/newModel_01.mod",
+                  file.mod="testData/nonmem/xgxr134.mod",
+                  inits=list(values=list("theta(1)"=list(init=1,FIX=1))),
+                  write.file=FALSE
+                  )
+
+
+  res <- NMreadSection( lines=res0,section="theta")[1]
+  
+  expect_snapshot(res,fileRef)
+})
