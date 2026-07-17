@@ -57,7 +57,7 @@ addEstFormat <- function(pars,source.ci="cov",rse.cov){
 
     
     ## pars[panel=="OMEGAcorr"&FIX==0,tab.est:=sprintf("%s [%s] (%s)",signif(est,3),tab.corr,tab.rse)]
-    pars[panel=="OMEGA"&i!=j&FIX==0,tab.est:=sprintf("%s [%s]",signif(est,3),tab.corr)]
+    pars[panel=="OMEGAcorr"&i!=j&FIX==0,tab.est:=sprintf("%s [%s]",signif(est,3),tab.corr)]
     if(rse.cov) pars[panel=="OMEGAcorr"&FIX==0,tab.est:=sprintf("%s (%s)",tab.est,tab.rse)]
 
 
