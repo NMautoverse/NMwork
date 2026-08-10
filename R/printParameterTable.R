@@ -254,7 +254,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
             " "=if(dt.conf$format=="latex") tab.lab.ltx else tab.lab ,
             "Estimate (RSE%)\\newline[CV% or Corr%]"=
                 if(dt.conf$format=="latex") tab.est.ltx else tab.est ,
-            "95% Confidence Interval"=CI,
+            "95% Confidence\\newline Interval"=CI,
             panel.label)]
 
         partab.ft <- partab[,.(
@@ -266,10 +266,17 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
 
 
         if(dt.conf$format=="latex"){
-            ## colnames(partab2) <- latexify(colnames(partab2))
-            cnames <- copy(colnames(partab2))
-            cnames[!grepl("^ *$",cnames)] <- latexify(cnames[!grepl("^ *$",cnames)])
-            colnames(partab2) <- cnames
+            ## The multi-line headers are authored with LaTeX markup that must
+            ## survive verbatim because the kable() call below uses escape=FALSE.
+            ## Routing them through latexify() escaped the backslash (\newline ->
+            ## literal "\textbackslash newline") and broke the header layout.
+            ## Derive the LaTeX-ready headers directly from the upstream column
+            ## names so we don't repeat the header text: escape only the literal
+            ## "%" (the \newline markup must stay verbatim). NOTE: do NOT use
+            ## \makecell here -- these are tabu "X" (paragraph) columns and
+            ## \makecell inside a tabu X-cell triggers "Improper \prevdepth" at
+            ## \end{tabu}. A bare \newline breaks the line cleanly in an X column.
+            colnames(partab2) <- gsub("%", "\\\\%", colnames(partab2))
         }
     }
 
@@ -307,7 +314,7 @@ printParameterTable <- function(pars,engine="kable",format,footnotes=NULL,script
             kable_styling(full_width = T,
                           font_size = 7.5,  latex_options = "HOLD_position") |>
             column_spec(1, width="4em")|>
-            column_spec(2, width = "26em") |>
+            column_spec(2, width = "26em")|>
             column_spec(3, width = "12em")
 
         
