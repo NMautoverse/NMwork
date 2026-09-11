@@ -426,10 +426,6 @@ be desired to load the result of that step, and then run
 [`printParameterTable()`](https://nmautoverse.github.io/NMwork/reference/printParameterTable.md).
 In that case
 
-#### If Paths Have Changed
-
-`file.mod`
-
 ### Subsetting Parameters to Print
 
 Notice not all parameters are printed above. The argument `include.fix`
@@ -444,7 +440,3 @@ Also, see additional arguments to control what parameters to include:
 [`printParameterTable()`](https://nmautoverse.github.io/NMwork/reference/printParameterTable.md)
 by default inserts a title with the model name. This can be modified
 through the `caption` argument. Footnotes are also included.
-
-### meta data
-
-`script`
