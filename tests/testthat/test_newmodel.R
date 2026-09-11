@@ -16,7 +16,7 @@ test_that("theta init and fix",{
 
   res0 <- newModel(newfile="testOutput/newModel_01.mod",
                   file.mod="testData/nonmem/xgxr134.mod",
-                  values=list("THETA(1)"=list(init=1,fix=1)),
+                  inits=list("THETA(1)"=list(init=1,fix=1)),
                   write.file=FALSE
                   )
 
@@ -36,7 +36,7 @@ test_that("fix=TRUE",{
   
   res0 <- newModel(newfile="testOutput/newModel_01.mod",
                   file.mod="testData/nonmem/xgxr134.mod",
-                  values=list("THETA(1)"=list(init=1,fix=TRUE)),
+                  inits=list("THETA(1)"=list(init=1,fix=TRUE)),
                   write.file=FALSE
                   )
 

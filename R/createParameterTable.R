@@ -95,7 +95,7 @@
 ##' the transformed parameter (e.g. Clerance when CL=EXP(THETA+...).
 ##'
 ##' On OMEGA's, the lognormal distribut is for
-##' CL=EXP(THETA +ETA) , normal is for additive effects:
+##' CL=EXP(THETA +ETA). Normal is for additive effects:
 ##' PAR=EXP(THETA) + ETA.
 ##' 
 ##' Formatting of CV for OMEGAs

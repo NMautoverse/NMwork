@@ -551,8 +551,8 @@ running `createParameterTable()` may take a little customization, as discussed
 above. Therefore, it may be desired to load the result of that step, and then
 run `printParameterTable()`. In that case
 
-### If Paths Have Changed
-`file.mod`
+<!-- ### If Paths Have Changed -->
+<!-- `file.mod` -->
 
 ## Subsetting Parameters to Print
 Notice not all parameters are printed above. The argument `include.fix` controls
@@ -569,5 +569,5 @@ arguments to control what parameters to include: `include`, `include.pattern`,
 be modified through the `caption` argument. Footnotes are also included.
 
 
-## meta data
-`script`
+<!-- ## meta data -->
+<!-- `script` -->
