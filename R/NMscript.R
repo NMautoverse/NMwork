@@ -29,8 +29,6 @@ NMscript <- function(
     if(missing(stderr_file)) stderr_file <- NULL
     if(missing(file.mod)) file.mod <- " "
     
-                                        #.cmd = glue::glue("Rscript {.script} {.file_mod}")
-
 
 ##### probably apply around model instead of running Rscript on all of model
     ## cmds <- Rscript(script,model,execute=FALSE)
@@ -62,7 +60,6 @@ NMscript <- function(
             if(grepl("^[0-9]",jobname)) {
                 jobname <- paste0("NM",jobname)
             }
-
             
             qsub_cmd = glue::glue('echo "{cmd}" | qsub -cwd -V -N {jobname} -o {stdout_file} -e {stderr_file} -pe orte {nc}')
             message(paste0("qsub cmd:\n", qsub_cmd))

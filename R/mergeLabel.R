@@ -10,9 +10,13 @@
 ##'     sure it should its worth exporting.
 
 
-mergeLabel <- function(pars,tab.label=NULL,by="parameter",col.label="parameter",suffix=NULL){
+mergeLabel <- function(pars,tab.label=NULL,by="parameter",col.label="label",suffix=NULL){
 
-    if(is.null(col.label)) col.label="parameter"
+
+    if(is.null(col.label)) {
+col.lab.options <- c("label","symbol")
+col.label <- col.lab.options[col.lab.options%in%colnames(tab.label)][1]
+}
     col.newlabel <- "label"
     
     if(!is.null(tab.label)){
@@ -27,6 +31,10 @@ mergeLabel <- function(pars,tab.label=NULL,by="parameter",col.label="parameter",
             col.newlabel <- paste(col.newlabel,suffix,sep=".")
         }
         
+      
+             if(length(by)==1 && by==col.label){
+               message("by and col.label are identical. N merge to be done.")
+             } else{
         pars <- mergeCheck(
             pars
            ,
@@ -35,9 +43,9 @@ mergeLabel <- function(pars,tab.label=NULL,by="parameter",col.label="parameter",
             by=by,
             all.x=T,quiet=T,
             as.fun="data.table")
+             }
     }
-
-
+  
     
 ### handling objv. May not be the best place to do this? Maybe this should also be handled in createParameterTable to get both symbol and label. Here, default values can be put in if not already available.
     if("parameter"%in%colnames(pars)){
@@ -51,8 +59,9 @@ mergeLabel <- function(pars,tab.label=NULL,by="parameter",col.label="parameter",
         ## match(c("THETA", "OMEGA","THETA"), c("THETA", "OMEGA", "SIGMA", "OBJ"))
         ## match(c("THETA", "OMEGA", "SIGMA", "OBJ"),c("THETA", "OMEGA","THETA"))
 
-        pars[, match.order := match(par.type, c("THETA", "OMEGA", "SIGMA", "OBJ"))]
-        pars[, label := reorder(get(col.label), frank(pars, match.order, i, j))]
+      pars[, match.order := match(par.type, c("THETA", "OMEGA", "SIGMA", "OBJ"))]
+        ## pars[, label := reorder(get(col.label), frank(pars, match.order, i, j))]
+      pars[,label := reorder2(get(col.label),match.order,i,j)]
         pars[,match.order:=NULL]
 
     }

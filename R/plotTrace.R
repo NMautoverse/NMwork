@@ -19,70 +19,96 @@
 
 plotTrace <- function(file.mod,pars=NULL,label.by="parameter",col.label=NULL,...){
 
-    ## model <- modelPaths(file.mod)
-    
-    ## file.pars.rds <- sprintf("diagnostics/models/%s/partab_full_%s.rds",model$run,model$runno)
-    ## pars <- readRDS(file.pars.rds)
+  ## model <- modelPaths(file.mod)
+  
+  ## file.pars.rds <- sprintf("diagnostics/models/%s/partab_full_%s.rds",model$run,model$runno)
+  ## pars <- readRDS(file.pars.rds)
 
-    iters <- NMreadExt(file=file.mod,return="iterations",as.fun="data.table",...)
-    
+  iters <- NMreadExt(file=file.mod,return="iterations",as.fun="data.table",...)
+  
+  if(FALSE) {
     
     ## ISAMPLE for NONMEM/SAEM setting options. 
     #TODO: this will fail if ISAMPLE preprocessing + burn-in iterations goes below 200 
     #TODO: a better way would be to check if the negative iterations re-start: iters[,ISAMPLE:=ifelse(any(lead(ITERATION)<ITERATION), 1, 0)
+
     iters[, REC := .I]
-    # check for isample activity
-    if (nrow(iters[dplyr::lead(ITERATION) < ITERATION & ITERATION < 0]) > 0) {
-        isample.end = iters[(dplyr::lead(ITERATION) < ITERATION & ITERATION < 0)]
-        isample.start = slice_head(iters, n = 1, by = parameter)
-        isample.remove = inner_join(isample.start[, .(parameter, istart = REC)], 
-                                           isample.end[, .(parameter, iend =  REC)])
-        isample.remove.reduce = map(.x = isample.remove$parameter, function(.x)
-            tibble(
-                parameter = .x,
-                REC = isample.remove[parameter == .x]$istart:isample.remove[parameter == .x]$iend
-            )) %>% list_rbind() %>% as.data.table()
-        # remove ISAMPLE iteration rows from iters.
-        iters = anti_join(iters, isample.remove.reduce)
+
+    # check for isample activity: a negative ITERATION followed by a lower one
+    ## marks the end of an ISAMPLE block
+    isample.end <- iters[shift(ITERATION, type = "lead") < ITERATION & ITERATION < 0,
+                         .(parameter, iend = REC)]
+
+    if (nrow(isample.end) > 0) {
+      ## first row per parameter
+      isample.start <- iters[, .(istart = REC[1]), by = parameter]
+      isample.remove <- isample.start[isample.end, on = "parameter", nomatch = NULL]
+      ## expand each start/end pair into the full range of rows
+      isample.remove.reduce <- isample.remove[, .(REC = istart:iend),
+                                              by = .(parameter, istart, iend)]
+      ## remove ISAMPLE iteration rows from iters
+      iters <- iters[!isample.remove.reduce, on = c("parameter", "REC")]
     }
-    # iters <- iters[ITERATION<(-200)|ITERATION>0]
-    iters[,ITERPLOT:=ITERATION]
-    iters[ITERATION<0,ITERPLOT:=ITERATION-max(ITERATION)-1]
-    iters[ITERATION<0,type.iter:="Burn-in"]
-    iters[ITERATION>=0,type.iter:="SAEM"]
+  }
+
+  
+  ## ISAMPLE (NONMEM/SAEM): negative iterations restarting (next value lower)
+  ## marks the end of an ISAMPLE pre-processing block. Drop all rows up to and
+  ## including the last such restart within each parameter. No threshold on
+  ## the number of iterations is needed.
+  iters[, isample.end := ITERATION < 0 & shift(ITERATION, type = "lead") < ITERATION, by = label.by]
+  iters[is.na(isample.end), isample.end := FALSE]
+  iters <- iters[iters[, rev(cumsum(rev(isample.end))) == 0, by = label.by]$V1]
+  iters[, isample.end := NULL]
 
 
-    ## if(is.null(pars)){
-    ##     iters.plot <- iters
-    ##     iters.plot[,symbol2:=parameter]
-    ## } else {
-    ##     iters <- mergeCheck(iters,pars[,.(parameter,symbol)],by="parameter",all.x=T,quiet=T)
-    ##     iters[,symbol2:=paste(par.name,symbol)]
-    ##     ## not exactly sure about this step
-    ##     iters.plot <- iters[!is.na(symbol)&table.step=="SAEM"]
-    ## }
-    
-    iters <- mergeLabel(iters,tab.label=pars,by=label.by,col.label=col.label)
+  # iters <- iters[ITERATION<(-200)|ITERATION>0]
+  iters[,ITERPLOT:=ITERATION]
+  iters[ITERATION<0,ITERPLOT:=ITERATION-max(ITERATION)-1]
+  iters[ITERATION<0,type.iter:="Burn-in"]
+  iters[ITERATION>=0,type.iter:="SAEM"]
 
-    
-    if("FIX" %in% colnames(iters)) {
-        iters <- iters[FIX!=1]
-    } else {
-        ## selecting parameters with more than one value - i.e. not fixed
-        iters <- merge(iters[,uniqueN(value),by=parameter][V1>1,.(parameter)],iters,all.x=T)
-    }
-    
-    #order by par.type
-    iters[, par.type := factor(par.type, levels = c("THETA", "OMEGA", "SIGMA"))]
-    iters[, label := factor(label, levels = arrange(iters,par.type,i) %>% pull(label) %>% unique())]
-    
-    p1 <- ggplot(iters,
-                 aes(ITERPLOT,value,colour=type.iter))+
-        geom_line()+
-        facet_wrap(~label, scales="free")+
-        labs(x="Iteration",y="",colour="")
 
-        return(list(data=iters,plot=p1))
-    ##return(iters)
+  ## if(is.null(pars)){
+  ##     iters.plot <- iters
+  ##     iters.plot[,symbol2:=parameter]
+  ## } else {
+  ##     iters <- mergeCheck(iters,pars[,.(parameter,symbol)],by="parameter",all.x=T,quiet=T)
+  ##     iters[,symbol2:=paste(par.name,symbol)]
+  ##     ## not exactly sure about this step
+  ##     iters.plot <- iters[!is.na(symbol)&table.step=="SAEM"]
+  ## }
+  
+  
+  iters <- mergeLabel(iters,tab.label=pars,by=label.by,col.label=col.label)
+  ## iters <- mergeLabel(iters,tab.label=pars,by=label.by,col.label="par.name")
+
+  
+  if("FIX" %in% colnames(iters)) {
+    iters <- iters[is.na(FIX)|FIX!=1]
+  } else {
+    ## selecting parameters with more than one value - i.e. not fixed
+    iters <- merge(iters[,uniqueN(value),by=parameter][V1>1,.(parameter)],iters,all.x=T)
+  }
+  
+  
+  #order by par.type
+  ## iters[, par.type := factor(par.type, levels = c("THETA", "OMEGA", "SIGMA"))]
+  ## iters[, label := factor(label, levels = arrange(iters,par.type,i) %>% pull(label) %>% unique())]
+  ##   pars[,label := reorder2(get(col.label),match.order,i,j)]
+
+  iters[, match.order := match(par.type, c("THETA", "OMEGA", "SIGMA", "OBJ"))]
+  iters[,(col.label) := reorder2(get(col.label),match.order,i,j)]
+  iters[,match.order:=NULL]
+
+  
+  p1 <- ggplot(iters,
+               aes(ITERPLOT,value,colour=type.iter))+
+    geom_line()+
+    facet_wrap(col.label, scales="free")+
+    labs(x="Iteration",y="",colour="")
+
+  return(list(data=iters,plot=p1))
+  ##return(iters)
 }
 

@@ -1,6 +1,3 @@
-# EtaPairsScatMat.R
-
-
 ##' Plots Eta pairs scatterplot matrix with lower triangle being a scatterplot,
 ##' diagonal being a density plot, and upper triangle being text of the
 ##' correlation and p-value.  This function takes (1) the time-constant etas
